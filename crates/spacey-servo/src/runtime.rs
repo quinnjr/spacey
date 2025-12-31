@@ -114,14 +114,14 @@ mod tests {
     #[test]
     fn test_dom_stubs() {
         let runtime = SpaceyRuntime::default();
-        
+
         // Test that basic DOM objects exist
         let result = runtime.execute("typeof window;");
         assert!(result.is_ok());
-        
+
         let result = runtime.execute("typeof document;");
         assert!(result.is_ok());
-        
+
         let result = runtime.execute("typeof console;");
         assert!(result.is_ok());
     }

@@ -242,10 +242,10 @@ mod tests {
     fn test_install_bindings() {
         let bindings = DomBindings::new();
         let mut engine = Engine::new();
-        
+
         let result = bindings.install(&mut engine);
         assert!(result.is_ok());
-        
+
         // Verify bindings are installed
         assert!(engine.eval("typeof Window;").is_ok());
         assert!(engine.eval("typeof Document;").is_ok());

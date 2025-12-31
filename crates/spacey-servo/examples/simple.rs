@@ -45,7 +45,7 @@ fn main() {
     println!("\n--- Multiple Operations ---");
     servo.eval("var a = 10;").ok();
     servo.eval("var b = 20;").ok();
-    
+
     match servo.eval("a + b;") {
         Ok(result) => println!("a + b = {}", result),
         Err(e) => println!("Error: {}", e),

@@ -133,11 +133,11 @@ mod tests {
     #[test]
     fn test_multiple_evals() {
         let servo = SpaceyServo::new();
-        
+
         servo.eval("var x = 10;").unwrap();
         servo.eval("var y = 20;").unwrap();
         let result = servo.eval("x + y;");
-        
+
         assert!(result.is_ok());
     }
 }

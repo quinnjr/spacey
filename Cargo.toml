@@ -5,7 +5,7 @@ members = [
     "crates/spacey-spidermonkey",
     "crates/spacey-node",
     "crates/spacey-npm",
-    "crates/spacey-servo",
+    "crates/spacey-servo", "crates/spacey-browser",
 ]
 
 [workspace.package]
@@ -21,7 +21,6 @@ spacey-macros = { path = "crates/spacey-macros" }
 spacey-spidermonkey = { path = "crates/spacey-spidermonkey" }
 spacey-servo = { path = "crates/spacey-servo" }
 tokio = { version = "1.42", features = ["rt-multi-thread", "fs", "sync", "macros"] }
-rayon = "1.10"
 
 [package]
 name = "spacey"

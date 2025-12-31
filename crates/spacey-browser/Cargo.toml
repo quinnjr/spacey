@@ -1,0 +1,40 @@
+[package]
+name = "spacey-browser"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Minimal browser using Spacey JavaScript engine with Servo rendering"
+
+[[bin]]
+name = "spacey-browser"
+path = "src/main.rs"
+
+[dependencies]
+# Spacey components
+spacey-spidermonkey = { workspace = true }
+spacey-servo = { workspace = true }
+raw-window-handle = "0.6"
+
+# HTTP client for fetching pages
+reqwest = { version = "0.12", features = ["blocking"] }
+
+# URL handling
+url = "2.5"
+
+# Async runtime
+tokio = { workspace = true, features = ["full"] }
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+pollster = "0.3"
+html5ever = "0.27"
+markup5ever = "0.12"
+markup5ever_rcdom = "0.3"
+egui = "0.28"
+egui-wgpu = "0.28"
+egui-winit = "0.28"
+winit = "0.29"
+wgpu = "0.20"
