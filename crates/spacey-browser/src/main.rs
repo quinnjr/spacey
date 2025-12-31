@@ -5,6 +5,7 @@
 //! - Basic HTML rendering
 //! - Window management with winit
 //! - GPU rendering with wgpu
+//! - AI-powered browsing assistant (Phi-3)
 
 use std::sync::Arc;
 use winit::{
@@ -13,10 +14,13 @@ use winit::{
     window::WindowBuilder,
 };
 
+mod ai;
+mod ai_ui;
 mod browser;
 mod renderer;
 mod page;
 
+use ai::AgentConfig;
 use browser::Browser;
 
 fn main() {
@@ -25,18 +29,24 @@ fn main() {
     println!("🚀 Starting Spacey Browser...");
     println!("   JavaScript Engine: Spacey");
     println!("   Rendering: Custom (wgpu + egui)");
+    println!("   AI Assistant: Phi-3 (embedded)");
     println!();
 
     let event_loop = EventLoop::new().expect("Failed to create event loop");
     let window = Arc::new(
         WindowBuilder::new()
-            .with_title("Spacey Browser")
-            .with_inner_size(winit::dpi::LogicalSize::new(1024, 768))
+            .with_title("Spacey Browser - AI Powered")
+            .with_inner_size(winit::dpi::LogicalSize::new(1280, 800))
             .build(&event_loop)
             .unwrap(),
     );
 
     let mut browser = Browser::new(window);
+
+    // Initialize AI agent (model will be loaded on demand)
+    if let Err(e) = browser.enable_ai(AgentConfig::default()) {
+        log::warn!("Failed to initialize AI: {}", e);
+    }
 
     let _ = event_loop.run(move |event, elwt| {
         elwt.set_control_flow(ControlFlow::Wait);

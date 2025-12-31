@@ -7,6 +7,10 @@ authors.workspace = true
 repository.workspace = true
 description = "Minimal browser using Spacey JavaScript engine with Servo rendering"
 
+[lib]
+name = "spacey_browser"
+path = "src/lib.rs"
+
 [[bin]]
 name = "spacey-browser"
 path = "src/main.rs"
@@ -38,3 +42,24 @@ egui-wgpu = "0.28"
 egui-winit = "0.28"
 winit = "0.29"
 wgpu = "0.20"
+
+# AI/ML - Candle framework for Phi-3 model
+candle-core = "0.8"
+candle-nn = "0.8"
+candle-transformers = "0.8"
+hf-hub = "0.3"
+tokenizers = "0.20"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Async utilities for AI
+futures = "0.3"
+parking_lot = "0.12"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+
+[features]
+default = []
+cuda = ["candle-core/cuda"]
+metal = ["candle-core/metal"]
