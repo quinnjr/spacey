@@ -1,0 +1,121 @@
+# Build artifacts
+target/
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Lock files (keep package.json but ignore locks for AI context)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+Cargo.lock
+
+# Documentation build artifacts
+docs/.angular/
+docs/dist/
+docs/node_modules/
+
+# Benchmark data
+benchmarks/results/
+*.bench
+
+# Large binary files
+*.wasm
+*.so
+*.dylib
+*.dll
+*.exe
+
+target/
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Lock files (large and auto-generated)
+Cargo.lock
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Test coverage
+coverage/
+*.profraw
+*.profdata
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Angular build artifacts
+.angular/
+website/.angular/
+website/dist/
+
+# Git
+.git/
+
+# Documentation build artifacts
+website/node_modules/
+
+# Large binary files
+*.wasm
+*.so
+*.dylib
+*.dll
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local

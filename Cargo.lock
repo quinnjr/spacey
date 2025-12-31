@@ -2426,6 +2426,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "spacey-servo"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "parking_lot",
+ "spacey-macros",
+ "spacey-spidermonkey",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "spacey-spidermonkey"
 version = "0.1.0"
 dependencies = [

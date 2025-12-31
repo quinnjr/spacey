@@ -1,0 +1,38 @@
+[package]
+name = "spacey-servo"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Servo browser integration with Spacey JavaScript engine"
+
+[dependencies]
+# Spacey JavaScript engine
+spacey-spidermonkey = { workspace = true }
+spacey-macros = { workspace = true }
+
+# Servo components (optional - for future full integration)
+# Note: Servo is modular, we'll use the main components when available
+# servo = { git = "https://github.com/servo/servo", optional = true }
+# servo-script = { git = "https://github.com/servo/servo", package = "script", optional = true }
+# servo-dom = { git = "https://github.com/servo/servo", package = "script_traits", optional = true }
+
+# JS Runtime traits (for implementing the interface Servo expects)
+# js = { version = "0.4", package = "mozjs_sys", optional = true }
+
+# Async runtime
+tokio = { workspace = true }
+
+# Utilities
+log = "0.4"
+tracing = "0.1"
+parking_lot = "0.12"
+
+[features]
+default = []
+# servo-integration = ["servo", "servo-script", "servo-dom", "js"]
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+tracing-subscriber = "0.3"
