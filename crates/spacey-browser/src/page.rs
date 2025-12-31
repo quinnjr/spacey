@@ -9,6 +9,7 @@ pub struct Page {
     title: String,
     content: String,
     dom: RcDom,
+    js_engine: SpaceyServo,
 }
 
 impl Page {
@@ -29,7 +30,14 @@ impl Page {
             title,
             content,
             dom,
+            js_engine: js_engine.clone(),
         }
+    }
+    
+    /// Inject and execute a script in this page's context
+    pub fn inject_script(&self, script: &str) -> Result<(), String> {
+        log::debug!("Injecting script: {} bytes", script.len());
+        self.js_engine.eval(script).map(|_| ())
     }
 
     fn extract_title(dom: &RcDom) -> String {

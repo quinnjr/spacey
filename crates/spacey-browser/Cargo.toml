@@ -22,7 +22,7 @@ spacey-servo = { workspace = true }
 raw-window-handle = "0.6"
 
 # HTTP client for fetching pages
-reqwest = { version = "0.12", features = ["blocking"] }
+reqwest = { version = "0.12", features = ["blocking", "json"] }
 
 # URL handling
 url = "2.5"
@@ -56,8 +56,15 @@ serde_json = "1.0"
 futures = "0.3"
 parking_lot = "0.12"
 
+# Extension system
+zip = "2.1"
+regex = "1.10"
+urlencoding = "2.1"
+dirs = "5.0"
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
+tempfile = "3.10"
 
 [features]
 default = []

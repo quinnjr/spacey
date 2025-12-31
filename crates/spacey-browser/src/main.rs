@@ -6,6 +6,7 @@
 //! - Window management with winit
 //! - GPU rendering with wgpu
 //! - AI-powered browsing assistant (Phi-3)
+//! - Firefox-compatible extension system
 
 use std::sync::Arc;
 use winit::{
@@ -17,6 +18,8 @@ use winit::{
 mod ai;
 mod ai_ui;
 mod browser;
+mod extensions;
+mod extensions_ui;
 mod renderer;
 mod page;
 
