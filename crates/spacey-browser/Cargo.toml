@@ -67,6 +67,7 @@ png = "0.17"
 
 # Steam integration (optional)
 steamworks = { version = "0.11", optional = true }
+hostname = "0.4.2"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
