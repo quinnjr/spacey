@@ -112,7 +112,7 @@ export class SettingsComponent implements OnInit {
     this.aiModel = aiConfig.model || this.getDefaultModel(aiConfig.provider);
     this.aiSettings.enabled = aiConfig.enabled;
     this.aiSettings.localEnabled = aiConfig.localEnabled;
-    
+
     if (aiConfig.apiKey) {
       this.aiApiKey = aiConfig.apiKey;
       this.aiKeyTestStatus = 'valid'; // Assume stored key is valid
@@ -203,7 +203,7 @@ export class SettingsComponent implements OnInit {
 
     this.aiProviderService.setConfig(config);
   }
-  
+
   /**
    * Handle toggling the local model on/off
    */
@@ -220,7 +220,7 @@ export class SettingsComponent implements OnInit {
       }
       // Otherwise stay on local (but it won't work until re-enabled)
     }
-    
+
     // Save the configuration
     this.aiProviderService.setLocalEnabled(this.aiSettings.localEnabled);
     this.saveAiConfig();

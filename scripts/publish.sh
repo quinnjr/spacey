@@ -124,29 +124,29 @@ echo ""
 publish_crate() {
     local crate_path=$1
     local crate_name=$(basename "$crate_path")
-    
+
     # Handle root crate
     if [ "$crate_path" = "." ]; then
         crate_name="spacey"
     fi
-    
+
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${CYAN}📦 Publishing: ${crate_name}${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    
+
     cd "$ROOT_DIR/$crate_path"
-    
+
     # Check if crate is publishable
     if grep -q 'publish = false' Cargo.toml 2>/dev/null; then
         echo -e "${YELLOW}⏭️  Skipping ${crate_name} (publish = false)${NC}"
         cd "$ROOT_DIR"
         return 0
     fi
-    
+
     # Build check
     echo -e "${BLUE}🔨 Checking build...${NC}"
     cargo check --all-features
-    
+
     if [ "$DRY_RUN" = true ]; then
         echo -e "${YELLOW}🧪 Dry run: cargo publish --dry-run${NC}"
         cargo publish --dry-run --allow-dirty 2>&1 || {
@@ -155,15 +155,15 @@ publish_crate() {
     else
         echo -e "${GREEN}🚀 Publishing to crates.io...${NC}"
         cargo publish --allow-dirty
-        
+
         # Wait for crates.io to index the package
         echo -e "${BLUE}⏳ Waiting for crates.io to index (30s)...${NC}"
         sleep 30
     fi
-    
+
     echo -e "${GREEN}✅ ${crate_name} complete${NC}"
     echo ""
-    
+
     cd "$ROOT_DIR"
 }
 

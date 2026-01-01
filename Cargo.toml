@@ -26,6 +26,12 @@ tokio = { version = "1.42", features = ["rt-multi-thread", "fs", "sync", "macros
 name = "spacey"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "A modern JavaScript engine and runtime inspired by SpiderMonkey"
+keywords = ["javascript", "engine", "ecmascript", "repl", "runtime"]
+categories = ["compilers", "command-line-utilities", "web-programming"]
 
 [dependencies]
 spacey-spidermonkey = { workspace = true }
