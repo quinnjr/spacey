@@ -276,20 +276,24 @@ impl AiProvider for OpenAiProvider {
 
 /// Local Phi-3 model provider (wrapper around existing implementation)
 pub struct LocalProvider {
-    model: Option<super::model::Phi3Model>,
+    model: parking_lot::RwLock<Option<super::model::Phi3Model>>,
 }
 
 impl LocalProvider {
     pub fn new() -> Self {
-        Self { model: None }
+        Self { model: parking_lot::RwLock::new(None) }
     }
     
-    pub fn load_model(&mut self, config: super::model::ModelConfig) -> Result<(), ProviderError> {
-        self.model = Some(
-            super::model::Phi3Model::new(config)
-                .map_err(|e| ProviderError::ApiRequestFailed(format!("{:?}", e)))?
-        );
+    pub fn load_model(&self, config: super::model::ModelConfig) -> Result<(), ProviderError> {
+        let model = super::model::Phi3Model::new(config)
+            .map_err(|e| ProviderError::ApiRequestFailed(format!("{:?}", e)))?;
+        *self.model.write() = Some(model);
         Ok(())
+    }
+    
+    /// Check if model is loaded
+    pub fn is_loaded(&self) -> bool {
+        self.model.read().is_some()
     }
 }
 
@@ -301,7 +305,8 @@ impl Default for LocalProvider {
 
 impl AiProvider for LocalProvider {
     fn generate(&self, messages: &[ChatMessage], max_tokens: usize) -> Result<String, ProviderError> {
-        let model = self.model.as_ref().ok_or(ProviderError::ModelNotLoaded)?;
+        let mut guard = self.model.write();
+        let model = guard.as_mut().ok_or(ProviderError::ModelNotLoaded)?;
         
         // Convert messages to a single prompt for Phi-3
         let prompt = messages
@@ -324,7 +329,7 @@ impl AiProvider for LocalProvider {
     }
     
     fn is_ready(&self) -> bool {
-        self.model.as_ref().map_or(false, |m| m.is_loaded())
+        self.is_loaded()
     }
     
     fn provider_type(&self) -> AiProviderType {

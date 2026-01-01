@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SystemInfoService, SystemInfo } from '../../services/system-info.service';
-import { 
-  AiProviderService, 
-  AiProviderType, 
+import {
+  AiProviderService,
+  AiProviderType,
   AiProviderConfig,
   PROVIDER_INFO,
   CLAUDE_MODELS,
@@ -56,7 +56,7 @@ export class SettingsComponent implements OnInit {
     maxIterations: 10,
     showThoughts: true,
   };
-  
+
   // AI Provider settings (BYOK)
   aiProvider: AiProviderType = 'local';
   aiModel: string = 'phi-3-mini-4k';
@@ -64,7 +64,7 @@ export class SettingsComponent implements OnInit {
   aiApiKeyVisible: boolean = false;
   aiKeyTestStatus: 'idle' | 'testing' | 'valid' | 'invalid' = 'idle';
   aiKeyTestError: string = '';
-  
+
   // Provider info for templates
   providers = Object.entries(PROVIDER_INFO).map(([id, info]) => ({ id: id as AiProviderType, ...info }));
   claudeModels = CLAUDE_MODELS;
@@ -104,7 +104,7 @@ export class SettingsComponent implements OnInit {
     if (this.systemInfo) {
       this.shieldLevel = this.systemInfo.shieldLevel.toLowerCase() as 'off' | 'standard' | 'strict';
     }
-    
+
     // Load AI provider config
     const aiConfig = this.aiProviderService.getConfig();
     this.aiProvider = aiConfig.provider;
@@ -127,22 +127,22 @@ export class SettingsComponent implements OnInit {
   onToggle(setting: string, section: string) {
     this.saveSettings();
   }
-  
+
   // AI Provider methods
-  
+
   selectProvider(provider: AiProviderType) {
     this.aiProvider = provider;
     this.aiModel = this.getDefaultModel(provider);
     this.aiApiKey = '';
     this.aiKeyTestStatus = 'idle';
     this.aiKeyTestError = '';
-    
+
     // If local, save immediately
     if (provider === 'local') {
       this.saveAiConfig();
     }
   }
-  
+
   getDefaultModel(provider: AiProviderType): string {
     switch (provider) {
       case 'claude': return 'claude-sonnet-4-20250514';
@@ -150,28 +150,28 @@ export class SettingsComponent implements OnInit {
       default: return 'phi-3-mini-4k';
     }
   }
-  
+
   getModelsForProvider(): { id: string; name: string; description: string }[] {
     return this.aiProviderService.getModels(this.aiProvider);
   }
-  
+
   toggleApiKeyVisibility() {
     this.aiApiKeyVisible = !this.aiApiKeyVisible;
   }
-  
+
   async testApiKey() {
     if (!this.aiApiKey) {
       this.aiKeyTestStatus = 'invalid';
       this.aiKeyTestError = 'Please enter an API key';
       return;
     }
-    
+
     this.aiKeyTestStatus = 'testing';
     this.aiKeyTestError = '';
-    
+
     try {
       const result = await this.aiProviderService.testApiKey(this.aiProvider, this.aiApiKey);
-      
+
       if (result.valid) {
         this.aiKeyTestStatus = 'valid';
         this.saveAiConfig();
@@ -184,34 +184,34 @@ export class SettingsComponent implements OnInit {
       this.aiKeyTestError = 'Failed to test API key';
     }
   }
-  
+
   saveAiConfig() {
     const config: AiProviderConfig = {
       provider: this.aiProvider,
       model: this.aiModel,
     };
-    
+
     if (this.aiProvider !== 'local' && this.aiApiKey) {
       config.apiKey = this.aiApiKey;
     }
-    
+
     this.aiProviderService.setConfig(config);
   }
-  
+
   clearApiKey() {
     this.aiApiKey = '';
     this.aiKeyTestStatus = 'idle';
     this.aiKeyTestError = '';
     this.aiProviderService.clearApiKey(this.aiProvider);
   }
-  
+
   getProviderStatusClass(): string {
     if (this.aiProvider === 'local') return 'text-green-400';
     if (this.aiKeyTestStatus === 'valid') return 'text-green-400';
     if (this.aiKeyTestStatus === 'invalid') return 'text-red-400';
     return 'text-yellow-400';
   }
-  
+
   getProviderStatusText(): string {
     if (this.aiProvider === 'local') return 'READY';
     if (this.aiKeyTestStatus === 'valid') return 'CONNECTED';

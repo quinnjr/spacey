@@ -133,7 +133,7 @@ impl ThinkingBlock {
             summary,
         }
     }
-    
+
     /// Create a streaming thinking block (not yet complete)
     pub fn streaming(content: impl Into<String>) -> Self {
         let content = content.into();
@@ -145,7 +145,7 @@ impl ThinkingBlock {
             summary,
         }
     }
-    
+
     /// Mark as complete with duration
     pub fn mark_complete(&mut self, duration_ms: u64) {
         self.complete = true;
@@ -374,15 +374,15 @@ impl AiAgent {
             // Mark as thinking
             self.state.is_thinking = true;
             self.state.current_thinking = Some(String::new());
-            
+
             // Track thinking time
             let thinking_start = std::time::Instant::now();
 
             // Get the model's response (with internal reasoning)
             let (response, raw_thinking) = self.think_with_reasoning(&step.description)?;
-            
+
             let thinking_duration = thinking_start.elapsed().as_millis() as u64;
-            
+
             // Create thinking block if enabled
             let thinking_block = if self.config.show_thinking && !raw_thinking.is_empty() {
                 let mut block = ThinkingBlock::new(&raw_thinking);
@@ -391,7 +391,7 @@ impl AiAgent {
             } else {
                 None
             };
-            
+
             // Clear thinking state
             self.state.is_thinking = false;
             self.state.current_thinking = None;
@@ -447,7 +447,7 @@ impl AiAgent {
             }
         }
     }
-    
+
     /// Think with full reasoning output
     fn think_with_reasoning(&mut self, step_description: &str) -> Result<(ModelResponse, String), String> {
         let model = self.model.as_mut().ok_or("Model not loaded")?;
@@ -458,7 +458,7 @@ impl AiAgent {
             "\nCurrent step: {}\n\n",
             step_description
         ));
-        
+
         // Add thinking instructions for local model
         prompt.push_str("Think step by step about how to accomplish this. ");
         prompt.push_str("Show your reasoning, then provide your response as JSON.\n\n");
@@ -471,25 +471,25 @@ impl AiAgent {
 
         // Extract thinking and JSON separately
         let (thinking, json_part) = self.extract_thinking_and_response(&response_text);
-        
+
         // Parse the JSON response
         let model_response = self.parse_model_response(&json_part)?;
-        
+
         Ok((model_response, thinking))
     }
-    
+
     /// Extract thinking block and JSON response from model output
     fn extract_thinking_and_response(&self, response: &str) -> (String, String) {
         // Look for thinking block markers
         let thinking_end_markers = ["</thinking>", "</think>", "```json", "{"];
-        
+
         let mut thinking = String::new();
         let mut json_part = response.to_string();
-        
+
         // Check for explicit thinking block
         if let Some(think_start) = response.find("<thinking>") {
             let content_start = think_start + "<thinking>".len();
-            
+
             for marker in &thinking_end_markers {
                 if let Some(end) = response[content_start..].find(marker) {
                     thinking = response[content_start..content_start + end].trim().to_string();
@@ -502,14 +502,14 @@ impl AiAgent {
             thinking = response[..json_start].trim().to_string();
             json_part = response[json_start..].to_string();
         }
-        
+
         // Clean up thinking (remove common artifacts)
         thinking = thinking
             .replace("</thinking>", "")
             .replace("</think>", "")
             .trim()
             .to_string();
-        
+
         (thinking, json_part)
     }
 
@@ -546,10 +546,10 @@ impl AiAgent {
     fn extract_json(&self, response: &str) -> Result<String, String> {
         // Look for JSON object in the response
         let start = response.find('{').ok_or("No JSON object found in response")?;
-        
+
         let mut depth = 0;
         let mut end = start;
-        
+
         for (i, ch) in response[start..].char_indices() {
             match ch {
                 '{' => depth += 1,
@@ -661,7 +661,7 @@ mod tests {
     #[test]
     fn test_extract_json() {
         let agent = AiAgent::new(AgentConfig::default());
-        
+
         let response = r#"Here's my thinking: {"thought": "test", "action": null}"#;
         let json = agent.extract_json(response);
         assert!(json.is_ok());

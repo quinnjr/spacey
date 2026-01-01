@@ -6,7 +6,7 @@
       SYSTEMS
     </h2>
     <nav class="flex flex-col gap-2">
-      <button 
+      <button
         *ngFor="let section of sections"
         [ngClass]="{'bg-gradient-to-r from-purple-500/20 to-cyan-500/10 border-cyan-500/50 shadow-lg shadow-purple-500/10': activeSection === section.id, 'border-transparent': activeSection !== section.id}"
         (click)="setActiveSection(section.id)"
@@ -17,7 +17,7 @@
       </button>
     </nav>
   </aside>
-  
+
   <!-- Settings Content -->
   <main class="flex-1 p-10 max-w-3xl">
     <!-- Shield Settings -->
@@ -29,14 +29,14 @@
         </h1>
         <p class="text-[--color-text-dim]">Configure your vessel's protective shields.</p>
       </header>
-      
+
       <!-- Protection Level -->
       <div class="card mb-8">
         <h3 class="text-base font-bold mb-2 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">SHIELD POWER</h3>
         <p class="text-sm text-[--color-text-faint] mb-6">Select defensive stance</p>
-        
+
         <div class="grid grid-cols-3 gap-4">
-          <button 
+          <button
             class="flex flex-col items-center p-6 rounded-xl border-2 cursor-pointer transition-all duration-300"
             [ngClass]="{'border-cyan-500 bg-cyan-500/10 shadow-lg shadow-cyan-500/20': shieldLevel === 'off', 'border-[--color-border-space] bg-transparent': shieldLevel !== 'off'}"
             (click)="setShieldLevel('off')">
@@ -44,7 +44,7 @@
             <span class="font-bold text-[--color-text-bright] tracking-wide" style="font-family: var(--font-display);">MINIMAL</span>
             <span class="text-xs text-[--color-text-faint] text-center mt-2">Malware only</span>
           </button>
-          <button 
+          <button
             class="flex flex-col items-center p-6 rounded-xl border-2 cursor-pointer transition-all duration-300"
             [ngClass]="{'border-green-500 bg-green-500/10 shadow-lg shadow-green-500/20': shieldLevel === 'standard', 'border-[--color-border-space] bg-transparent': shieldLevel !== 'standard'}"
             (click)="setShieldLevel('standard')">
@@ -52,7 +52,7 @@
             <span class="font-bold text-[--color-text-bright] tracking-wide" style="font-family: var(--font-display);">STANDARD</span>
             <span class="text-xs text-[--color-text-faint] text-center mt-2">Recommended</span>
           </button>
-          <button 
+          <button
             class="flex flex-col items-center p-6 rounded-xl border-2 cursor-pointer transition-all duration-300"
             [ngClass]="{'border-pink-500 bg-pink-500/10 shadow-lg shadow-pink-500/20': shieldLevel === 'strict', 'border-[--color-border-space] bg-transparent': shieldLevel !== 'strict'}"
             (click)="setShieldLevel('strict')">
@@ -62,7 +62,7 @@
           </button>
         </div>
       </div>
-      
+
       <!-- Shield Subsystems -->
       <div class="card">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">SUBSYSTEMS</h3>
@@ -120,7 +120,7 @@
         </h1>
         <p class="text-[--color-text-dim]">Configure your AI assistant. Use the local model or bring your own API key.</p>
       </header>
-      
+
       <!-- AI Provider Selection (BYOK) -->
       <div class="card mb-8">
         <div class="flex items-center justify-between mb-6">
@@ -128,14 +128,14 @@
             NEURAL INTERFACE
           </h3>
           <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full" 
+            <span class="w-2 h-2 rounded-full"
                   [ngClass]="{'bg-green-400': aiProvider === 'local' || aiKeyTestStatus === 'valid', 'bg-red-400': aiKeyTestStatus === 'invalid', 'bg-yellow-400': aiKeyTestStatus === 'idle' || aiKeyTestStatus === 'testing'}"></span>
             <span class="text-xs tracking-wider" [ngClass]="getProviderStatusClass()" style="font-family: var(--font-display);">
               {{ getProviderStatusText() }}
             </span>
           </div>
         </div>
-        
+
         <!-- Provider Cards -->
         <div class="grid grid-cols-3 gap-4 mb-6">
           <button *ngFor="let provider of providers"
@@ -154,25 +154,25 @@
             </span>
           </button>
         </div>
-        
+
         <!-- Provider Description -->
         <div class="p-4 rounded-xl border border-[--color-border-space] mb-6" style="background: rgba(10, 5, 32, 0.6);">
           <p class="text-sm text-[--color-text-dim]">
             <span *ngIf="aiProvider === 'local'">
-              🖥️ <strong class="text-[--color-text-bright]">Local Phi-3 Model</strong> — Runs entirely on your device. 
+              🖥️ <strong class="text-[--color-text-bright]">Local Phi-3 Model</strong> — Runs entirely on your device.
               Free, completely private, no API key needed. Requires ~4GB RAM.
             </span>
             <span *ngIf="aiProvider === 'claude'">
-              🟣 <strong class="text-[--color-text-bright]">Claude by Anthropic</strong> — Access powerful Claude models. 
+              🟣 <strong class="text-[--color-text-bright]">Claude by Anthropic</strong> — Access powerful Claude models.
               Get your API key from <a href="https://console.anthropic.com" target="_blank" class="text-cyan-400 hover:underline">console.anthropic.com</a>
             </span>
             <span *ngIf="aiProvider === 'openai'">
-              🟢 <strong class="text-[--color-text-bright]">ChatGPT by OpenAI</strong> — Access GPT-4 and other models. 
+              🟢 <strong class="text-[--color-text-bright]">ChatGPT by OpenAI</strong> — Access GPT-4 and other models.
               Get your API key from <a href="https://platform.openai.com" target="_blank" class="text-cyan-400 hover:underline">platform.openai.com</a>
             </span>
           </p>
         </div>
-        
+
         <!-- API Key Input (for cloud providers) -->
         <div *ngIf="aiProvider !== 'local'" class="space-y-4">
           <div>
@@ -181,20 +181,20 @@
             </label>
             <div class="flex gap-3">
               <div class="flex-1 relative">
-                <input 
+                <input
                   [type]="aiApiKeyVisible ? 'text' : 'password'"
                   class="form-input pr-12"
                   [(ngModel)]="aiApiKey"
                   [placeholder]="aiProvider === 'claude' ? 'sk-ant-...' : 'sk-...'"
                   (blur)="aiApiKey && testApiKey()">
-                <button 
+                <button
                   type="button"
                   class="absolute right-3 top-1/2 -translate-y-1/2 text-[--color-text-faint] hover:text-[--color-text-bright] transition-colors"
                   (click)="toggleApiKeyVisibility()">
                   {{ aiApiKeyVisible ? '🙈' : '👁️' }}
                 </button>
               </div>
-              <button 
+              <button
                 type="button"
                 class="btn btn-secondary px-4"
                 [disabled]="!aiApiKey || aiKeyTestStatus === 'testing'"
@@ -203,7 +203,7 @@
                 <span *ngIf="aiKeyTestStatus !== 'testing'">TEST</span>
               </button>
             </div>
-            
+
             <!-- Key Status -->
             <div class="mt-2 flex items-center gap-2">
               <span *ngIf="aiKeyTestStatus === 'valid'" class="text-green-400 text-sm flex items-center gap-1">
@@ -217,22 +217,22 @@
               </span>
             </div>
           </div>
-          
+
           <!-- Clear Key Button -->
-          <button *ngIf="aiApiKey" 
+          <button *ngIf="aiApiKey"
             type="button"
             class="text-sm text-[--color-text-faint] hover:text-red-400 transition-colors"
             (click)="clearApiKey()">
             🗑️ Clear saved API key
           </button>
         </div>
-        
+
         <!-- Model Selection -->
         <div class="mt-6">
           <label class="block text-sm font-semibold text-[--color-text-dim] mb-2 tracking-wider" style="font-family: var(--font-display);">
             MODEL
           </label>
-          <select 
+          <select
             class="form-select"
             [(ngModel)]="aiModel"
             (change)="saveAiConfig()">
@@ -242,7 +242,7 @@
           </select>
         </div>
       </div>
-      
+
       <!-- Core Settings -->
       <div class="card mb-8">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">CORE SYSTEMS</h3>
@@ -288,12 +288,12 @@
         </div>
         <p class="text-xs text-[--color-text-faint] mt-2">Higher values enable complex missions but increase processing time</p>
       </div>
-      
+
       <!-- Privacy Notice -->
       <div class="alert alert-info mt-8">
         <span class="text-xl">🔒</span>
         <div class="text-sm text-[--color-text-dim]">
-          <strong class="text-[--color-text-bright]">Privacy:</strong> 
+          <strong class="text-[--color-text-bright]">Privacy:</strong>
           API keys are stored locally and encrypted. When using cloud providers, your prompts are sent to their servers.
           The local Phi-3 model keeps everything on your device.
         </div>
@@ -309,7 +309,7 @@
         </h1>
         <p class="text-[--color-text-dim]">Firefox-compatible extension modules.</p>
       </header>
-      
+
       <div class="card text-center py-12">
         <div class="text-6xl mb-6 animate-float">🧩</div>
         <h3 class="text-xl font-bold mb-3 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">MODULE BAY</h3>
@@ -327,7 +327,7 @@
         </h1>
         <p class="text-[--color-text-dim]">Control data handling and privacy signals.</p>
       </header>
-      
+
       <div class="card">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">PRIVACY BEACONS</h3>
         <div class="space-y-1">
@@ -384,11 +384,11 @@
         </h1>
         <p class="text-[--color-text-dim]">Customize your cockpit display.</p>
       </header>
-      
+
       <div class="card mb-8">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">ENVIRONMENT</h3>
         <div class="flex gap-4">
-          <button 
+          <button
             class="flex flex-col items-center p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 flex-1"
             [ngClass]="{'border-cyan-500 shadow-lg shadow-cyan-500/20': appearanceSettings.theme === 'dark', 'border-[--color-border-space]': appearanceSettings.theme !== 'dark'}"
             style="background: linear-gradient(135deg, rgba(10, 5, 32, 0.8), rgba(3, 0, 20, 0.9));"
@@ -398,7 +398,7 @@
             </div>
             <span class="text-sm font-medium text-[--color-text-bright] tracking-wide" style="font-family: var(--font-display);">DEEP SPACE</span>
           </button>
-          <button 
+          <button
             class="flex flex-col items-center p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 flex-1"
             [ngClass]="{'border-cyan-500 shadow-lg shadow-cyan-500/20': appearanceSettings.theme === 'light', 'border-[--color-border-space]': appearanceSettings.theme !== 'light'}"
             style="background: linear-gradient(135deg, rgba(10, 5, 32, 0.8), rgba(3, 0, 20, 0.9));"
@@ -408,7 +408,7 @@
             </div>
             <span class="text-sm font-medium text-[--color-text-bright] tracking-wide" style="font-family: var(--font-display);">SOLAR</span>
           </button>
-          <button 
+          <button
             class="flex flex-col items-center p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 flex-1"
             [ngClass]="{'border-cyan-500 shadow-lg shadow-cyan-500/20': appearanceSettings.theme === 'system', 'border-[--color-border-space]': appearanceSettings.theme !== 'system'}"
             style="background: linear-gradient(135deg, rgba(10, 5, 32, 0.8), rgba(3, 0, 20, 0.9));"
@@ -420,7 +420,7 @@
           </button>
         </div>
       </div>
-      
+
       <div class="card">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">INTERFACE</h3>
         <div class="space-y-1">
@@ -457,7 +457,7 @@
         </h1>
         <p class="text-[--color-text-dim]">Advanced configuration for power users.</p>
       </header>
-      
+
       <div class="card mb-8">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">PROPULSION</h3>
         <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
@@ -471,7 +471,7 @@
           </label>
         </div>
       </div>
-      
+
       <div class="card mb-8">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">EXPERIMENTAL</h3>
         <div class="space-y-1">
@@ -497,7 +497,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="card border-pink-500/30">
         <h3 class="text-base font-bold mb-2 tracking-wider text-pink-500" style="font-family: var(--font-display);">⚠️ SYSTEM RESET</h3>
         <p class="text-sm text-[--color-text-faint] mb-4">Restore all systems to factory defaults</p>

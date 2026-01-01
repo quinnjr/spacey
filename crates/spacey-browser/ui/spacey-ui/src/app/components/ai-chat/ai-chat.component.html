@@ -15,7 +15,7 @@
       <span class="text-xs text-[--color-text-dim]">{{ isProcessing ? 'Thinking...' : 'Ready' }}</span>
     </div>
   </div>
-  
+
   <!-- Messages -->
   <div #messagesContainer class="messages-container">
     <!-- Welcome message if empty -->
@@ -39,21 +39,21 @@
         </button>
       </div>
     </div>
-    
+
     <!-- Message list -->
     <div *ngFor="let message of messages" class="message" [class.user]="message.role === 'user'" [class.assistant]="message.role === 'assistant'" [class.system]="message.role === 'system'">
-      
+
       <!-- User message -->
       <div *ngIf="message.role === 'user'" class="message-bubble user-bubble">
         <div class="message-content">{{ message.content }}</div>
         <div class="message-time">{{ message.timestamp | date:'HH:mm' }}</div>
       </div>
-      
+
       <!-- Assistant message -->
       <div *ngIf="message.role === 'assistant'" class="message-bubble assistant-bubble">
         <!-- Thinking block -->
         <div *ngIf="shouldShowThinking(message)" class="thinking-block" [class.expanded]="isThinkingExpanded(message.id)" [class.streaming]="message.isStreaming && config.thinkingStyle === 'streaming'">
-          
+
           <!-- Collapsed header -->
           <button *ngIf="config.thinkingStyle === 'collapsed'" class="thinking-header" (click)="toggleThinking(message.id)">
             <span class="thinking-icon">💭</span>
@@ -63,7 +63,7 @@
             </span>
             <span class="expand-icon">{{ isThinkingExpanded(message.id) ? '▼' : '▶' }}</span>
           </button>
-          
+
           <!-- Expanded/Streaming header -->
           <div *ngIf="config.thinkingStyle !== 'collapsed'" class="thinking-header-static">
             <span class="thinking-icon">💭</span>
@@ -74,35 +74,35 @@
               {{ message.thinkingComplete ? 'Reasoning' : 'Thinking...' }}
             </span>
           </div>
-          
+
           <!-- Thinking content -->
           <div class="thinking-content" *ngIf="isThinkingExpanded(message.id)" [class.streaming-text]="message.isStreaming && config.thinkingStyle === 'streaming'">
             <pre>{{ message.thinking }}</pre>
           </div>
         </div>
-        
+
         <!-- Tool usage indicator -->
         <div *ngIf="message.toolUsed" class="tool-indicator">
           <span class="tool-icon">🔧</span>
           <span class="tool-name">{{ message.toolUsed }}</span>
           <span *ngIf="message.toolResult" class="tool-result">→ {{ message.toolResult }}</span>
         </div>
-        
+
         <!-- Main response content -->
         <div class="message-content" [class.streaming]="message.isStreaming && !message.thinking">
           {{ message.content }}
           <span *ngIf="message.isStreaming && !message.thinking" class="cursor-blink">▌</span>
         </div>
-        
+
         <div class="message-time">{{ message.timestamp | date:'HH:mm' }}</div>
       </div>
-      
+
       <!-- System message -->
       <div *ngIf="message.role === 'system'" class="message-bubble system-bubble">
         <div class="message-content">{{ message.content }}</div>
       </div>
     </div>
-    
+
     <!-- Processing indicator -->
     <div *ngIf="isProcessing" class="processing-indicator">
       <div class="processing-dots">
@@ -114,11 +114,11 @@
       <button class="cancel-btn" (click)="onCancel()">Cancel</button>
     </div>
   </div>
-  
+
   <!-- Input -->
   <div class="input-container">
     <div class="input-wrapper">
-      <textarea 
+      <textarea
         #messageInput
         class="message-input"
         [(ngModel)]="userMessage"
@@ -126,7 +126,7 @@
         placeholder="Ask the AI to help you..."
         [disabled]="isProcessing"
         rows="1"></textarea>
-      <button 
+      <button
         class="send-btn"
         (click)="onSend()"
         [disabled]="!userMessage.trim() || isProcessing">

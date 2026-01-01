@@ -45,10 +45,10 @@ export const LOCAL_MODELS = [
 /**
  * Provider display info
  */
-export const PROVIDER_INFO: Record<AiProviderType, { 
-  name: string; 
-  icon: string; 
-  description: string; 
+export const PROVIDER_INFO: Record<AiProviderType, {
+  name: string;
+  icon: string;
+  description: string;
   requiresKey: boolean;
   keyPrefix?: string;
 }> = {
@@ -81,7 +81,7 @@ export const PROVIDER_INFO: Record<AiProviderType, {
 })
 export class AiProviderService {
   private readonly STORAGE_KEY = 'spacey_ai_config';
-  
+
   /**
    * Get the current AI configuration
    */
@@ -90,12 +90,12 @@ export class AiProviderService {
     if (typeof window !== 'undefined' && window.spaceyBridge?.getAiConfig) {
       return window.spaceyBridge.getAiConfig();
     }
-    
+
     // Fallback to localStorage for development
     const stored = this.getStoredConfig();
     return stored || { provider: 'local', model: 'phi-3-mini-4k' };
   }
-  
+
   /**
    * Save AI configuration
    */
@@ -105,7 +105,7 @@ export class AiProviderService {
       window.spaceyBridge.setAiConfig(config);
       return;
     }
-    
+
     // Fallback to localStorage with basic obfuscation
     const toStore = { ...config };
     if (toStore.apiKey) {
@@ -113,7 +113,7 @@ export class AiProviderService {
     }
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(toStore));
   }
-  
+
   /**
    * Test if an API key is valid
    */
@@ -122,23 +122,23 @@ export class AiProviderService {
     if (typeof window !== 'undefined' && window.spaceyBridge?.testApiKey) {
       return window.spaceyBridge.testApiKey(provider, apiKey);
     }
-    
+
     // Basic format validation
     const info = PROVIDER_INFO[provider];
     if (info.keyPrefix && !apiKey.startsWith(info.keyPrefix)) {
       return { valid: false, error: `API key should start with "${info.keyPrefix}"` };
     }
-    
+
     if (apiKey.length < 30) {
       return { valid: false, error: 'API key appears to be too short' };
     }
-    
+
     // Simulate API test in dev mode
     console.log(`[Dev Mode] Testing ${provider} API key...`);
     await new Promise(resolve => setTimeout(resolve, 500));
     return { valid: true };
   }
-  
+
   /**
    * Clear stored API key
    */
@@ -149,7 +149,7 @@ export class AiProviderService {
       this.setConfig(config);
     }
   }
-  
+
   /**
    * Check if a provider has an API key configured
    */
@@ -158,7 +158,7 @@ export class AiProviderService {
     const config = this.getStoredConfig();
     return config?.provider === provider && !!config?.apiKey;
   }
-  
+
   /**
    * Get models for a provider
    */
@@ -173,30 +173,30 @@ export class AiProviderService {
         return LOCAL_MODELS;
     }
   }
-  
+
   /**
    * Get provider info
    */
   getProviderInfo(provider: AiProviderType) {
     return PROVIDER_INFO[provider];
   }
-  
+
   /**
    * Get all providers
    */
   getAllProviders(): AiProviderType[] {
     return ['local', 'claude', 'openai'];
   }
-  
+
   // Private helpers
-  
+
   private getStoredConfig(): AiProviderConfig | null {
     if (typeof window === 'undefined') return null;
-    
+
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (!stored) return null;
-      
+
       const config = JSON.parse(stored) as AiProviderConfig;
       // Deobfuscate key if present
       if (config.apiKey) {
@@ -207,12 +207,12 @@ export class AiProviderService {
       return null;
     }
   }
-  
+
   // Basic obfuscation for development - real encryption handled by Rust backend
   private obfuscateKey(key: string): string {
     return btoa(key.split('').reverse().join(''));
   }
-  
+
   private deobfuscateKey(obfuscated: string): string {
     try {
       return atob(obfuscated).split('').reverse().join('');

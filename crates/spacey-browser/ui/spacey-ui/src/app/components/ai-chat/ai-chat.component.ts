@@ -33,29 +33,29 @@ export class AiChatComponent implements AfterViewChecked {
   @Input() isProcessing = false;
   @Output() sendMessage = new EventEmitter<string>();
   @Output() cancelRequest = new EventEmitter<void>();
-  
+
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
   @ViewChild('messageInput') messageInput!: ElementRef;
-  
+
   userMessage = '';
   expandedThinking: Set<string> = new Set();
   config: AiProviderConfig;
-  
+
   constructor(private aiProviderService: AiProviderService) {
     this.config = this.aiProviderService.getConfig();
   }
-  
+
   ngAfterViewChecked() {
     this.scrollToBottom();
   }
-  
+
   private scrollToBottom(): void {
     if (this.messagesContainer) {
       const el = this.messagesContainer.nativeElement;
       el.scrollTop = el.scrollHeight;
     }
   }
-  
+
   onSend(): void {
     const message = this.userMessage.trim();
     if (message && !this.isProcessing) {
@@ -63,18 +63,18 @@ export class AiChatComponent implements AfterViewChecked {
       this.userMessage = '';
     }
   }
-  
+
   onKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.onSend();
     }
   }
-  
+
   onCancel(): void {
     this.cancelRequest.emit();
   }
-  
+
   toggleThinking(messageId: string): void {
     if (this.expandedThinking.has(messageId)) {
       this.expandedThinking.delete(messageId);
@@ -82,7 +82,7 @@ export class AiChatComponent implements AfterViewChecked {
       this.expandedThinking.add(messageId);
     }
   }
-  
+
   isThinkingExpanded(messageId: string): boolean {
     // Streaming style always shows expanded
     if (this.config.thinkingStyle === 'streaming') return true;
@@ -91,11 +91,11 @@ export class AiChatComponent implements AfterViewChecked {
     // Collapsed style depends on user action
     return this.expandedThinking.has(messageId);
   }
-  
+
   shouldShowThinking(message: ChatMessage): boolean {
     return this.config.showThinking && !!message.thinking;
   }
-  
+
   getProviderIcon(): string {
     switch (this.config.provider) {
       case 'claude': return '🟣';
@@ -103,7 +103,7 @@ export class AiChatComponent implements AfterViewChecked {
       default: return '🖥️';
     }
   }
-  
+
   getProviderName(): string {
     switch (this.config.provider) {
       case 'claude': return 'Claude';
@@ -111,14 +111,14 @@ export class AiChatComponent implements AfterViewChecked {
       default: return 'Local AI';
     }
   }
-  
+
   formatThinkingTime(thinking: string): string {
     // Count approximate tokens (rough estimate)
     const wordCount = thinking.split(/\s+/).length;
     const estimatedTime = Math.ceil(wordCount / 100); // ~100 words per second reading
     return estimatedTime < 60 ? `${estimatedTime}s` : `${Math.ceil(estimatedTime / 60)}m`;
   }
-  
+
   /**
    * Generate a unique ID for messages
    */
