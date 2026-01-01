@@ -217,10 +217,10 @@ impl Highlighter for SpaceyHelper {
     fn highlight<'l>(&self, line: &'l str, _pos: usize) -> Cow<'l, str> {
         // Basic syntax highlighting
         let mut result = String::with_capacity(line.len() * 2);
-        let mut chars = line.chars().peekable();
+        let chars = line.chars().peekable();
         let mut current_word = String::new();
 
-        while let Some(c) = chars.next() {
+        for c in chars {
             if c.is_alphanumeric() || c == '_' {
                 current_word.push(c);
             } else {

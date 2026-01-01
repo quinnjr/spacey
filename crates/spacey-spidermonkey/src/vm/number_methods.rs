@@ -9,7 +9,7 @@ pub fn call_number_method(n: f64, method: &str, args: &[Value]) -> Value {
             let radix = args.first().map(|v| v.to_number() as u32).unwrap_or(10);
             if radix == 10 {
                 Value::String(n.to_string())
-            } else if radix >= 2 && radix <= 36 {
+            } else if (2..=36).contains(&radix) {
                 let int_val = n as i64;
                 Value::String(format_radix(int_val, radix))
             } else {

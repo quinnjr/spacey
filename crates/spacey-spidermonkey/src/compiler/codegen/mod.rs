@@ -240,8 +240,8 @@ impl Compiler {
             }
             Statement::For(for_stmt) => {
                 // Check init for var declarations
-                if let Some(ForInit::Declaration(decl)) = &for_stmt.init {
-                    if decl.kind == VariableKind::Var {
+                if let Some(ForInit::Declaration(decl)) = &for_stmt.init
+                    && decl.kind == VariableKind::Var {
                         for declarator in &decl.declarations {
                             let name = &declarator.id.name;
                             if !var_names.contains(name) {
@@ -249,12 +249,11 @@ impl Compiler {
                             }
                         }
                     }
-                }
                 self.collect_hoisted_from_statement(&for_stmt.body, var_names, func_decls);
             }
             Statement::ForIn(for_in) => {
-                if let ForInLeft::Declaration(decl) = &for_in.left {
-                    if decl.kind == VariableKind::Var {
+                if let ForInLeft::Declaration(decl) = &for_in.left
+                    && decl.kind == VariableKind::Var {
                         for declarator in &decl.declarations {
                             let name = &declarator.id.name;
                             if !var_names.contains(name) {
@@ -262,12 +261,11 @@ impl Compiler {
                             }
                         }
                     }
-                }
                 self.collect_hoisted_from_statement(&for_in.body, var_names, func_decls);
             }
             Statement::ForOf(for_of) => {
-                if let ForInLeft::Declaration(decl) = &for_of.left {
-                    if decl.kind == VariableKind::Var {
+                if let ForInLeft::Declaration(decl) = &for_of.left
+                    && decl.kind == VariableKind::Var {
                         for declarator in &decl.declarations {
                             let name = &declarator.id.name;
                             if !var_names.contains(name) {
@@ -275,7 +273,6 @@ impl Compiler {
                             }
                         }
                     }
-                }
                 self.collect_hoisted_from_statement(&for_of.body, var_names, func_decls);
             }
             Statement::Switch(switch_stmt) => {

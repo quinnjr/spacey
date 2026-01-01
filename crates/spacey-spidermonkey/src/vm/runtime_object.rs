@@ -166,8 +166,8 @@ impl RuntimeObject {
 
     /// Set a property
     pub fn set(&mut self, name: &str, value: Value) {
-        if self.is_array {
-            if let Ok(idx) = name.parse::<usize>() {
+        if self.is_array
+            && let Ok(idx) = name.parse::<usize>() {
                 // Extend array if necessary
                 while self.array_elements.len() <= idx {
                     self.array_elements.push(Value::Undefined);
@@ -177,7 +177,6 @@ impl RuntimeObject {
                 self.properties.insert("length".to_string(), Value::Number(self.array_elements.len() as f64));
                 return;
             }
-        }
         self.properties.insert(name.to_string(), value);
     }
 
@@ -203,14 +202,12 @@ impl RuntimeObject {
 
     /// Delete a property
     pub fn delete(&mut self, name: &str) -> bool {
-        if self.is_array {
-            if let Ok(idx) = name.parse::<usize>() {
-                if idx < self.array_elements.len() {
+        if self.is_array
+            && let Ok(idx) = name.parse::<usize>()
+                && idx < self.array_elements.len() {
                     self.array_elements[idx] = Value::Undefined;
                     return true;
                 }
-            }
-        }
         self.properties.remove(name).is_some()
     }
 }

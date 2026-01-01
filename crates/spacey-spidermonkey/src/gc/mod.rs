@@ -514,15 +514,12 @@ impl Heap {
         // In a full implementation, we'd scan the card's memory range
         // For now, we scan all old gen objects (simplified)
         let old_gen = self.old_gen.read();
-        for obj_opt in old_gen.iter() {
-            if let Some(obj) = obj_opt {
-                for value in obj.data().properties.values() {
-                    if let PropertyValue::Object(ref_obj) = value {
-                        if ref_obj.is_young() {
-                            self.mark_young(*ref_obj);
-                        }
+        for obj in old_gen.iter().flatten() {
+            for value in obj.data().properties.values() {
+                if let PropertyValue::Object(ref_obj) = value
+                    && ref_obj.is_young() {
+                        self.mark_young(*ref_obj);
                     }
-                }
             }
         }
     }
@@ -533,15 +530,14 @@ impl Heap {
 
         // Iterate through marked objects in nursery
         for idx in 0..self.nursery.object_count() {
-            if let Some(header) = self.nursery.get_header(idx) {
-                if header.color.load(Ordering::Relaxed) == MarkColor::Black as u8 {
+            if let Some(header) = self.nursery.get_header(idx)
+                && header.color.load(Ordering::Relaxed) == MarkColor::Black as u8 {
                     // Object survived - promote to old gen
                     if let Some(obj) = self.nursery.get(idx) {
                         self.allocate_old(obj.clone());
                         promoted += 1;
                     }
                 }
-            }
         }
 
         promoted
@@ -559,12 +555,10 @@ impl Heap {
         // Reset marks
         {
             let old_gen = self.old_gen.read();
-            for obj_opt in old_gen.iter() {
-                if let Some(obj) = obj_opt {
-                    obj.header()
-                        .color
-                        .store(MarkColor::White as u8, Ordering::Relaxed);
-                }
+            for obj in old_gen.iter().flatten() {
+                obj.header()
+                    .color
+                    .store(MarkColor::White as u8, Ordering::Relaxed);
             }
         }
 
@@ -671,13 +665,12 @@ impl Heap {
         let mut freed_bytes = 0usize;
 
         for (idx, obj_opt) in old_gen.iter_mut().enumerate() {
-            if let Some(obj) = obj_opt {
-                if obj.header().color.load(Ordering::Relaxed) == MarkColor::White as u8 {
+            if let Some(obj) = obj_opt
+                && obj.header().color.load(Ordering::Relaxed) == MarkColor::White as u8 {
                     freed_bytes += obj.size();
                     *obj_opt = None;
                     free_list.push(idx);
                 }
-            }
         }
 
         // Update stats
@@ -704,13 +697,12 @@ impl Heap {
                 .par_iter_mut()
                 .enumerate()
                 .for_each(|(idx, obj_opt)| {
-                    if let Some(obj) = obj_opt {
-                        if obj.header().color.load(Ordering::Relaxed) == MarkColor::White as u8 {
+                    if let Some(obj) = obj_opt
+                        && obj.header().color.load(Ordering::Relaxed) == MarkColor::White as u8 {
                             freed_bytes.fetch_add(obj.size(), Ordering::Relaxed);
                             *obj_opt = None;
                             free_indices.push(idx);
                         }
-                    }
                 });
         }
 

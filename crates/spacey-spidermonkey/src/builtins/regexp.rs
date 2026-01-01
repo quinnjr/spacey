@@ -297,13 +297,12 @@ pub fn string_search(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, St
 fn parse_regexp_string(s: &str) -> (String, String) {
     if s.starts_with('/') {
         // Find the last '/' to separate pattern from flags
-        if let Some(last_slash) = s.rfind('/') {
-            if last_slash > 0 {
+        if let Some(last_slash) = s.rfind('/')
+            && last_slash > 0 {
                 let pattern = s[1..last_slash].to_string();
                 let flags = s[last_slash + 1..].to_string();
                 return (pattern, flags);
             }
-        }
     }
     // Not in /pattern/flags format, treat entire string as pattern
     (s.to_string(), String::new())

@@ -282,11 +282,10 @@ impl Object {
         }
 
         // Check prototype chain for inherited property
-        if let Some(proto) = &self.prototype {
-            if let Some(prop) = proto.get_own_property(key) {
+        if let Some(proto) = &self.prototype
+            && let Some(prop) = proto.get_own_property(key) {
                 return prop.writable;
             }
-        }
 
         // Property doesn't exist, check extensibility
         self.extensible
@@ -321,11 +320,10 @@ impl Object {
     ///
     /// ES3 Section 8.6.2.5
     pub fn delete(&mut self, key: &str) -> bool {
-        if let Some(prop) = self.properties.get(key) {
-            if !prop.configurable {
+        if let Some(prop) = self.properties.get(key)
+            && !prop.configurable {
                 return false; // Cannot delete non-configurable property
             }
-        }
 
         self.properties.remove(key);
         true

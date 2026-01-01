@@ -5,7 +5,7 @@ members = [
     "crates/spacey-spidermonkey",
     "crates/spacey-node",
     "crates/spacey-npm",
-    "crates/spacey-servo", "crates/spacey-browser",
+    "crates/spacey-servo",
 ]
 
 [workspace.package]

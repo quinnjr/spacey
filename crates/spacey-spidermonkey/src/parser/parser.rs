@@ -150,14 +150,13 @@ impl<'a> Parser<'a> {
         self.advance(); // consume 'break'
 
         // Check for label (no line terminator before label)
-        if !self.check(&TokenKind::Semicolon) && !self.is_at_end() {
-            if let TokenKind::Identifier(label) = &self.current.kind {
+        if !self.check(&TokenKind::Semicolon) && !self.is_at_end()
+            && let TokenKind::Identifier(label) = &self.current.kind {
                 let label = label.clone();
                 self.advance();
                 self.expect(&TokenKind::Semicolon)?;
                 return Ok(Statement::BreakLabel(label));
             }
-        }
 
         self.expect(&TokenKind::Semicolon)?;
         Ok(Statement::Break)
@@ -168,14 +167,13 @@ impl<'a> Parser<'a> {
         self.advance(); // consume 'continue'
 
         // Check for label (no line terminator before label)
-        if !self.check(&TokenKind::Semicolon) && !self.is_at_end() {
-            if let TokenKind::Identifier(label) = &self.current.kind {
+        if !self.check(&TokenKind::Semicolon) && !self.is_at_end()
+            && let TokenKind::Identifier(label) = &self.current.kind {
                 let label = label.clone();
                 self.advance();
                 self.expect(&TokenKind::Semicolon)?;
                 return Ok(Statement::ContinueLabel(label));
             }
-        }
 
         self.expect(&TokenKind::Semicolon)?;
         Ok(Statement::Continue)
@@ -1890,6 +1888,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Skip `implements` clause in class declaration.
+    #[allow(dead_code)]
     fn skip_implements_clause(&mut self) -> Result<(), Error> {
         if !self.is_typescript_mode() {
             return Ok(());
@@ -1941,11 +1940,10 @@ impl<'a> Parser<'a> {
 
             members.push((member_name.name, value));
 
-            if !self.check(&TokenKind::RightBrace) {
-                if self.check(&TokenKind::Comma) {
+            if !self.check(&TokenKind::RightBrace)
+                && self.check(&TokenKind::Comma) {
                     self.advance();
                 }
-            }
         }
 
         self.expect(&TokenKind::RightBrace)?;

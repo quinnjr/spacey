@@ -51,11 +51,10 @@ impl Environment {
 
     /// Gets a variable's value.
     pub fn get(&self, name: &str) -> Option<&Value> {
-        if let Some(binding) = self.bindings.get(name) {
-            if binding.initialized {
+        if let Some(binding) = self.bindings.get(name)
+            && binding.initialized {
                 return Some(&binding.value);
             }
-        }
         if let Some(outer) = &self.outer {
             return outer.get(name);
         }
@@ -64,12 +63,11 @@ impl Environment {
 
     /// Sets a variable's value.
     pub fn set(&mut self, name: &str, value: Value) -> bool {
-        if let Some(binding) = self.bindings.get_mut(name) {
-            if binding.mutable && binding.initialized {
+        if let Some(binding) = self.bindings.get_mut(name)
+            && binding.mutable && binding.initialized {
                 binding.value = value;
                 return true;
             }
-        }
         if let Some(outer) = &mut self.outer {
             return outer.set(name, value);
         }

@@ -331,6 +331,7 @@ pub enum Literal {
     /// BigInt literal
     BigInt(String),
     /// Regular expression literal
+    #[allow(missing_docs)]
     RegExp { pattern: String, flags: String },
 }
 
@@ -383,6 +384,7 @@ pub struct BinaryExpression {
 
 /// Binary operators.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(missing_docs)]
 pub enum BinaryOperator {
     // Arithmetic
     Add,
@@ -457,6 +459,7 @@ pub struct AssignmentExpression {
 
 /// Assignment operators.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(missing_docs)]
 pub enum AssignmentOperator {
     Assign,
     AddAssign,

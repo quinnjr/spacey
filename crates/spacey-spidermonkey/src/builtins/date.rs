@@ -36,7 +36,7 @@ pub fn date_constructor(_frame: &mut CallFrame, args: &[Value]) -> Result<Value,
         }
     } else {
         // new Date(year, month, ...)
-        let year = args.get(0).map(|v| v.to_number()).unwrap_or(f64::NAN);
+        let year = args.first().map(|v| v.to_number()).unwrap_or(f64::NAN);
         let month = args.get(1).map(|v| v.to_number()).unwrap_or(0.0);
         let day = args.get(2).map(|v| v.to_number()).unwrap_or(1.0);
         let hours = args.get(3).map(|v| v.to_number()).unwrap_or(0.0);
@@ -69,7 +69,7 @@ pub fn parse(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, String> {
 ///
 /// ES3 Section 15.9.4.3
 pub fn utc(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, String> {
-    let year = args.get(0).map(|v| v.to_number()).unwrap_or(f64::NAN);
+    let year = args.first().map(|v| v.to_number()).unwrap_or(f64::NAN);
     let month = args.get(1).map(|v| v.to_number()).unwrap_or(0.0);
     let day = args.get(2).map(|v| v.to_number()).unwrap_or(1.0);
     let hours = args.get(3).map(|v| v.to_number()).unwrap_or(0.0);
@@ -364,11 +364,11 @@ fn parse_iso_date(s: &str) -> Option<f64> {
 
     // Parse date: YYYY-MM-DD
     let date_parts: Vec<&str> = date_part.split('-').collect();
-    if date_parts.len() < 1 {
+    if date_parts.is_empty() {
         return None;
     }
 
-    let year: i32 = date_parts.get(0)?.parse().ok()?;
+    let year: i32 = date_parts.first()?.parse().ok()?;
     let month: i32 = date_parts.get(1).and_then(|s| s.parse().ok()).unwrap_or(1) - 1;
     let day: i32 = date_parts.get(2).and_then(|s| s.parse().ok()).unwrap_or(1);
 
@@ -398,13 +398,13 @@ fn parse_time_part(s: &str) -> (i32, i32, i32, i32) {
 
     let time_parts: Vec<&str> = s_clean.split(':').collect();
 
-    let hours: i32 = time_parts.get(0).and_then(|s| s.parse().ok()).unwrap_or(0);
+    let hours: i32 = time_parts.first().and_then(|s| s.parse().ok()).unwrap_or(0);
     let minutes: i32 = time_parts.get(1).and_then(|s| s.parse().ok()).unwrap_or(0);
 
     // Seconds might have milliseconds: SS.sss
     let (seconds, ms) = if let Some(sec_str) = time_parts.get(2) {
         let sec_parts: Vec<&str> = sec_str.split('.').collect();
-        let secs: i32 = sec_parts.get(0).and_then(|s| s.parse().ok()).unwrap_or(0);
+        let secs: i32 = sec_parts.first().and_then(|s| s.parse().ok()).unwrap_or(0);
         let millis: i32 = sec_parts.get(1).and_then(|s| {
             let ms_str = format!("{:0<3}", s.chars().take(3).collect::<String>());
             ms_str.parse().ok()
@@ -449,20 +449,18 @@ fn parse_rfc_date(s: &str) -> Option<f64> {
         }
 
         // Check if it's a 1-2 digit day
-        if day.is_none() && part.len() <= 2 && part.chars().all(|c| c.is_ascii_digit()) {
-            if let Ok(d) = part.parse::<i32>() {
-                if d >= 1 && d <= 31 {
+        if day.is_none() && part.len() <= 2 && part.chars().all(|c| c.is_ascii_digit())
+            && let Ok(d) = part.parse::<i32>()
+                && (1..=31).contains(&d) {
                     day = Some(d);
                 }
-            }
-        }
     }
 
-    if year.is_some() && month.is_some() && day.is_some() {
+    if let (Some(y), Some(m), Some(d)) = (year, month, day) {
         return Some(make_date(
-            year.unwrap() as f64,
-            month.unwrap() as f64,
-            day.unwrap() as f64,
+            y as f64,
+            m as f64,
+            d as f64,
             0.0, 0.0, 0.0, 0.0,
         ));
     }
@@ -521,19 +519,19 @@ fn make_date(
     // Simplified: just compute days from epoch
     // This is not accurate but demonstrates the concept
     let mut y = year as i32;
-    if y >= 0 && y <= 99 {
+    if (0..=99).contains(&y) {
         y += 1900;
     }
 
     // Very rough approximation
     let days_since_epoch = (y - 1970) * 365 + ((month as i32) * 30) + (day as i32) - 1;
-    let time_ms = (days_since_epoch as f64) * 86400000.0
+    
+
+    (days_since_epoch as f64) * 86400000.0
         + hours * 3600000.0
         + minutes * 60000.0
         + seconds * 1000.0
-        + ms;
-
-    time_ms
+        + ms
 }
 
 /// Convert milliseconds to date components (year, month, day).

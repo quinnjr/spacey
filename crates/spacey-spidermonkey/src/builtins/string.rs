@@ -14,7 +14,7 @@ pub fn string_constructor(_frame: &mut CallFrame, args: &[Value]) -> Result<Valu
     let s = args
         .first()
         .map(|v| v.to_js_string())
-        .unwrap_or_else(String::new);
+        .unwrap_or_default();
     Ok(Value::String(s))
 }
 

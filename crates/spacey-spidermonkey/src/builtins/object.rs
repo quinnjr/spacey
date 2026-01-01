@@ -164,11 +164,9 @@ pub fn object_property_is_enumerable(_frame: &mut CallFrame, args: &[Value]) -> 
             }
         }
         Value::String(s) => {
-            // String indices are enumerable
+            // String indices are enumerable, length and other properties are not
             if let Ok(idx) = prop_name.parse::<usize>() {
                 Ok(Value::Boolean(idx < s.len()))
-            } else if prop_name == "length" {
-                Ok(Value::Boolean(false)) // length is not enumerable
             } else {
                 Ok(Value::Boolean(false))
             }

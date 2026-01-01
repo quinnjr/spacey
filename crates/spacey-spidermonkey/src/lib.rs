@@ -81,6 +81,7 @@ use vm::VM;
 /// Encapsulates the entire JavaScript execution environment including
 /// the heap, global object, and execution state.
 pub struct Engine {
+    #[allow(dead_code)]
     context: Context,
     vm: VM,
 }
@@ -184,10 +185,10 @@ impl Engine {
         let source = std::fs::read_to_string(path).map_err(|e| Error::Io(e.to_string()))?;
 
         // Detect TypeScript by extension
-        let is_typescript = match path.extension().and_then(|e| e.to_str()) {
-            Some("ts" | "tsx" | "mts" | "cts") => true,
-            _ => false,
-        };
+        let is_typescript = matches!(
+            path.extension().and_then(|e| e.to_str()),
+            Some("ts" | "tsx" | "mts" | "cts")
+        );
 
         if is_typescript {
             self.eval_typescript(&source)

@@ -44,6 +44,7 @@ impl Token {
 
 /// The different kinds of tokens in JavaScript.
 #[derive(Debug, Clone, PartialEq)]
+#[allow(missing_docs)]
 pub enum TokenKind {
     // Literals
     /// Numeric literal (integer or floating point)

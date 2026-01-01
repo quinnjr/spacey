@@ -70,6 +70,7 @@ impl Default for ObjectHeader {
 /// Object flags stored in the header.
 pub struct ObjectFlags;
 
+#[allow(dead_code)]
 impl ObjectFlags {
     /// Object is extensible (can add properties)
     pub const EXTENSIBLE: u8 = 0b0000_0001;
@@ -227,6 +228,7 @@ pub struct JsObject {
     /// Object properties (using FxHashMap for speed)
     pub properties: FxHashMap<String, PropertyValue>,
     /// Hidden class/shape for inline caching (future optimization)
+    #[allow(dead_code)]
     shape_id: u32,
 }
 
@@ -327,11 +329,13 @@ impl Default for JsObject {
 }
 
 /// Trait for types that can be garbage collected.
+#[allow(dead_code)]
 pub trait GcTrace: Send + Sync {
     /// Returns all GC references held by this object.
     fn trace_refs(&self) -> Vec<GcRef>;
 }
 
+#[allow(dead_code)]
 impl GcTrace for JsObject {
     fn trace_refs(&self) -> Vec<GcRef> {
         self.trace_refs()

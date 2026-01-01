@@ -9,8 +9,10 @@ use std::sync::Arc;
 /// Values are designed to be thread-safe and can be safely shared
 /// between async tasks.
 #[derive(Debug, Clone)]
+#[derive(Default)]
 pub enum Value {
     /// undefined
+    #[default]
     Undefined,
     /// null
     Null,
@@ -319,11 +321,6 @@ impl Value {
     }
 }
 
-impl Default for Value {
-    fn default() -> Self {
-        Value::Undefined
-    }
-}
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

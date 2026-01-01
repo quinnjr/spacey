@@ -14,6 +14,7 @@ use crate::runtime::value::Value;
 
 /// Error type enumeration.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(missing_docs)]
 pub enum ErrorKind {
     Error,
     EvalError,
@@ -24,6 +25,7 @@ pub enum ErrorKind {
     URIError,
 }
 
+#[allow(missing_docs)]
 impl ErrorKind {
     pub fn name(&self) -> &'static str {
         match self {
@@ -40,12 +42,14 @@ impl ErrorKind {
 
 /// JavaScript Error object representation.
 #[derive(Debug, Clone)]
+#[allow(missing_docs)]
 pub struct JsError {
     pub kind: ErrorKind,
     pub message: String,
     pub stack: Option<String>,
 }
 
+#[allow(missing_docs)]
 impl JsError {
     pub fn new(kind: ErrorKind, message: impl Into<String>) -> Self {
         Self {

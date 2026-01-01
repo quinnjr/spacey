@@ -159,27 +159,23 @@ fn print_help() {
 
     println!("{}", "OPTIONS:".white().bold());
     println!(
-        "    {:20} {}",
-        "-h, --help".cyan(),
-        "Print this help message"
+        "    {:20} Print this help message",
+        "-h, --help".cyan()
     );
     println!(
-        "    {:20} {}",
-        "-v, --version".cyan(),
-        "Print version information"
+        "    {:20} Print version information",
+        "-v, --version".cyan()
     );
     println!(
-        "    {:20} {}",
-        "-e, --eval <CODE>".cyan(),
-        "Evaluate JavaScript code"
+        "    {:20} Evaluate JavaScript code",
+        "-e, --eval <CODE>".cyan()
     );
     println!();
 
     println!("{}", "ARGUMENTS:".white().bold());
     println!(
-        "    {:20} {}",
-        "[FILE]".cyan(),
-        "JavaScript file to execute"
+        "    {:20} JavaScript file to execute",
+        "[FILE]".cyan()
     );
     println!();
 

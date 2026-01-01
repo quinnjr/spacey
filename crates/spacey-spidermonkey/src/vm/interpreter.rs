@@ -71,6 +71,7 @@ fn abstract_equals(a: &Value, b: &Value) -> bool {
 
 /// A saved call frame for restoring after return.
 #[derive(Clone)]
+#[allow(dead_code)]
 struct SavedFrame {
     /// Saved instruction pointer
     ip: usize,
@@ -128,7 +129,7 @@ fn call_date_method(timestamp: f64, method: &str, _args: &[Value]) -> Value {
 fn days_to_ymd(days: i64) -> (i32, i32, i32, i32) {
     // Simplified date calculation
     // Note: This is a basic implementation, may have edge cases
-    let mut remaining_days = days + 719468; // Days from year 0 to 1970
+    let remaining_days = days + 719468; // Days from year 0 to 1970
 
     // Calculate year
     let era = if remaining_days >= 0 { remaining_days } else { remaining_days - 146096 } / 146097;
@@ -154,7 +155,7 @@ fn call_number_method(n: f64, method: &str, args: &[Value]) -> Value {
             let radix = args.first().map(|v| v.to_number() as u32).unwrap_or(10);
             if radix == 10 {
                 Value::String(n.to_string())
-            } else if radix >= 2 && radix <= 36 {
+            } else if (2..=36).contains(&radix) {
                 let int_val = n as i64;
                 Value::String(format_radix(int_val, radix))
             } else {
@@ -399,13 +400,12 @@ fn call_regexp_method(regex_str: &str, method: &str, args: &[Value]) -> Value {
 fn parse_regexp_string(s: &str) -> (String, String) {
     if s.starts_with('/') {
         // Find the last '/' to separate pattern from flags
-        if let Some(last_slash) = s.rfind('/') {
-            if last_slash > 0 {
+        if let Some(last_slash) = s.rfind('/')
+            && last_slash > 0 {
                 let pattern = s[1..last_slash].to_string();
                 let flags = s[last_slash + 1..].to_string();
                 return (pattern, flags);
             }
-        }
     }
     // Not in /pattern/flags format, treat entire string as pattern
     (s.to_string(), String::new())
@@ -690,8 +690,8 @@ impl RuntimeObject {
 
     /// Set a property
     fn set(&mut self, name: &str, value: Value) {
-        if self.is_array {
-            if let Ok(idx) = name.parse::<usize>() {
+        if self.is_array
+            && let Ok(idx) = name.parse::<usize>() {
                 // Extend array if necessary
                 while self.array_elements.len() <= idx {
                     self.array_elements.push(Value::Undefined);
@@ -701,7 +701,6 @@ impl RuntimeObject {
                 self.properties.insert("length".to_string(), Value::Number(self.array_elements.len() as f64));
                 return;
             }
-        }
         self.properties.insert(name.to_string(), value);
     }
 
@@ -727,14 +726,12 @@ impl RuntimeObject {
 
     /// Delete a property
     fn delete(&mut self, name: &str) -> bool {
-        if self.is_array {
-            if let Ok(idx) = name.parse::<usize>() {
-                if idx < self.array_elements.len() {
+        if self.is_array
+            && let Ok(idx) = name.parse::<usize>()
+                && idx < self.array_elements.len() {
                     self.array_elements[idx] = Value::Undefined;
                     return true;
                 }
-            }
-        }
         self.properties.remove(name).is_some()
     }
 }
@@ -751,6 +748,7 @@ pub struct VM {
     /// Instruction pointer
     ip: usize,
     /// Call stack for function calls
+    #[allow(dead_code)]
     call_stack: Vec<SavedFrame>,
     /// Native functions
     native_functions: HashMap<String, Arc<Callable>>,
@@ -812,6 +810,7 @@ impl VM {
     }
 
     /// Call a user-defined function with given arguments.
+    #[allow(dead_code)]
     fn call_function(&mut self, func: &Function, args: &[Value]) -> Result<Value, Error> {
         self.call_function_with_value(func, args, None)
     }
@@ -841,11 +840,10 @@ impl VM {
         }
 
         // For named function expressions, set local[0] to the function itself
-        if func.name.is_some() {
-            if let Some(ref fv) = func_value {
+        if func.name.is_some()
+            && let Some(ref fv) = func_value {
                 self.locals[saved_locals_len] = fv.clone();
             }
-        }
 
         // Set up parameters
         for (i, _param) in func.params.iter().enumerate() {
@@ -856,11 +854,10 @@ impl VM {
         // Create the arguments object (ES3 Section 10.1.8)
         let arguments_obj_idx = self.alloc_object(RuntimeObject::new_array(args.to_vec()));
         // Also set callee property (the function itself)
-        if let Some(ref fv) = func_value {
-            if let Some(obj) = self.heap.get_mut(arguments_obj_idx) {
+        if let Some(ref fv) = func_value
+            && let Some(obj) = self.heap.get_mut(arguments_obj_idx) {
                 obj.set("callee", fv.clone());
             }
-        }
         // Save previous arguments if any, and set new arguments
         let prev_arguments = self.globals.remove("arguments");
         self.globals
@@ -1187,18 +1184,17 @@ impl VM {
 
                         // Check for array method marker (__array_method__METHOD_HEAPIDX)
                         if let Value::String(s) = &callee {
-                            if let Some(rest) = s.strip_prefix("__array_method__") {
-                                if let Some(last_underscore) = rest.rfind('_') {
+                            if let Some(rest) = s.strip_prefix("__array_method__")
+                                && let Some(last_underscore) = rest.rfind('_') {
                                     let method = &rest[..last_underscore];
                                     let heap_idx: usize = rest[last_underscore + 1..].parse().unwrap_or(0);
                                     let result = self.call_array_method(heap_idx, method, &call_args)?;
                                     self.stack.push(result);
                                     continue;
                                 }
-                            }
                             // Check for string method marker (__string_method__METHOD:STRING)
-                            if let Some(rest) = s.strip_prefix("__string_method__") {
-                                if let Some(colon_pos) = rest.find(':') {
+                            if let Some(rest) = s.strip_prefix("__string_method__")
+                                && let Some(colon_pos) = rest.find(':') {
                                     let method = &rest[..colon_pos];
                                     let string_val = &rest[colon_pos + 1..];
                                     // Handle split specially to create an actual array
@@ -1217,37 +1213,33 @@ impl VM {
                                     }
                                     continue;
                                 }
-                            }
                             // Check for number method marker (__number_method__METHOD:NUMBER)
-                            if let Some(rest) = s.strip_prefix("__number_method__") {
-                                if let Some(colon_pos) = rest.find(':') {
+                            if let Some(rest) = s.strip_prefix("__number_method__")
+                                && let Some(colon_pos) = rest.find(':') {
                                     let method = &rest[..colon_pos];
                                     let num_val: f64 = rest[colon_pos + 1..].parse().unwrap_or(f64::NAN);
                                     let result = call_number_method(num_val, method, &call_args);
                                     self.stack.push(result);
                                     continue;
                                 }
-                            }
                             // Check for date method marker (__date_method__METHOD:TIMESTAMP)
-                            if let Some(rest) = s.strip_prefix("__date_method__") {
-                                if let Some(colon_pos) = rest.find(':') {
+                            if let Some(rest) = s.strip_prefix("__date_method__")
+                                && let Some(colon_pos) = rest.find(':') {
                                     let method = &rest[..colon_pos];
                                     let timestamp: f64 = rest[colon_pos + 1..].parse().unwrap_or(f64::NAN);
                                     let result = call_date_method(timestamp, method, &call_args);
                                     self.stack.push(result);
                                     continue;
                                 }
-                            }
                             // Check for regexp method marker (__regexp_method__METHOD:/pattern/flags)
-                            if let Some(rest) = s.strip_prefix("__regexp_method__") {
-                                if let Some(colon_pos) = rest.find(':') {
+                            if let Some(rest) = s.strip_prefix("__regexp_method__")
+                                && let Some(colon_pos) = rest.find(':') {
                                     let method = &rest[..colon_pos];
                                     let regex_str = &rest[colon_pos + 1..];
                                     let result = call_regexp_method(regex_str, method, &call_args);
                                     self.stack.push(result);
                                     continue;
                                 }
-                            }
                         }
 
                         match callee {
@@ -1459,14 +1451,12 @@ impl VM {
                 // Flatten array arguments
                 let mut concat_elements = Vec::new();
                 for arg in args {
-                    if let Value::Object(idx) = arg {
-                        if let Some(other_arr) = self.heap.get(*idx) {
-                            if other_arr.is_array() {
+                    if let Value::Object(idx) = arg
+                        && let Some(other_arr) = self.heap.get(*idx)
+                            && other_arr.is_array() {
                                 concat_elements.extend(other_arr.elements().iter().cloned());
                                 continue;
                             }
-                        }
-                    }
                     concat_elements.push(arg.clone());
                 }
                 if let Some(arr) = self.heap.get(heap_idx) {
@@ -1486,26 +1476,24 @@ impl VM {
             }
             "sort" => {
                 // Basic string-based sort (ES3 default)
-                if let Some(arr) = self.heap.get_mut(heap_idx) {
-                    if arr.is_array {
+                if let Some(arr) = self.heap.get_mut(heap_idx)
+                    && arr.is_array {
                         arr.array_elements.sort_by(|a, b| {
                             a.to_js_string().cmp(&b.to_js_string())
                         });
                     }
-                }
                 Ok(Value::Object(heap_idx))
             }
             "lastIndexOf" => {
                 let search = args.first().unwrap_or(&Value::Undefined);
-                if let Some(arr) = self.heap.get(heap_idx) {
-                    if arr.is_array() {
+                if let Some(arr) = self.heap.get(heap_idx)
+                    && arr.is_array() {
                         for (i, elem) in arr.elements().iter().enumerate().rev() {
                             if elem == search {
                                 return Ok(Value::Number(i as f64));
                             }
                         }
                     }
-                }
                 Ok(Value::Number(-1.0))
             }
             "splice" => {
@@ -1563,11 +1551,10 @@ impl VM {
                 Ok(Value::Object(new_idx))
             }
             "length" => {
-                if let Some(arr) = self.heap.get(heap_idx) {
-                    if arr.is_array() {
+                if let Some(arr) = self.heap.get(heap_idx)
+                    && arr.is_array() {
                         return Ok(Value::Number(arr.array_elements.len() as f64));
                     }
-                }
                 Ok(Value::Number(0.0))
             }
             _ => Err(Error::TypeError(format!("Array method '{}' not implemented", method))),
@@ -1647,21 +1634,19 @@ impl VM {
 
                 // Global variable operations
                 OpCode::LoadGlobal => {
-                    if let Some(Operand::Property(idx)) = &instruction.operand {
-                        if let Value::String(name) = &bytecode.constants[*idx as usize] {
+                    if let Some(Operand::Property(idx)) = &instruction.operand
+                        && let Value::String(name) = &bytecode.constants[*idx as usize] {
                             let value = self.globals.get(name).cloned().unwrap_or(Value::Undefined);
                             self.stack.push(value);
                         }
-                    }
                 }
 
                 OpCode::StoreGlobal => {
-                    if let Some(Operand::Property(idx)) = &instruction.operand {
-                        if let Value::String(name) = &bytecode.constants[*idx as usize] {
+                    if let Some(Operand::Property(idx)) = &instruction.operand
+                        && let Value::String(name) = &bytecode.constants[*idx as usize] {
                             let value = self.pop()?;
                             self.globals.insert(name.clone(), value);
                         }
-                    }
                 }
 
                 OpCode::Pop => {
@@ -2036,18 +2021,17 @@ impl VM {
 
                         // Check for array method marker (__array_method__METHOD_HEAPIDX)
                         if let Value::String(s) = &callee {
-                            if let Some(rest) = s.strip_prefix("__array_method__") {
-                                if let Some(last_underscore) = rest.rfind('_') {
+                            if let Some(rest) = s.strip_prefix("__array_method__")
+                                && let Some(last_underscore) = rest.rfind('_') {
                                     let method = &rest[..last_underscore];
                                     let heap_idx: usize = rest[last_underscore + 1..].parse().unwrap_or(0);
                                     let result = self.call_array_method(heap_idx, method, &args)?;
                                     self.stack.push(result);
                                     continue;
                                 }
-                            }
                             // Check for string method marker (__string_method__METHOD:STRING)
-                            if let Some(rest) = s.strip_prefix("__string_method__") {
-                                if let Some(colon_pos) = rest.find(':') {
+                            if let Some(rest) = s.strip_prefix("__string_method__")
+                                && let Some(colon_pos) = rest.find(':') {
                                     let method = &rest[..colon_pos];
                                     let string_val = &rest[colon_pos + 1..];
                                     // Handle split specially to create an actual array
@@ -2066,37 +2050,33 @@ impl VM {
                                     }
                                     continue;
                                 }
-                            }
                             // Check for number method marker (__number_method__METHOD:NUMBER)
-                            if let Some(rest) = s.strip_prefix("__number_method__") {
-                                if let Some(colon_pos) = rest.find(':') {
+                            if let Some(rest) = s.strip_prefix("__number_method__")
+                                && let Some(colon_pos) = rest.find(':') {
                                     let method = &rest[..colon_pos];
                                     let num_val: f64 = rest[colon_pos + 1..].parse().unwrap_or(f64::NAN);
                                     let result = call_number_method(num_val, method, &args);
                                     self.stack.push(result);
                                     continue;
                                 }
-                            }
                             // Check for date method marker (__date_method__METHOD:TIMESTAMP)
-                            if let Some(rest) = s.strip_prefix("__date_method__") {
-                                if let Some(colon_pos) = rest.find(':') {
+                            if let Some(rest) = s.strip_prefix("__date_method__")
+                                && let Some(colon_pos) = rest.find(':') {
                                     let method = &rest[..colon_pos];
                                     let timestamp: f64 = rest[colon_pos + 1..].parse().unwrap_or(f64::NAN);
                                     let result = call_date_method(timestamp, method, &args);
                                     self.stack.push(result);
                                     continue;
                                 }
-                            }
                             // Check for regexp method marker (__regexp_method__METHOD:/pattern/flags)
-                            if let Some(rest) = s.strip_prefix("__regexp_method__") {
-                                if let Some(colon_pos) = rest.find(':') {
+                            if let Some(rest) = s.strip_prefix("__regexp_method__")
+                                && let Some(colon_pos) = rest.find(':') {
                                     let method = &rest[..colon_pos];
                                     let regex_str = &rest[colon_pos + 1..];
                                     let result = call_regexp_method(regex_str, method, &args);
                                     self.stack.push(result);
                                     continue;
                                 }
-                            }
                         }
 
                         match callee {
@@ -2104,9 +2084,9 @@ impl VM {
                                 // NativeObject being called as constructor (e.g., new Date(), Number())
 
                                 // First check for a "constructor" property (generic approach)
-                                if let Some(constructor) = props.get("constructor") {
-                                    if let Value::Function(callable) = constructor {
-                                        if let Callable::Native { func, .. } = callable.as_ref() {
+                                if let Some(constructor) = props.get("constructor")
+                                    && let Value::Function(callable) = constructor
+                                        && let Callable::Native { func, .. } = callable.as_ref() {
                                             let temp_func = Function::new(None, vec![], Bytecode::new(), 0);
                                             let mut frame = CallFrame::new(temp_func, 0);
                                             match func(&mut frame, &args) {
@@ -2117,15 +2097,13 @@ impl VM {
                                                 Err(e) => return Err(Error::TypeError(e)),
                                             }
                                         }
-                                    }
-                                }
 
                                 // Check for Date constructor (legacy approach for Date)
                                 if props.contains_key("now") {
                                     // This is Date, call the Date constructor
-                                    if let Some(constructor_fn) = self.globals.get("Date_constructor") {
-                                        if let Value::Function(callable) = constructor_fn {
-                                            if let Callable::Native { func, .. } = callable.as_ref() {
+                                    if let Some(constructor_fn) = self.globals.get("Date_constructor")
+                                        && let Value::Function(callable) = constructor_fn
+                                            && let Callable::Native { func, .. } = callable.as_ref() {
                                                 let temp_func = Function::new(None, vec![], Bytecode::new(), 0);
                                                 let mut frame = CallFrame::new(temp_func, 0);
                                                 match func(&mut frame, &args) {
@@ -2143,8 +2121,6 @@ impl VM {
                                                 }
                                                 continue;
                                             }
-                                        }
-                                    }
                                 }
                                 return Err(Error::TypeError("Value is not callable".into()));
                             }
@@ -2364,10 +2340,10 @@ impl VM {
                     let right = self.stack.pop().unwrap_or(Value::Undefined);
                     let left = self.stack.pop().unwrap_or(Value::Undefined);
                     // Simplified instanceof - checks if left is an object
-                    let result = match (&left, &right) {
-                        (Value::Object(_), Value::Function(_)) => true,
-                        _ => false,
-                    };
+                    let result = matches!(
+                        (&left, &right),
+                        (Value::Object(_), Value::Function(_))
+                    );
                     self.stack.push(Value::Boolean(result));
                 }
 

@@ -8,10 +8,12 @@ use crate::runtime::value::Value;
 /// Internal array representation.
 /// In a full implementation, this would be stored in the heap.
 #[derive(Debug, Clone)]
+#[allow(missing_docs)]
 pub struct JsArray {
     pub elements: Vec<Value>,
 }
 
+#[allow(missing_docs)]
 impl JsArray {
     pub fn new() -> Self {
         Self {
@@ -51,8 +53,8 @@ impl Default for JsArray {
 /// Array() constructor - creates a new array.
 pub fn array_constructor(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, String> {
     // Single numeric argument = array with that length
-    if args.len() == 1 {
-        if let Value::Number(n) = &args[0] {
+    if args.len() == 1
+        && let Value::Number(n) = &args[0] {
             let len = n.to_bits();
             if *n >= 0.0 && n.fract() == 0.0 && *n <= u32::MAX as f64 {
                 // Create array with specified length
@@ -62,7 +64,6 @@ pub fn array_constructor(_frame: &mut CallFrame, args: &[Value]) -> Result<Value
                 return Err("RangeError: Invalid array length".to_string());
             }
         }
-    }
 
     // Multiple arguments or non-numeric single argument = array with those elements
     // In real impl, would create array in heap and return reference

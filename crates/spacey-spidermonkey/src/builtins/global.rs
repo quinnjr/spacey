@@ -70,10 +70,10 @@ pub fn parse_int(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, String
     }
 
     // Check for sign
-    let (sign, s) = if s.starts_with('-') {
-        (-1.0, &s[1..])
-    } else if s.starts_with('+') {
-        (1.0, &s[1..])
+    let (sign, s) = if let Some(stripped) = s.strip_prefix('-') {
+        (-1.0, stripped)
+    } else if let Some(stripped) = s.strip_prefix('+') {
+        (1.0, stripped)
     } else {
         (1.0, s)
     };
@@ -88,7 +88,7 @@ pub fn parse_int(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, String
         } else {
             10
         }
-    } else if radix < 2 || radix > 36 {
+    } else if !(2..=36).contains(&radix) {
         return Ok(Value::Number(f64::NAN));
     } else {
         radix
@@ -152,8 +152,8 @@ pub fn parse_float(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, Stri
 
     // Find the longest valid number prefix
     let mut end = 0;
-    let mut has_dot = false;
-    let mut has_exp = false;
+    let mut _has_dot = false;
+    let mut _has_exp = false;
     let chars: Vec<char> = s.chars().collect();
 
     // Optional sign
@@ -168,7 +168,7 @@ pub fn parse_float(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, Stri
 
     // Optional decimal point and digits
     if end < chars.len() && chars[end] == '.' {
-        has_dot = true;
+        _has_dot = true;
         end += 1;
         while end < chars.len() && chars[end].is_ascii_digit() {
             end += 1;
@@ -195,7 +195,7 @@ pub fn parse_float(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, Stri
             // No digits after e, back up
             end = exp_start;
         } else {
-            has_exp = true;
+            _has_exp = true;
         }
     }
 

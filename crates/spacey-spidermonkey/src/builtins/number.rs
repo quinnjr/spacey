@@ -45,7 +45,7 @@ pub fn to_string(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, String
     let n = get_this_number(args)?;
     let radix = args.get(1).map(|v| v.to_integer() as i32).unwrap_or(10);
 
-    if radix < 2 || radix > 36 {
+    if !(2..=36).contains(&radix) {
         return Err("RangeError: radix must be between 2 and 36".to_string());
     }
 
@@ -110,7 +110,7 @@ pub fn to_fixed(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, String>
     let n = get_this_number(args)?;
     let digits = args.get(1).map(|v| v.to_integer() as i32).unwrap_or(0);
 
-    if digits < 0 || digits > 20 {
+    if !(0..=20).contains(&digits) {
         return Err("RangeError: digits must be between 0 and 20".to_string());
     }
 
@@ -149,7 +149,7 @@ pub fn to_exponential(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, S
     }
 
     let digits = digits.unwrap().to_integer() as i32;
-    if digits < 0 || digits > 20 {
+    if !(0..=20).contains(&digits) {
         return Err("RangeError: digits must be between 0 and 20".to_string());
     }
 
@@ -180,7 +180,7 @@ pub fn to_precision(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, Str
     }
 
     let precision = precision.unwrap().to_integer() as i32;
-    if precision < 1 || precision > 21 {
+    if !(1..=21).contains(&precision) {
         return Err("RangeError: precision must be between 1 and 21".to_string());
     }
 

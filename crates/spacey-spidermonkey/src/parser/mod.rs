@@ -1,3 +1,4 @@
+#![allow(clippy::module_inception)]
 //! Parser for JavaScript source code.
 //!
 //! Transforms a stream of tokens into an Abstract Syntax Tree (AST).
