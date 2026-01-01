@@ -96,6 +96,9 @@ coverage/
 .angular/
 website/.angular/
 website/dist/
+crates/spacey-browser/ui/spacey-ui/.angular/
+crates/spacey-browser/ui/spacey-ui/node_modules/
+crates/spacey-browser/assets/ui/
 
 # Git
 .git/

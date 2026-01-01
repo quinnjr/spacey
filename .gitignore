@@ -1,1 +1,24 @@
+# Rust build output
 /target
+
+# Node modules
+node_modules/
+
+# Angular build artifacts
+.angular/
+dist/
+
+# Browser UI build output (generated from Angular)
+crates/spacey-browser/assets/ui/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+
+# Environment
+.env
+.env.local

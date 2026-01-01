@@ -1,0 +1,180 @@
+<div class="container">
+  <header class="page-header">
+    <div class="header-icon">🐛</div>
+    <h1>Report a Bug</h1>
+    <p>Found an issue with Spacey Browser? Let us know and we'll fix it!</p>
+  </header>
+  
+  <!-- Email notice -->
+  <div class="alert alert-info">
+    <span class="alert-icon">📧</span>
+    <span>Your report will be sent to: <strong>support&#64;pegasusheavy.dev</strong></span>
+  </div>
+  
+  <!-- System Information -->
+  <section class="section" *ngIf="systemInfo">
+    <h2>System Information</h2>
+    <div class="system-info-card">
+      <div class="info-row">
+        <span class="info-label">Browser Version</span>
+        <span class="info-value">Spacey v{{ systemInfo.version }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Operating System</span>
+        <span class="info-value">{{ systemInfo.os }} ({{ systemInfo.arch }})</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Shield Level</span>
+        <span class="info-value">{{ systemInfo.shieldLevel }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Extensions Installed</span>
+        <span class="info-value">{{ systemInfo.extensionCount }}</span>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Bug Report Form -->
+  <section class="section">
+    <h2>Bug Details</h2>
+    
+    <form [action]="getFormAction()" method="POST" (ngSubmit)="onSubmit()" #bugForm="ngForm">
+      <!-- FormSubmit Configuration -->
+      <input type="hidden" name="_subject" value="[Spacey Bug Report] New Issue Reported">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_next" [value]="'/bugreport-thanks'">
+      <input type="hidden" name="System Info" [value]="getSystemInfoString()">
+      
+      <!-- Issue Type -->
+      <div class="form-group">
+        <label class="form-label" for="issueType">
+          Issue Type <span class="required">*</span>
+        </label>
+        <select 
+          id="issueType" 
+          name="Issue Type" 
+          class="form-select"
+          [(ngModel)]="report.issueType"
+          required>
+          <option value="" disabled>-- Select an issue type --</option>
+          <option *ngFor="let type of issueTypes" [value]="type.value">{{ type.label }}</option>
+        </select>
+      </div>
+      
+      <!-- Summary -->
+      <div class="form-group">
+        <label class="form-label" for="summary">
+          Summary <span class="required">*</span>
+        </label>
+        <input 
+          type="text" 
+          id="summary" 
+          name="Summary" 
+          class="form-input"
+          [(ngModel)]="report.summary"
+          placeholder="Brief description of the issue"
+          required>
+      </div>
+      
+      <!-- URL -->
+      <div class="form-group">
+        <label class="form-label" for="url">
+          URL where issue occurred <span class="optional">(optional)</span>
+        </label>
+        <input 
+          type="text" 
+          id="url" 
+          name="URL" 
+          class="form-input"
+          [(ngModel)]="report.url"
+          placeholder="https://example.com">
+      </div>
+      
+      <!-- Steps to Reproduce -->
+      <div class="form-group">
+        <label class="form-label" for="steps">
+          Steps to Reproduce <span class="required">*</span>
+        </label>
+        <textarea 
+          id="steps" 
+          name="Steps to Reproduce" 
+          class="form-textarea"
+          [(ngModel)]="report.steps"
+          placeholder="1. Go to...&#10;2. Click on...&#10;3. Observe..."
+          required></textarea>
+      </div>
+      
+      <!-- Expected Behavior -->
+      <div class="form-group">
+        <label class="form-label" for="expected">
+          Expected Behavior <span class="optional">(optional)</span>
+        </label>
+        <textarea 
+          id="expected" 
+          name="Expected Behavior" 
+          class="form-textarea"
+          [(ngModel)]="report.expected"
+          placeholder="What should have happened?"></textarea>
+      </div>
+      
+      <!-- Actual Behavior -->
+      <div class="form-group">
+        <label class="form-label" for="actual">
+          Actual Behavior <span class="required">*</span>
+        </label>
+        <textarea 
+          id="actual" 
+          name="Actual Behavior" 
+          class="form-textarea"
+          [(ngModel)]="report.actual"
+          placeholder="What actually happened?"
+          required></textarea>
+      </div>
+      
+      <!-- Additional Information -->
+      <div class="form-group">
+        <label class="form-label" for="additional">
+          Additional Information <span class="optional">(optional)</span>
+        </label>
+        <textarea 
+          id="additional" 
+          name="Additional Info" 
+          class="form-textarea"
+          [(ngModel)]="report.additional"
+          placeholder="Any other details, error messages, screenshot URLs, etc."></textarea>
+      </div>
+      
+      <!-- Email -->
+      <div class="form-group">
+        <label class="form-label" for="email">
+          Your Email <span class="optional">(optional, for follow-up)</span>
+        </label>
+        <input 
+          type="email" 
+          id="email" 
+          name="Reporter Email" 
+          class="form-input"
+          [(ngModel)]="report.email"
+          placeholder="you@example.com">
+      </div>
+      
+      <!-- Submit -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="!bugForm.valid || submitting">
+          <span *ngIf="!submitting">📨 Submit Bug Report</span>
+          <span *ngIf="submitting">Submitting...</span>
+        </button>
+      </div>
+    </form>
+  </section>
+  
+  <!-- Tips -->
+  <div class="alert alert-info tip-alert">
+    <span class="alert-icon">💡</span>
+    <span>
+      <strong>Tip:</strong> For faster resolution, include as much detail as possible.
+      Screenshots or screen recordings can be shared via links in the Additional Information field.
+    </span>
+  </div>
+</div>

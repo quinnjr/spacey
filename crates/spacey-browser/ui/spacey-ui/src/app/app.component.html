@@ -1,0 +1,38 @@
+<div class="app-layout">
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">🚀</span>
+        <span class="logo-text">Spacey</span>
+      </div>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a routerLink="/welcome" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-text">Welcome</span>
+      </a>
+      <a routerLink="/settings" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">Settings</span>
+      </a>
+      <a routerLink="/bugreport" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">🐛</span>
+        <span class="nav-text">Report Bug</span>
+      </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="version-info">
+        <span class="version-label">Version</span>
+        <span class="version-number">0.1.0</span>
+      </div>
+    </div>
+  </aside>
+  
+  <!-- Main Content -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

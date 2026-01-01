@@ -138,7 +138,7 @@ impl Browser {
 
     <h2>Try some JavaScript:</h2>
     <p>Open the developer console to execute JavaScript with the Spacey engine.</p>
-    
+
     <h2>🐛 Found a Bug?</h2>
     <p>Help us improve Spacey Browser! <a href="about:bugreport" style="color: #00d4ff;">Report a bug</a></p>
 
@@ -156,7 +156,7 @@ impl Browser {
         self.current_url = "about:welcome".to_string();
         self.update_ai_page_context();
     }
-    
+
     /// Navigate to bug report page
     fn navigate_to_bugreport(&mut self) {
         let version = env!("CARGO_PKG_VERSION");
@@ -164,7 +164,7 @@ impl Browser {
         let arch = std::env::consts::ARCH;
         let shield_level = format!("{:?}", self.shield.level());
         let ext_count = self.extension_manager.list().len();
-        
+
         let html = format!(r#"
 <!DOCTYPE html>
 <html>
@@ -260,11 +260,11 @@ impl Browser {
 <body>
     <h1>🐛 Report a Bug</h1>
     <p>Found an issue with Spacey Browser? Let us know and we'll fix it!</p>
-    
+
     <div class="note">
         <strong>📧 Your report will be sent to:</strong> support@pegasusheavy.dev
     </div>
-    
+
     <h2>System Information</h2>
     <div class="system-info">
         <div><span>Browser Version:</span> Spacey v{}</div>
@@ -272,22 +272,22 @@ impl Browser {
         <div><span>Shield Level:</span> {}</div>
         <div><span>Extensions Installed:</span> {}</div>
     </div>
-    
+
     <form action="https://formsubmit.co/support@pegasusheavy.dev" method="POST">
         <!-- FormSubmit configuration -->
         <input type="hidden" name="_subject" value="[Spacey Bug Report] New Issue Reported">
         <input type="hidden" name="_captcha" value="false">
         <input type="hidden" name="_template" value="table">
         <input type="hidden" name="_next" value="about:bugreport-thanks">
-        
+
         <!-- System info (hidden) -->
         <input type="hidden" name="Browser Version" value="Spacey v{}">
         <input type="hidden" name="Operating System" value="{} ({})">
         <input type="hidden" name="Shield Level" value="{}">
         <input type="hidden" name="Extensions Count" value="{}">
-        
+
         <h2>Bug Details</h2>
-        
+
         <div class="form-group">
             <label for="issue-type">Issue Type <span class="required">*</span></label>
             <select id="issue-type" name="Issue Type" required>
@@ -303,61 +303,61 @@ impl Browser {
                 <option value="other">📝 Other</option>
             </select>
         </div>
-        
+
         <div class="form-group">
             <label for="summary">Summary <span class="required">*</span></label>
             <input type="text" id="summary" name="Summary" placeholder="Brief description of the issue" required>
         </div>
-        
+
         <div class="form-group">
             <label for="url">URL where issue occurred (if applicable)</label>
             <input type="text" id="url" name="URL" placeholder="https://example.com">
         </div>
-        
+
         <div class="form-group">
             <label for="steps">Steps to Reproduce <span class="required">*</span></label>
             <textarea id="steps" name="Steps to Reproduce" placeholder="1. Go to...&#10;2. Click on...&#10;3. Observe..." required></textarea>
         </div>
-        
+
         <div class="form-group">
             <label for="expected">Expected Behavior</label>
             <textarea id="expected" name="Expected Behavior" placeholder="What should have happened?"></textarea>
         </div>
-        
+
         <div class="form-group">
             <label for="actual">Actual Behavior <span class="required">*</span></label>
             <textarea id="actual" name="Actual Behavior" placeholder="What actually happened?" required></textarea>
         </div>
-        
+
         <div class="form-group">
             <label for="additional">Additional Information</label>
             <textarea id="additional" name="Additional Info" placeholder="Any other details, error messages, screenshots URLs, etc."></textarea>
         </div>
-        
+
         <div class="form-group">
             <label for="email">Your Email (optional, for follow-up)</label>
             <input type="email" id="email" name="Reporter Email" placeholder="you@example.com">
         </div>
-        
+
         <button type="submit">📨 Submit Bug Report</button>
     </form>
-    
+
     <div class="note" style="margin-top: 30px;">
-        <strong>💡 Tip:</strong> For faster resolution, include as much detail as possible. 
+        <strong>💡 Tip:</strong> For faster resolution, include as much detail as possible.
         Screenshots or screen recordings can be shared via links in the Additional Information field.
     </div>
 </body>
 </html>
-        "#, 
+        "#,
         version, os, arch, shield_level, ext_count,
         version, os, arch, shield_level, ext_count
         );
-        
+
         self.current_page = Some(Page::from_html(&html, &self.js_engine));
         self.current_url = "about:bugreport".to_string();
         self.update_ai_page_context();
     }
-    
+
     /// Navigate to bug report thank you page
     fn navigate_to_bugreport_thanks(&mut self) {
         let html = r#"
@@ -424,18 +424,18 @@ impl Browser {
     <div class="success-icon">✅</div>
     <h1>Thank You!</h1>
     <p>Your bug report has been submitted successfully.</p>
-    
+
     <div class="card">
         <h2 style="color: #7b68ee; margin-top: 0;">What happens next?</h2>
         <p>Our team will review your report and investigate the issue. If you provided your email, we'll follow up with any questions or updates.</p>
         <p style="margin-bottom: 0;"><strong>Typical response time:</strong> 24-48 hours</p>
     </div>
-    
+
     <a href="about:welcome" class="back-link">← Back to Home</a>
 </body>
 </html>
         "#;
-        
+
         self.current_page = Some(Page::from_html(html, &self.js_engine));
         self.current_url = "about:bugreport-thanks".to_string();
         self.update_ai_page_context();
@@ -770,7 +770,7 @@ impl Browser {
 
     pub fn navigate(&mut self, url: &str) {
         log::info!("Navigating to: {}", url);
-        
+
         // Handle special about: pages
         match url {
             "about:welcome" | "about:home" => {

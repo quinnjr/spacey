@@ -1,0 +1,88 @@
+.thanks-page {
+  text-align: center;
+  max-width: 600px;
+  padding-top: 60px;
+}
+
+.success-animation {
+  margin-bottom: 24px;
+}
+
+.success-icon {
+  font-size: 80px;
+  animation: pop-in 0.5s ease-out;
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.thanks-page h1 {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.thanks-message {
+  color: var(--text-secondary);
+  font-size: 1.15rem;
+  margin-bottom: 40px;
+}
+
+.next-steps {
+  text-align: left;
+  margin-bottom: 40px;
+}
+
+.next-steps h2 {
+  margin-bottom: 16px;
+  font-size: 1.25rem;
+}
+
+.next-steps p {
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.7;
+}
+
+.response-time {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.response-time .label {
+  color: var(--text-muted);
+}
+
+.response-time .value {
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .actions {
+    flex-direction: column;
+  }
+  
+  .actions .btn {
+    width: 100%;
+  }
+}

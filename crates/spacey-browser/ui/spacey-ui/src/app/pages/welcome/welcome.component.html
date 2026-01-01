@@ -1,0 +1,120 @@
+<div class="container">
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="hero-icon">🚀</div>
+    <h1>Welcome to Spacey Browser!</h1>
+    <p class="hero-subtitle">
+      A modern, privacy-focused web browser powered by a custom JavaScript engine
+    </p>
+  </header>
+  
+  <!-- Quick Stats -->
+  <section class="stats-grid" *ngIf="systemInfo">
+    <div class="stat-card">
+      <span class="stat-icon">🛡️</span>
+      <div class="stat-content">
+        <span class="stat-value">{{ systemInfo.shieldLevel }}</span>
+        <span class="stat-label">Shield Level</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">🧩</span>
+      <div class="stat-content">
+        <span class="stat-value">{{ systemInfo.extensionCount }}</span>
+        <span class="stat-label">Extensions</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">🚫</span>
+      <div class="stat-content">
+        <span class="stat-value">{{ systemInfo.blockedDomains }}</span>
+        <span class="stat-label">Blocked Domains</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">⚡</span>
+      <div class="stat-content">
+        <span class="stat-value">v{{ systemInfo.version }}</span>
+        <span class="stat-label">Version</span>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Features Grid -->
+  <section class="section">
+    <h2>✨ Features</h2>
+    <div class="features-grid">
+      <div class="feature-item" *ngFor="let feature of features" [class.wip]="feature.status === 'wip'">
+        <span class="feature-icon">{{ feature.icon }}</span>
+        <span class="feature-text">{{ feature.text }}</span>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Shield Info -->
+  <section class="section" *ngIf="systemInfo">
+    <h2>🛡️ Spacey Shield</h2>
+    <div class="card shield-card">
+      <p class="shield-intro">
+        <strong>Built-in privacy protection is ACTIVE!</strong>
+      </p>
+      <ul class="shield-features">
+        <li>
+          <span class="check">✓</span>
+          Protection Level: <strong>{{ systemInfo.shieldLevel }}</strong>
+        </li>
+        <li>
+          <span class="check">✓</span>
+          Blocking <strong>{{ systemInfo.blockedDomains }}</strong> known ad/tracker domains
+        </li>
+        <li>
+          <span class="check">✓</span>
+          Fingerprint protection enabled
+        </li>
+        <li>
+          <span class="check">✓</span>
+          HTTPS upgrade enabled
+        </li>
+        <li>
+          <span class="check">✓</span>
+          Tracking parameter stripping enabled
+        </li>
+      </ul>
+      <p class="shield-note">
+        Spacey Shield complements extensions like uBlock Origin - they work together!
+        Shield handles domain blocking + fingerprinting, uBlock handles cosmetic rules + advanced filters.
+      </p>
+    </div>
+  </section>
+  
+  <!-- AI Assistant -->
+  <section class="section">
+    <h2>🤖 AI Assistant</h2>
+    <div class="card ai-card">
+      <p>Use the AI panel on the right to automate browsing tasks! Try commands like:</p>
+      <div class="ai-commands">
+        <code *ngFor="let cmd of aiCommands">"{{ cmd }}"</code>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Quick Links -->
+  <section class="section">
+    <h2>🔗 Quick Links</h2>
+    <div class="quick-links-grid">
+      <a [routerLink]="link.route" class="quick-link-card" *ngFor="let link of quickLinks">
+        <span class="quick-link-icon">{{ link.icon }}</span>
+        <div class="quick-link-content">
+          <h3>{{ link.title }}</h3>
+          <p>{{ link.description }}</p>
+        </div>
+        <span class="quick-link-arrow">→</span>
+      </a>
+    </div>
+  </section>
+  
+  <!-- Footer -->
+  <footer class="welcome-footer">
+    <p>Built with ❤️ by <a href="https://pegasusheavy.dev" target="_blank">Pegasus Heavy Industries</a></p>
+  </footer>
+</div>

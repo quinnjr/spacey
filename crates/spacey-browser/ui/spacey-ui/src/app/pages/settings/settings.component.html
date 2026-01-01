@@ -1,0 +1,397 @@
+<div class="settings-layout">
+  <!-- Settings Sidebar -->
+  <aside class="settings-sidebar">
+    <h2>Settings</h2>
+    <nav class="settings-nav">
+      <button 
+        *ngFor="let section of sections"
+        [class.active]="activeSection === section.id"
+        (click)="setActiveSection(section.id)"
+        class="settings-nav-item">
+        <span class="nav-icon">{{ section.icon }}</span>
+        <span class="nav-text">{{ section.title }}</span>
+      </button>
+    </nav>
+  </aside>
+  
+  <!-- Settings Content -->
+  <main class="settings-content">
+    <!-- Shield Settings -->
+    <section *ngIf="activeSection === 'shield'" class="settings-section">
+      <header class="section-header">
+        <h1>🛡️ Spacey Shield</h1>
+        <p>Built-in privacy protection that complements extensions like uBlock Origin</p>
+      </header>
+      
+      <!-- Protection Level -->
+      <div class="setting-card">
+        <h3>Protection Level</h3>
+        <p class="setting-description">Choose how aggressively Shield blocks trackers and ads</p>
+        
+        <div class="level-selector">
+          <button 
+            class="level-btn" 
+            [class.active]="shieldLevel === 'off'"
+            (click)="setShieldLevel('off')">
+            <span class="level-icon">⚪</span>
+            <span class="level-name">Off</span>
+            <span class="level-desc">Only malware blocked</span>
+          </button>
+          <button 
+            class="level-btn" 
+            [class.active]="shieldLevel === 'standard'"
+            (click)="setShieldLevel('standard')">
+            <span class="level-icon">🟢</span>
+            <span class="level-name">Standard</span>
+            <span class="level-desc">Recommended for most users</span>
+          </button>
+          <button 
+            class="level-btn" 
+            [class.active]="shieldLevel === 'strict'"
+            (click)="setShieldLevel('strict')">
+            <span class="level-icon">🔴</span>
+            <span class="level-name">Strict</span>
+            <span class="level-desc">Maximum protection (may break sites)</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Shield Options -->
+      <div class="setting-card">
+        <h3>Protection Features</h3>
+        
+        <div class="toggle-list">
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Block Ads</span>
+              <span class="toggle-desc">Block known advertising networks</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="shieldOptions.blockAds" (change)="onToggle('blockAds', 'shield')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Block Trackers</span>
+              <span class="toggle-desc">Block analytics and tracking scripts</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="shieldOptions.blockTrackers" (change)="onToggle('blockTrackers', 'shield')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Block Cryptominers</span>
+              <span class="toggle-desc">Prevent websites from mining cryptocurrency</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="shieldOptions.blockCryptominers" (change)="onToggle('blockCryptominers', 'shield')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Fingerprint Protection</span>
+              <span class="toggle-desc">Add noise to fingerprinting APIs</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="shieldOptions.fingerprintProtection" (change)="onToggle('fingerprintProtection', 'shield')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">HTTPS Upgrade</span>
+              <span class="toggle-desc">Automatically upgrade HTTP to HTTPS</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="shieldOptions.httpsUpgrade" (change)="onToggle('httpsUpgrade', 'shield')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Strip Tracking Parameters</span>
+              <span class="toggle-desc">Remove utm_*, fbclid, gclid from URLs</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="shieldOptions.stripTracking" (change)="onToggle('stripTracking', 'shield')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- AI Settings -->
+    <section *ngIf="activeSection === 'ai'" class="settings-section">
+      <header class="section-header">
+        <h1>🤖 AI Assistant</h1>
+        <p>Configure the embedded Phi-3 AI assistant for agentic browsing</p>
+      </header>
+      
+      <div class="setting-card">
+        <h3>General</h3>
+        
+        <div class="toggle-list">
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Enable AI Assistant</span>
+              <span class="toggle-desc">Show AI panel in the browser</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="aiSettings.enabled" (change)="onToggle('enabled', 'ai')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Auto-load Model</span>
+              <span class="toggle-desc">Load AI model on browser startup (uses ~4GB RAM)</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="aiSettings.autoLoad" (change)="onToggle('autoLoad', 'ai')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Show Thought Process</span>
+              <span class="toggle-desc">Display AI reasoning in the chat</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="aiSettings.showThoughts" (change)="onToggle('showThoughts', 'ai')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="setting-card">
+        <h3>Performance</h3>
+        
+        <div class="form-group">
+          <label class="form-label" for="maxIterations">Maximum Iterations per Task</label>
+          <input 
+            type="number" 
+            id="maxIterations" 
+            class="form-input" 
+            [(ngModel)]="aiSettings.maxIterations"
+            min="1" 
+            max="50"
+            style="max-width: 120px;">
+          <span class="form-hint">Higher values allow more complex tasks but may take longer</span>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Extensions Settings -->
+    <section *ngIf="activeSection === 'extensions'" class="settings-section">
+      <header class="section-header">
+        <h1>🧩 Extensions</h1>
+        <p>Manage Firefox-compatible browser extensions</p>
+      </header>
+      
+      <div class="setting-card">
+        <div class="empty-state">
+          <span class="empty-icon">🧩</span>
+          <h3>Manage Extensions</h3>
+          <p>Open the Extensions panel in the browser to install and manage extensions from the Firefox Add-ons Marketplace.</p>
+          <p class="highlight">Unlike Chrome, Spacey supports FULL webRequest API for ad blockers!</p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Privacy Settings -->
+    <section *ngIf="activeSection === 'privacy'" class="settings-section">
+      <header class="section-header">
+        <h1>🔒 Privacy</h1>
+        <p>Control how Spacey handles your data and privacy signals</p>
+      </header>
+      
+      <div class="setting-card">
+        <h3>Privacy Signals</h3>
+        
+        <div class="toggle-list">
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Do Not Track</span>
+              <span class="toggle-desc">Send DNT header to websites</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="privacySettings.doNotTrack" (change)="onToggle('doNotTrack', 'privacy')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Global Privacy Control</span>
+              <span class="toggle-desc">Signal opt-out from sale of personal data</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="privacySettings.globalPrivacyControl" (change)="onToggle('globalPrivacyControl', 'privacy')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Block Third-Party Cookies</span>
+              <span class="toggle-desc">Prevent cross-site tracking cookies</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="privacySettings.blockThirdPartyCookies" (change)="onToggle('blockThirdPartyCookies', 'privacy')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Clear Data on Exit</span>
+              <span class="toggle-desc">Clear browsing data when closing browser</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="privacySettings.clearOnExit" (change)="onToggle('clearOnExit', 'privacy')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Appearance Settings -->
+    <section *ngIf="activeSection === 'appearance'" class="settings-section">
+      <header class="section-header">
+        <h1>🎨 Appearance</h1>
+        <p>Customize how Spacey looks and feels</p>
+      </header>
+      
+      <div class="setting-card">
+        <h3>Theme</h3>
+        
+        <div class="theme-selector">
+          <button 
+            class="theme-btn"
+            [class.active]="appearanceSettings.theme === 'dark'"
+            (click)="appearanceSettings.theme = 'dark'; saveSettings()">
+            <span class="theme-preview dark"></span>
+            <span class="theme-name">Dark</span>
+          </button>
+          <button 
+            class="theme-btn"
+            [class.active]="appearanceSettings.theme === 'light'"
+            (click)="appearanceSettings.theme = 'light'; saveSettings()">
+            <span class="theme-preview light"></span>
+            <span class="theme-name">Light</span>
+          </button>
+          <button 
+            class="theme-btn"
+            [class.active]="appearanceSettings.theme === 'system'"
+            (click)="appearanceSettings.theme = 'system'; saveSettings()">
+            <span class="theme-preview system"></span>
+            <span class="theme-name">System</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="setting-card">
+        <h3>Interface</h3>
+        
+        <div class="toggle-list">
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Show Bookmarks Bar</span>
+              <span class="toggle-desc">Display bookmarks below the address bar</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="appearanceSettings.showBookmarksBar" (change)="onToggle('showBookmarksBar', 'appearance')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Compact Mode</span>
+              <span class="toggle-desc">Reduce padding for more content space</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="appearanceSettings.compactMode" (change)="onToggle('compactMode', 'appearance')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Advanced Settings -->
+    <section *ngIf="activeSection === 'advanced'" class="settings-section">
+      <header class="section-header">
+        <h1>⚙️ Advanced</h1>
+        <p>Advanced configuration options for power users</p>
+      </header>
+      
+      <div class="setting-card">
+        <h3>Performance</h3>
+        
+        <div class="toggle-list">
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Hardware Acceleration</span>
+              <span class="toggle-desc">Use GPU for rendering when available</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="advancedSettings.hardwareAcceleration" (change)="onToggle('hardwareAcceleration', 'advanced')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="setting-card">
+        <h3>Developer</h3>
+        
+        <div class="toggle-list">
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Developer Mode</span>
+              <span class="toggle-desc">Enable developer tools and debugging features</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="advancedSettings.developerMode" (change)="onToggle('developerMode', 'advanced')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="toggle-item">
+            <div class="toggle-info">
+              <span class="toggle-label">Experimental Features</span>
+              <span class="toggle-desc">Enable features still in development</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="advancedSettings.experimentalFeatures" (change)="onToggle('experimentalFeatures', 'advanced')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="setting-card danger-zone">
+        <h3>Reset</h3>
+        <p class="setting-description">Reset all settings to their default values</p>
+        <button class="btn btn-secondary" (click)="resetToDefaults()">
+          Reset to Defaults
+        </button>
+      </div>
+    </section>
+  </main>
+</div>
