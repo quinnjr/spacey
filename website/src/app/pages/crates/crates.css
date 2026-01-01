@@ -1,0 +1,38 @@
+/* Crates page specific styles */
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.animate-twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+/* Code block styling */
+pre {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+pre code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Card hover effects */
+.card-crate {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-crate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Gradient text */
+.text-gradient-mozilla {
+  background: linear-gradient(135deg, #ff7139 0%, #9059ff 50%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

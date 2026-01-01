@@ -41,6 +41,7 @@
       <a href="#features" class="hover:text-white transition-colors" style="color: var(--color-text-muted);">Features</a>
       <a href="#architecture" class="hover:text-white transition-colors" style="color: var(--color-text-muted);">Architecture</a>
       <a href="#getting-started" class="hover:text-white transition-colors" style="color: var(--color-text-muted);">Getting Started</a>
+      <a routerLink="/crates" class="hover:text-white transition-colors" style="color: var(--color-text-muted);">Crates</a>
       <a routerLink="/benchmarks" class="flex items-center gap-2 hover:text-white transition-colors" style="color: var(--color-text-muted);">
         <fa-icon [icon]="faChartLine" class="text-sm"></fa-icon>
         Benchmarks
@@ -66,6 +67,7 @@
         <a href="#features" class="transition-colors" style="color: #ff7139;" (click)="toggleMobileMenu()">Features</a>
         <a href="#architecture" class="transition-colors" style="color: #ff7139;" (click)="toggleMobileMenu()">Architecture</a>
         <a href="#getting-started" class="transition-colors" style="color: #ff7139;" (click)="toggleMobileMenu()">Getting Started</a>
+        <a routerLink="/crates" class="transition-colors" style="color: #ff7139;" (click)="toggleMobileMenu()">Crates</a>
         <a routerLink="/benchmarks" class="flex items-center gap-2 transition-colors" style="color: #ff7139;" (click)="toggleMobileMenu()">
           <fa-icon [icon]="faChartLine"></fa-icon>
           Benchmarks
@@ -275,13 +277,27 @@
               <div class="text-xs" style="color: var(--color-text-muted);">Core JS engine library</div>
             </div>
             <div class="p-4 rounded-xl" style="background: rgba(144, 89, 255, 0.05); border: 1px solid rgba(144, 89, 255, 0.2);">
-              <div class="font-mono mb-2" style="color: #9059ff;">spacey-node</div>
+              <div class="font-mono mb-2" style="color: #9059ff;">spacey-macros</div>
+              <div class="text-xs" style="color: var(--color-text-muted);">Developer-friendly utility macros</div>
+            </div>
+            <div class="p-4 rounded-xl" style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2);">
+              <div class="font-mono mb-2" style="color: #3b82f6;">spacey-servo</div>
+              <div class="text-xs" style="color: var(--color-text-muted);">Servo browser integration</div>
+            </div>
+            <div class="p-4 rounded-xl" style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2);">
+              <div class="font-mono mb-2" style="color: #f59e0b;">spacey-node</div>
               <div class="text-xs" style="color: var(--color-text-muted);">Node.js compatibility layer</div>
             </div>
             <div class="p-4 rounded-xl" style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2);">
               <div class="font-mono mb-2" style="color: #10b981;">spacey-npm</div>
               <div class="text-xs" style="color: var(--color-text-muted);">NPM-compatible package manager</div>
             </div>
+            <a routerLink="/crates" class="p-4 rounded-xl flex items-center justify-center transition-all hover:scale-105" style="background: rgba(236, 72, 153, 0.05); border: 1px solid rgba(236, 72, 153, 0.2);">
+              <div class="text-center">
+                <div class="font-mono mb-1" style="color: #ec4899;">View All →</div>
+                <div class="text-xs" style="color: var(--color-text-muted);">6 crates on crates.io</div>
+              </div>
+            </a>
           </div>
         </div>
       </div>

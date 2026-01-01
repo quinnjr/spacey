@@ -39,12 +39,16 @@ Source Code → Lexer → Parser → Compiler → VM
               Runtime (Values, Objects, Built-ins, GC)
 ```
 
-### Crates
+### Crates (Published to crates.io)
 
+- `spacey` - Main REPL and CLI application
 - `spacey-spidermonkey` - Core JavaScript engine library
-- `spacey-node` - Node.js compatibility layer
-- `spacey-npm` - NPM-compatible package manager
-- `spacey-macros` - Developer experience macros
+- `spacey-macros` - Developer-friendly utility macros
+- `spacey-servo` - Servo browser integration layer
+- `spacey-node` - Node.js compatibility runtime
+- `spacey-npm` - Fast, async NPM package manager
+
+All crates are available on crates.io: https://crates.io/crates/spacey
 
 ## Servo Integration Plan
 

@@ -1,0 +1,281 @@
+<!-- Spacey Crates Documentation -->
+<main class="min-h-screen text-white overflow-x-hidden" style="background: var(--color-background);">
+  
+  <!-- Animated Background -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-0 right-1/4 w-96 h-96 rounded-full blur-3xl animate-pulse" style="background: rgba(144, 89, 255, 0.15);"></div>
+    <div class="absolute bottom-1/3 left-1/4 w-80 h-80 rounded-full blur-3xl animate-pulse" style="background: rgba(255, 113, 57, 0.15); animation-delay: 1s;"></div>
+    @for (star of stars; track star.id) {
+      <div
+        class="absolute w-1 h-1 bg-white rounded-full animate-twinkle"
+        [style.left.%]="star.x"
+        [style.top.%]="star.y"
+        [style.animation-delay]="star.delay + 's'"
+        [style.opacity]="star.opacity"
+      ></div>
+    }
+  </div>
+
+  <!-- Navigation -->
+  <nav class="relative z-10 flex items-center justify-between px-6 lg:px-12 py-6 border-b backdrop-blur-sm" style="border-color: var(--color-border); background: rgba(12, 0, 21, 0.8);">
+    <a routerLink="/" class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #ff7139 0%, #9059ff 100%);">
+        <span class="text-xl font-bold text-white">S</span>
+      </div>
+      <span class="text-xl font-semibold tracking-tight" style="font-family: var(--font-heading);">Spacey</span>
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a routerLink="/" class="hover:text-white transition-colors" style="color: var(--color-text-muted);">Home</a>
+      <a routerLink="/crates" class="text-white">Crates</a>
+      <a routerLink="/benchmarks" class="flex items-center gap-2 hover:text-white transition-colors" style="color: var(--color-text-muted);">
+        Benchmarks
+      </a>
+      <a href="https://github.com/pegasusheavy/spacey" target="_blank" class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:scale-105" style="background: rgba(255, 113, 57, 0.1); border: 1px solid rgba(255, 113, 57, 0.3);">
+        <fa-icon [icon]="faGithub" class="text-lg"></fa-icon>
+        GitHub
+      </a>
+    </div>
+    <button class="md:hidden p-2" (click)="toggleMobileMenu()">
+      <fa-icon [icon]="faBars" class="text-2xl"></fa-icon>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  @if (mobileMenuOpen()) {
+    <div class="md:hidden fixed inset-0 z-50 backdrop-blur-lg" style="background: rgba(12, 0, 21, 0.95);">
+      <div class="flex flex-col items-center justify-center h-full gap-8 text-xl">
+        <button class="absolute top-6 right-6" (click)="toggleMobileMenu()">
+          <fa-icon [icon]="faXmark" class="text-3xl"></fa-icon>
+        </button>
+        <a routerLink="/" style="color: #ff7139;" (click)="toggleMobileMenu()">Home</a>
+        <a routerLink="/crates" class="text-white" (click)="toggleMobileMenu()">Crates</a>
+        <a routerLink="/benchmarks" style="color: #ff7139;" (click)="toggleMobileMenu()">Benchmarks</a>
+        <a href="https://github.com/pegasusheavy/spacey" target="_blank" class="flex items-center gap-2 px-6 py-3 rounded-lg" style="background: #ff7139;">
+          <fa-icon [icon]="faGithub" class="text-lg"></fa-icon>
+          GitHub
+        </a>
+      </div>
+    </div>
+  }
+
+  <!-- Hero Section -->
+  <section class="relative z-10 px-6 lg:px-12 py-16 lg:py-24">
+    <div class="max-w-6xl mx-auto text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm rounded-full" style="background: rgba(144, 89, 255, 0.1); border: 1px solid rgba(144, 89, 255, 0.3); color: #9059ff;">
+        <fa-icon [icon]="faCubes"></fa-icon>
+        6 Publishable Crates
+      </div>
+
+      <h1 class="text-4xl lg:text-6xl font-bold mb-6 leading-tight" style="font-family: var(--font-heading);">
+        <span class="text-gradient-mozilla">Spacey Crates</span>
+      </h1>
+
+      <p class="text-xl max-w-3xl mx-auto mb-8 leading-relaxed" style="color: var(--color-text-muted);">
+        A modular ecosystem of Rust crates for JavaScript execution, Node.js compatibility, and browser integration.
+        All published on <a href="https://crates.io" target="_blank" class="underline" style="color: #ff7139;">crates.io</a>.
+      </p>
+
+      <!-- Quick install -->
+      <div class="inline-flex items-center gap-4 p-4 rounded-xl" style="background: var(--color-surface); border: 1px solid var(--color-border);">
+        <code class="text-sm" style="color: var(--color-text-muted);">cargo add spacey-spidermonkey</code>
+        <button 
+          class="px-3 py-1 rounded-lg transition-colors text-sm"
+          style="background: rgba(255, 113, 57, 0.1);"
+          (click)="copyInstall('spacey-spidermonkey')"
+        >
+          <fa-icon [icon]="copiedCrate() === 'spacey-spidermonkey' ? faCheck : faCopy" [style.color]="copiedCrate() === 'spacey-spidermonkey' ? '#10b981' : '#ff7139'"></fa-icon>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dependency Graph -->
+  <section class="relative z-10 px-6 lg:px-12 py-12" style="border-top: 1px solid var(--color-border);">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-2xl font-bold mb-8 text-center" style="font-family: var(--font-heading);">Dependency Graph</h2>
+      
+      <div class="p-6 rounded-2xl" style="background: var(--color-surface); border: 1px solid var(--color-border);">
+        <div class="flex flex-col items-center gap-4">
+          <!-- Layer 1: Base -->
+          <div class="flex flex-wrap justify-center gap-4">
+            <div class="px-4 py-2 rounded-lg text-sm font-mono" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981;">
+              spacey-macros
+            </div>
+          </div>
+          
+          <fa-icon [icon]="faArrowRight" class="text-xl rotate-90" style="color: var(--color-border);"></fa-icon>
+          
+          <!-- Layer 2: Core -->
+          <div class="flex flex-wrap justify-center gap-4">
+            <div class="px-4 py-2 rounded-lg text-sm font-mono" style="background: rgba(144, 89, 255, 0.1); border: 1px solid rgba(144, 89, 255, 0.3); color: #9059ff;">
+              spacey-spidermonkey
+            </div>
+            <div class="px-4 py-2 rounded-lg text-sm font-mono" style="background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.3); color: #ec4899;">
+              spacey-npm
+            </div>
+          </div>
+          
+          <fa-icon [icon]="faArrowRight" class="text-xl rotate-90" style="color: var(--color-border);"></fa-icon>
+          
+          <!-- Layer 3: Integrations -->
+          <div class="flex flex-wrap justify-center gap-4">
+            <div class="px-4 py-2 rounded-lg text-sm font-mono" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #3b82f6;">
+              spacey-servo
+            </div>
+            <div class="px-4 py-2 rounded-lg text-sm font-mono" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #f59e0b;">
+              spacey-node
+            </div>
+          </div>
+          
+          <fa-icon [icon]="faArrowRight" class="text-xl rotate-90" style="color: var(--color-border);"></fa-icon>
+          
+          <!-- Layer 4: Root -->
+          <div class="flex flex-wrap justify-center gap-4">
+            <div class="px-4 py-2 rounded-lg text-sm font-mono" style="background: rgba(255, 113, 57, 0.1); border: 1px solid rgba(255, 113, 57, 0.3); color: #ff7139;">
+              spacey
+            </div>
+          </div>
+        </div>
+        
+        <p class="text-center mt-6 text-sm" style="color: var(--color-text-muted);">
+          Arrows show publishing order (bottom depends on top)
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Crates Grid -->
+  <section class="relative z-10 px-6 lg:px-12 py-16">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid gap-8">
+        @for (crate of crates; track crate.name) {
+          <div class="rounded-2xl overflow-hidden" style="background: var(--color-surface); border: 1px solid var(--color-border);">
+            <!-- Header -->
+            <div class="p-6 flex flex-col lg:flex-row lg:items-center gap-4" [style.border-bottom]="'1px solid var(--color-border)'">
+              <div class="flex items-center gap-4 flex-1">
+                <div class="w-14 h-14 rounded-xl flex items-center justify-center" [style.background]="'rgba(' + (crate.color === '#ff7139' ? '255, 113, 57' : crate.color === '#9059ff' ? '144, 89, 255' : crate.color === '#10b981' ? '16, 185, 129' : crate.color === '#3b82f6' ? '59, 130, 246' : crate.color === '#f59e0b' ? '245, 158, 11' : '236, 72, 153') + ', 0.2)'">
+                  <fa-icon [icon]="crate.icon" class="text-2xl" [style.color]="crate.color"></fa-icon>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold font-mono" [style.color]="crate.color">{{ crate.name }}</h3>
+                  <p class="text-sm" style="color: var(--color-text-muted);">{{ crate.description }}</p>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-3">
+                <!-- Copy install command -->
+                <button 
+                  class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm"
+                  [style.background]="copiedCrate() === crate.name ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 113, 57, 0.1)'"
+                  [style.border]="copiedCrate() === crate.name ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(255, 113, 57, 0.3)'"
+                  (click)="copyInstall(crate.name)"
+                >
+                  <fa-icon [icon]="copiedCrate() === crate.name ? faCheck : faCopy" [style.color]="copiedCrate() === crate.name ? '#10b981' : '#ff7139'"></fa-icon>
+                  <span [style.color]="copiedCrate() === crate.name ? '#10b981' : '#ff7139'">
+                    {{ copiedCrate() === crate.name ? 'Copied!' : 'cargo add' }}
+                  </span>
+                </button>
+                
+                <!-- Links -->
+                <a [href]="crate.cratesIoUrl" target="_blank" class="p-2 rounded-lg transition-colors" style="background: rgba(144, 89, 255, 0.1);" title="View on crates.io">
+                  <fa-icon [icon]="faRust" class="text-lg" style="color: #9059ff;"></fa-icon>
+                </a>
+                <a [href]="crate.docsRsUrl" target="_blank" class="p-2 rounded-lg transition-colors" style="background: rgba(59, 130, 246, 0.1);" title="View documentation">
+                  <fa-icon [icon]="faArrowUpRightFromSquare" class="text-lg" style="color: #3b82f6;"></fa-icon>
+                </a>
+              </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-6 grid lg:grid-cols-2 gap-6">
+              <!-- Description & Features -->
+              <div>
+                <p class="mb-4" style="color: var(--color-text-muted);">{{ crate.longDescription }}</p>
+                
+                <h4 class="font-semibold mb-3 text-sm uppercase tracking-wider" style="color: var(--color-text-muted);">Features</h4>
+                <ul class="space-y-2">
+                  @for (feature of crate.features; track feature) {
+                    <li class="flex items-start gap-2 text-sm">
+                      <fa-icon [icon]="faCheck" class="mt-0.5" style="color: #10b981;"></fa-icon>
+                      <span style="color: var(--color-text-muted);">{{ feature }}</span>
+                    </li>
+                  }
+                </ul>
+                
+                @if (crate.dependencies.length > 0) {
+                  <h4 class="font-semibold mb-3 mt-4 text-sm uppercase tracking-wider" style="color: var(--color-text-muted);">Dependencies</h4>
+                  <div class="flex flex-wrap gap-2">
+                    @for (dep of crate.dependencies; track dep) {
+                      <span class="px-3 py-1 rounded-full text-xs font-mono" style="background: rgba(144, 89, 255, 0.1); color: #9059ff;">
+                        {{ dep }}
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
+              
+              <!-- Usage Example -->
+              <div>
+                <h4 class="font-semibold mb-3 text-sm uppercase tracking-wider" style="color: var(--color-text-muted);">Usage</h4>
+                <div class="rounded-xl overflow-hidden" style="background: var(--color-surface-muted); border: 1px solid var(--color-border);">
+                  <div class="flex items-center justify-between px-4 py-2" style="border-bottom: 1px solid var(--color-border);">
+                    <span class="text-xs font-mono" style="color: var(--color-text-muted);">example</span>
+                    <button class="text-xs transition-colors hover:text-white" style="color: var(--color-text-muted);" (click)="copyCode(crate.usage)">
+                      Copy
+                    </button>
+                  </div>
+                  <pre class="p-4 overflow-x-auto text-sm"><code style="color: var(--color-text-muted);">{{ crate.usage }}</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Publishing Info -->
+  <section class="relative z-10 px-6 lg:px-12 py-16" style="border-top: 1px solid var(--color-border);">
+    <div class="max-w-4xl mx-auto">
+      <div class="p-8 rounded-2xl text-center" style="background: linear-gradient(135deg, rgba(255, 113, 57, 0.1) 0%, rgba(144, 89, 255, 0.1) 100%); border: 1px solid rgba(255, 113, 57, 0.2);">
+        <h2 class="text-2xl font-bold mb-4" style="font-family: var(--font-heading);">Publishing New Versions</h2>
+        <p class="mb-6" style="color: var(--color-text-muted);">
+          Maintainers can publish all crates in the correct order using the publish script:
+        </p>
+        <div class="inline-block p-4 rounded-xl text-left" style="background: var(--color-surface); border: 1px solid var(--color-border);">
+          <code class="text-sm" style="color: #ff7139;">./scripts/publish.sh --publish</code>
+        </div>
+        <p class="mt-4 text-sm" style="color: var(--color-text-muted);">
+          The script handles dependency ordering and waits for crates.io indexing between publishes.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="relative z-10 px-6 lg:px-12 py-12" style="border-top: 1px solid var(--color-border);">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <a routerLink="/" class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #ff7139 0%, #9059ff 100%);">
+            <span class="text-sm font-bold text-white">S</span>
+          </div>
+          <span class="font-semibold" style="font-family: var(--font-heading);">Spacey</span>
+        </a>
+
+        <div class="flex items-center gap-6 text-sm" style="color: var(--color-text-muted);">
+          <a href="https://crates.io/crates/spacey" target="_blank" class="hover:text-white transition-colors">crates.io</a>
+          <a href="https://github.com/pegasusheavy/spacey" target="_blank" class="hover:text-white transition-colors">GitHub</a>
+          <a href="https://docs.rs/spacey" target="_blank" class="hover:text-white transition-colors">docs.rs</a>
+          <span>MPL-2.0 License</span>
+        </div>
+
+        <div class="text-sm" style="color: var(--color-text-muted);">
+          © 2025 Pegasus Heavy Industries
+        </div>
+      </div>
+
+      <div class="mt-8 h-1 rounded-full" style="background: linear-gradient(90deg, #ff7139 0%, #9059ff 100%);"></div>
+    </div>
+  </footer>
+</main>
