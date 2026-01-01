@@ -45,20 +45,20 @@ impl FingerprintProtection {
         format!(r#"
 (function() {{
     'use strict';
-    
+
     const SHIELD_SEED = {};
-    
+
     // Simple seeded random for consistent noise
     function seededRandom(seed) {{
         const x = Math.sin(seed) * 10000;
         return x - Math.floor(x);
     }}
-    
+
     // ===== Canvas Protection =====
     // Add subtle noise to canvas readback to prevent fingerprinting
     const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
     const originalGetImageData = CanvasRenderingContext2D.prototype.getImageData;
-    
+
     HTMLCanvasElement.prototype.toDataURL = function(...args) {{
         const ctx = this.getContext('2d');
         if (ctx && this.width > 16 && this.height > 16) {{
@@ -74,7 +74,7 @@ impl FingerprintProtection {
         }}
         return originalToDataURL.apply(this, args);
     }};
-    
+
     // ===== WebGL Protection =====
     // Randomize WebGL renderer strings
     const getParameterProto = WebGLRenderingContext.prototype.getParameter;
@@ -89,7 +89,7 @@ impl FingerprintProtection {
         }}
         return getParameterProto.call(this, param);
     }};
-    
+
     // WebGL2 too
     if (typeof WebGL2RenderingContext !== 'undefined') {{
         const getParameter2Proto = WebGL2RenderingContext.prototype.getParameter;
@@ -99,14 +99,14 @@ impl FingerprintProtection {
             return getParameter2Proto.call(this, param);
         }};
     }}
-    
+
     // ===== Navigator Protection =====
     // Limit hardware concurrency exposure
     Object.defineProperty(navigator, 'hardwareConcurrency', {{
         get: function() {{ return 4; }}, // Report common value
         configurable: false
     }});
-    
+
     // Round device memory
     if (navigator.deviceMemory) {{
         Object.defineProperty(navigator, 'deviceMemory', {{
@@ -114,24 +114,24 @@ impl FingerprintProtection {
             configurable: false
         }});
     }}
-    
+
     // ===== Screen Protection =====
     // Round screen dimensions to common values
     const roundToCommon = (val) => {{
         const common = [768, 800, 900, 1024, 1050, 1080, 1200, 1440, 1600, 2160];
         return common.reduce((a, b) => Math.abs(b - val) < Math.abs(a - val) ? b : a);
     }};
-    
+
     Object.defineProperty(screen, 'width', {{
         get: function() {{ return roundToCommon(screen.width); }},
         configurable: false
     }});
-    
+
     Object.defineProperty(screen, 'height', {{
         get: function() {{ return roundToCommon(screen.height); }},
         configurable: false
     }});
-    
+
     console.log('[Spacey Shield] Fingerprint protection active (Standard)');
 }})();
 "#, self.seed)
@@ -140,21 +140,21 @@ impl FingerprintProtection {
     /// Strict protection - more aggressive, may break some sites
     fn strict_protection_script(&self) -> String {
         let standard = self.standard_protection_script();
-        
+
         format!(r#"
 {}
 
 (function() {{
     'use strict';
-    
+
     const SHIELD_SEED = {};
-    
+
     // ===== Audio Fingerprinting Protection =====
     // Add noise to AudioContext
     if (typeof AudioContext !== 'undefined') {{
         const originalCreateOscillator = AudioContext.prototype.createOscillator;
         const originalCreateDynamicsCompressor = AudioContext.prototype.createDynamicsCompressor;
-        
+
         AudioContext.prototype.createOscillator = function() {{
             const osc = originalCreateOscillator.call(this);
             // Slightly detune to prevent fingerprinting
@@ -162,7 +162,7 @@ impl FingerprintProtection {
             return osc;
         }};
     }}
-    
+
     // ===== Font Fingerprinting Protection =====
     // Limit font detection by overriding measureText
     const originalMeasureText = CanvasRenderingContext2D.prototype.measureText;
@@ -176,7 +176,7 @@ impl FingerprintProtection {
         }});
         return result;
     }};
-    
+
     // ===== Client Rects Protection =====
     // Randomize element positioning slightly
     const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
@@ -195,7 +195,7 @@ impl FingerprintProtection {
             toJSON: rect.toJSON
         }};
     }};
-    
+
     // ===== Battery API =====
     // Block battery API (major fingerprinting vector)
     if (navigator.getBattery) {{
@@ -203,24 +203,24 @@ impl FingerprintProtection {
             return Promise.reject(new Error('Battery API disabled for privacy'));
         }};
     }}
-    
+
     // ===== Gamepad API =====
     // Block gamepad API
     navigator.getGamepads = function() {{
         return [];
     }};
-    
+
     // ===== Keyboard/Language Fingerprinting =====
     Object.defineProperty(navigator, 'keyboard', {{
         get: function() {{ return undefined; }},
         configurable: false
     }});
-    
+
     Object.defineProperty(navigator, 'languages', {{
         get: function() {{ return ['en-US', 'en']; }}, // Common value
         configurable: false
     }});
-    
+
     // ===== Connection API =====
     // Limit network information exposure
     if (navigator.connection) {{
@@ -229,7 +229,7 @@ impl FingerprintProtection {
             configurable: false
         }});
     }}
-    
+
     // ===== Media Devices =====
     // Limit device enumeration
     if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {{
@@ -246,7 +246,7 @@ impl FingerprintProtection {
             }});
         }};
     }}
-    
+
     console.log('[Spacey Shield] Fingerprint protection active (Strict)');
 }})();
 "#, standard, self.seed)
@@ -266,11 +266,11 @@ mod tests {
     #[test]
     fn test_script_generation() {
         let fp = FingerprintProtection::new();
-        
+
         let standard = fp.get_protection_script(ShieldLevel::Standard);
         assert!(standard.contains("Canvas Protection"));
         assert!(standard.contains("WebGL Protection"));
-        
+
         let strict = fp.get_protection_script(ShieldLevel::Strict);
         assert!(strict.contains("Audio Fingerprinting"));
         assert!(strict.contains("Battery API"));

@@ -10,7 +10,7 @@ use parking_lot::RwLock;
 const TRACKING_PARAMS: &[&str] = &[
     // Google Analytics
     "utm_source",
-    "utm_medium", 
+    "utm_medium",
     "utm_campaign",
     "utm_term",
     "utm_content",
@@ -18,25 +18,25 @@ const TRACKING_PARAMS: &[&str] = &[
     "utm_source_platform",
     "utm_creative_format",
     "utm_marketing_tactic",
-    
+
     // Facebook
     "fbclid",
     "fb_action_ids",
     "fb_action_types",
     "fb_source",
     "fb_ref",
-    
+
     // Microsoft
     "msclkid",
-    
+
     // Google Ads
     "gclid",
     "gclsrc",
     "dclid",
-    
+
     // Adobe
     "s_kwcid",
-    
+
     // HubSpot
     "hsa_acc",
     "hsa_ad",
@@ -48,17 +48,17 @@ const TRACKING_PARAMS: &[&str] = &[
     "hsa_src",
     "hsa_tgt",
     "hsa_ver",
-    
+
     // Mailchimp
     "mc_cid",
     "mc_eid",
-    
+
     // Twitter
     "twclid",
-    
+
     // Yahoo
     "yclid",
-    
+
     // Generic tracking
     "_ga",
     "_gl",
@@ -127,7 +127,7 @@ impl TrackerIsolation {
         if let Some(question_mark) = url.find('?') {
             let base = &url[..question_mark];
             let query = &url[question_mark + 1..];
-            
+
             // Parse and filter query params
             let filtered: Vec<&str> = query
                 .split('&')
@@ -152,20 +152,20 @@ impl TrackerIsolation {
         r#"
 (function() {
     'use strict';
-    
+
     // ===== Referrer Policy =====
     // Limit referrer information leaked to third parties
     const meta = document.createElement('meta');
     meta.name = 'referrer';
     meta.content = 'strict-origin-when-cross-origin';
     document.head.appendChild(meta);
-    
+
     // ===== Storage Partitioning =====
     // Note: Full storage partitioning requires browser-level support
     // This provides some JavaScript-level protection
-    
+
     const FIRST_PARTY_DOMAIN = window.location.hostname;
-    
+
     // Wrap localStorage access to partition by domain
     const originalLocalStorage = window.localStorage;
     const partitionedLocalStorage = new Proxy(originalLocalStorage, {
@@ -188,7 +188,7 @@ impl TrackerIsolation {
             return target[prop];
         }
     });
-    
+
     // Only apply to third-party iframes
     if (window.top !== window.self) {
         try {
@@ -200,7 +200,7 @@ impl TrackerIsolation {
             // May fail in strict contexts
         }
     }
-    
+
     // ===== Link Decoration Removal =====
     // Remove tracking params from clicked links
     document.addEventListener('click', function(e) {
@@ -212,7 +212,7 @@ impl TrackerIsolation {
             }
         }
     }, true);
-    
+
     function stripTrackingParams(url) {
         try {
             const u = new URL(url);
@@ -227,7 +227,7 @@ impl TrackerIsolation {
             return url;
         }
     }
-    
+
     console.log('[Spacey Shield] Tracker isolation active');
 })();
 "#.to_string()
@@ -247,7 +247,7 @@ mod tests {
     #[test]
     fn test_strip_tracking_params() {
         let isolation = TrackerIsolation::new();
-        
+
         // Should strip UTM params
         assert_eq!(
             isolation.strip_tracking_params(
@@ -255,7 +255,7 @@ mod tests {
             ),
             "https://example.com/page?id=123"
         );
-        
+
         // Should strip Facebook click ID
         assert_eq!(
             isolation.strip_tracking_params(
@@ -263,7 +263,7 @@ mod tests {
             ),
             "https://example.com/"
         );
-        
+
         // Should preserve non-tracking params
         assert_eq!(
             isolation.strip_tracking_params(
@@ -276,14 +276,14 @@ mod tests {
     #[test]
     fn test_cross_site_tracker_detection() {
         let isolation = TrackerIsolation::new();
-        
+
         // Simulate a domain appearing on multiple sites
         isolation.record_third_party("site1.com", "tracker.com");
         isolation.record_third_party("site2.com", "tracker.com");
         isolation.record_third_party("site3.com", "tracker.com");
-        
+
         assert!(isolation.is_cross_site_tracker("tracker.com"));
-        
+
         // A domain on only one site is not a cross-site tracker
         isolation.record_third_party("site1.com", "cdn.com");
         assert!(!isolation.is_cross_site_tracker("cdn.com"));

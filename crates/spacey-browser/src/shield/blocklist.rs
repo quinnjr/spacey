@@ -138,25 +138,25 @@ impl BlockList {
             "googletagmanager.com",
             "googletagservices.com",
             "pagead2.googlesyndication.com",
-            
+
             // Facebook/Meta
             "facebook.net",
             "fbcdn.net",
             "connect.facebook.net",
             "pixel.facebook.com",
-            
+
             // Amazon Ads
             "amazon-adsystem.com",
             "aax.amazon.com",
-            
+
             // Microsoft Ads
             "ads.microsoft.com",
             "bat.bing.com",
-            
+
             // Twitter/X
             "ads-twitter.com",
             "analytics.twitter.com",
-            
+
             // Major ad networks
             "adnxs.com",
             "adsrvr.org",
@@ -177,14 +177,14 @@ impl BlockList {
             "yieldmo.com",
             "medianet.com",
             "media.net",
-            
+
             // Popup/aggressive ads
             "popads.net",
             "popcash.net",
             "propellerads.com",
             "revcontent.com",
             "mgid.com",
-            
+
             // Video ads
             "vidazoo.com",
             "spotxchange.com",
@@ -213,12 +213,12 @@ impl BlockList {
             "luckyorange.com",
             "smartlook.com",
             "logrocket.com",
-            
+
             // Session replay (privacy nightmare)
             "clarity.ms",
             "inspectlet.com",
             "sessioncam.com",
-            
+
             // Cross-site tracking
             "bluekai.com",
             "exelator.com",
@@ -230,18 +230,18 @@ impl BlockList {
             "demdex.net",
             "krxd.net",
             "omtrdc.net",
-            
+
             // Fingerprinting services
             "iovation.com",
             "threatmetrix.com",
             "maxmind.com",
-            
+
             // Email/form tracking
             "getsitecontrol.com",
             "optinmonster.com",
             "sumo.com",
             "sumome.com",
-            
+
             // Other trackers
             "scorecardresearch.com",
             "quantserve.com",
@@ -250,7 +250,7 @@ impl BlockList {
             "nr-data.net",
             "parsely.com",
             "mparticle.com",
-            
+
             // Social widgets (tracking)
             "addthis.com",
             "addtoany.com",
@@ -304,12 +304,12 @@ impl BlockList {
             "fingerprintjs.com",
             "fpjs.io",
             "browserleaks.com",
-            
+
             // Device fingerprinting
             "castle.io",
             "seon.io",
             "sardine.ai",
-            
+
             // Bot detection (often fingerprints)
             "perimeterx.net",
             "distilnetworks.com",
@@ -335,12 +335,12 @@ mod tests {
     #[test]
     fn test_advertising_blocked() {
         let list = BlockList::new();
-        
+
         assert_eq!(
             list.check("doubleclick.net", ShieldLevel::Standard),
             Some(BlockReason::Advertising)
         );
-        
+
         // Subdomain should also be blocked
         assert_eq!(
             list.check("ad.doubleclick.net", ShieldLevel::Standard),
@@ -351,7 +351,7 @@ mod tests {
     #[test]
     fn test_tracker_blocked() {
         let list = BlockList::new();
-        
+
         assert_eq!(
             list.check("hotjar.com", ShieldLevel::Standard),
             Some(BlockReason::Tracker)
@@ -361,7 +361,7 @@ mod tests {
     #[test]
     fn test_cryptominer_blocked() {
         let list = BlockList::new();
-        
+
         assert_eq!(
             list.check("coinhive.com", ShieldLevel::Standard),
             Some(BlockReason::Cryptominer)
@@ -371,13 +371,13 @@ mod tests {
     #[test]
     fn test_fingerprinter_strict_only() {
         let list = BlockList::new();
-        
+
         // Should not block in Standard mode
         assert_eq!(
             list.check("fingerprintjs.com", ShieldLevel::Standard),
             None
         );
-        
+
         // Should block in Strict mode
         assert_eq!(
             list.check("fingerprintjs.com", ShieldLevel::Strict),
@@ -388,7 +388,7 @@ mod tests {
     #[test]
     fn test_off_mode() {
         let list = BlockList::new();
-        
+
         // Only malware blocked when off
         assert_eq!(
             list.check("doubleclick.net", ShieldLevel::Off),

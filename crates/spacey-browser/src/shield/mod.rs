@@ -1,12 +1,12 @@
 //! Spacey Shield - Built-in Privacy & Ad Protection
 //!
 //! A lightweight, built-in protection layer that complements extensions like uBlock Origin.
-//! 
+//!
 //! ## Design Philosophy
 //!
 //! - **Complementary, not competing**: We focus on domain-level blocking and fingerprint
 //!   protection while uBlock Origin handles complex cosmetic rules and advanced filtering.
-//! 
+//!
 //! - **Minimal by default**: A curated list of the worst offenders, not 300K rules.
 //!   This keeps the browser fast while providing baseline protection.
 //!
@@ -128,7 +128,7 @@ impl SpaceyShield {
     /// Returns Some(reason) if blocked, None if allowed
     pub fn should_block(&self, details: &RequestDetails) -> Option<BlockReason> {
         let level = *self.level.read();
-        
+
         if level == ShieldLevel::Off {
             return None;
         }
@@ -177,7 +177,7 @@ impl SpaceyShield {
 
         if url.starts_with("http://") {
             // Don't upgrade localhost or local IPs
-            if url.contains("://localhost") 
+            if url.contains("://localhost")
                 || url.contains("://127.0.0.1")
                 || url.contains("://192.168.")
                 || url.contains("://10.")
@@ -205,7 +205,7 @@ impl SpaceyShield {
     /// Check if this looks like a tracking pixel
     fn is_tracking_pixel(&self, url: &str) -> bool {
         let url_lower = url.to_lowercase();
-        
+
         // Common tracking pixel patterns
         url_lower.contains("/pixel")
             || url_lower.contains("/track")
@@ -273,7 +273,7 @@ mod tests {
     #[test]
     fn test_shield_exceptions() {
         let shield = SpaceyShield::new();
-        
+
         assert!(!shield.has_exception("example.com"));
         shield.add_exception("example.com");
         assert!(shield.has_exception("example.com"));
@@ -284,15 +284,15 @@ mod tests {
     #[test]
     fn test_https_upgrade() {
         let shield = SpaceyShield::new();
-        
+
         assert_eq!(
             shield.should_upgrade_https("http://example.com/page"),
             Some("https://example.com/page".to_string())
         );
-        
+
         // Don't upgrade localhost
         assert_eq!(shield.should_upgrade_https("http://localhost:3000"), None);
-        
+
         // Already HTTPS
         assert_eq!(shield.should_upgrade_https("https://example.com"), None);
     }

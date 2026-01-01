@@ -30,7 +30,7 @@ pub struct Browser {
     // Extension system
     extension_manager: ExtensionManager,
     extensions_ui_state: ExtensionsUiState,
-    
+
     // Built-in privacy protection
     shield: SpaceyShield,
 }
@@ -46,7 +46,7 @@ impl Browser {
             .join("spacey-browser");
 
         let extension_manager = ExtensionManager::new(data_dir);
-        
+
         // Initialize built-in privacy protection
         let shield = SpaceyShield::new();
         log::info!(
@@ -88,7 +88,7 @@ impl Browser {
             ShieldLevel::Standard => "Standard",
             ShieldLevel::Strict => "Strict",
         };
-        
+
         let html = format!(r#"
 <!DOCTYPE html>
 <html>
@@ -138,6 +138,9 @@ impl Browser {
 
     <h2>Try some JavaScript:</h2>
     <p>Open the developer console to execute JavaScript with the Spacey engine.</p>
+    
+    <h2>🐛 Found a Bug?</h2>
+    <p>Help us improve Spacey Browser! <a href="about:bugreport" style="color: #00d4ff;">Report a bug</a></p>
 
     <script>
         console.log("Hello from Spacey!");
@@ -151,6 +154,290 @@ impl Browser {
 
         self.current_page = Some(Page::from_html(&html, &self.js_engine));
         self.current_url = "about:welcome".to_string();
+        self.update_ai_page_context();
+    }
+    
+    /// Navigate to bug report page
+    fn navigate_to_bugreport(&mut self) {
+        let version = env!("CARGO_PKG_VERSION");
+        let os = std::env::consts::OS;
+        let arch = std::env::consts::ARCH;
+        let shield_level = format!("{:?}", self.shield.level());
+        let ext_count = self.extension_manager.list().len();
+        
+        let html = format!(r#"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bug Report - Spacey Browser</title>
+    <style>
+        * {{
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }}
+        body {{
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e4e4e4;
+            min-height: 100vh;
+        }}
+        h1 {{
+            color: #00d4ff;
+            border-bottom: 2px solid #00d4ff;
+            padding-bottom: 10px;
+        }}
+        h2 {{
+            color: #7b68ee;
+            margin-top: 30px;
+        }}
+        .form-group {{
+            margin-bottom: 20px;
+        }}
+        label {{
+            display: block;
+            margin-bottom: 8px;
+            color: #b8b8b8;
+            font-weight: 500;
+        }}
+        input, select, textarea {{
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #3a3a5a;
+            border-radius: 8px;
+            background: #2a2a4a;
+            color: #e4e4e4;
+            font-size: 14px;
+        }}
+        input:focus, select:focus, textarea:focus {{
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
+        }}
+        textarea {{
+            min-height: 120px;
+            resize: vertical;
+        }}
+        .system-info {{
+            background: #2a2a4a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 13px;
+        }}
+        .system-info span {{
+            color: #00d4ff;
+        }}
+        button {{
+            background: linear-gradient(135deg, #00d4ff, #7b68ee);
+            color: white;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }}
+        button:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+        }}
+        .note {{
+            background: rgba(123, 104, 238, 0.2);
+            border-left: 4px solid #7b68ee;
+            padding: 12px 16px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }}
+        .required {{
+            color: #ff6b6b;
+        }}
+    </style>
+</head>
+<body>
+    <h1>🐛 Report a Bug</h1>
+    <p>Found an issue with Spacey Browser? Let us know and we'll fix it!</p>
+    
+    <div class="note">
+        <strong>📧 Your report will be sent to:</strong> support@pegasusheavy.dev
+    </div>
+    
+    <h2>System Information</h2>
+    <div class="system-info">
+        <div><span>Browser Version:</span> Spacey v{}</div>
+        <div><span>Operating System:</span> {} ({})</div>
+        <div><span>Shield Level:</span> {}</div>
+        <div><span>Extensions Installed:</span> {}</div>
+    </div>
+    
+    <form action="https://formsubmit.co/support@pegasusheavy.dev" method="POST">
+        <!-- FormSubmit configuration -->
+        <input type="hidden" name="_subject" value="[Spacey Bug Report] New Issue Reported">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_next" value="about:bugreport-thanks">
+        
+        <!-- System info (hidden) -->
+        <input type="hidden" name="Browser Version" value="Spacey v{}">
+        <input type="hidden" name="Operating System" value="{} ({})">
+        <input type="hidden" name="Shield Level" value="{}">
+        <input type="hidden" name="Extensions Count" value="{}">
+        
+        <h2>Bug Details</h2>
+        
+        <div class="form-group">
+            <label for="issue-type">Issue Type <span class="required">*</span></label>
+            <select id="issue-type" name="Issue Type" required>
+                <option value="">-- Select an issue type --</option>
+                <option value="crash">💥 Crash / Freeze</option>
+                <option value="rendering">🎨 Rendering Issue</option>
+                <option value="javascript">⚡ JavaScript Error</option>
+                <option value="extension">🧩 Extension Problem</option>
+                <option value="shield">🛡️ Shield / Blocking Issue</option>
+                <option value="ai">🤖 AI Assistant Issue</option>
+                <option value="performance">🐢 Performance Problem</option>
+                <option value="ui">🖼️ UI / UX Issue</option>
+                <option value="other">📝 Other</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="summary">Summary <span class="required">*</span></label>
+            <input type="text" id="summary" name="Summary" placeholder="Brief description of the issue" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="url">URL where issue occurred (if applicable)</label>
+            <input type="text" id="url" name="URL" placeholder="https://example.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="steps">Steps to Reproduce <span class="required">*</span></label>
+            <textarea id="steps" name="Steps to Reproduce" placeholder="1. Go to...&#10;2. Click on...&#10;3. Observe..." required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="expected">Expected Behavior</label>
+            <textarea id="expected" name="Expected Behavior" placeholder="What should have happened?"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="actual">Actual Behavior <span class="required">*</span></label>
+            <textarea id="actual" name="Actual Behavior" placeholder="What actually happened?" required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="additional">Additional Information</label>
+            <textarea id="additional" name="Additional Info" placeholder="Any other details, error messages, screenshots URLs, etc."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Your Email (optional, for follow-up)</label>
+            <input type="email" id="email" name="Reporter Email" placeholder="you@example.com">
+        </div>
+        
+        <button type="submit">📨 Submit Bug Report</button>
+    </form>
+    
+    <div class="note" style="margin-top: 30px;">
+        <strong>💡 Tip:</strong> For faster resolution, include as much detail as possible. 
+        Screenshots or screen recordings can be shared via links in the Additional Information field.
+    </div>
+</body>
+</html>
+        "#, 
+        version, os, arch, shield_level, ext_count,
+        version, os, arch, shield_level, ext_count
+        );
+        
+        self.current_page = Some(Page::from_html(&html, &self.js_engine));
+        self.current_url = "about:bugreport".to_string();
+        self.update_ai_page_context();
+    }
+    
+    /// Navigate to bug report thank you page
+    fn navigate_to_bugreport_thanks(&mut self) {
+        let html = r#"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Thank You - Spacey Browser</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e4e4e4;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 18px;
+            color: #b8b8b8;
+            line-height: 1.6;
+        }
+        .card {
+            background: #2a2a4a;
+            padding: 30px;
+            border-radius: 16px;
+            margin-top: 30px;
+        }
+        a {
+            color: #00d4ff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            background: linear-gradient(135deg, #00d4ff, #7b68ee);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .back-link:hover {
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="success-icon">✅</div>
+    <h1>Thank You!</h1>
+    <p>Your bug report has been submitted successfully.</p>
+    
+    <div class="card">
+        <h2 style="color: #7b68ee; margin-top: 0;">What happens next?</h2>
+        <p>Our team will review your report and investigate the issue. If you provided your email, we'll follow up with any questions or updates.</p>
+        <p style="margin-bottom: 0;"><strong>Typical response time:</strong> 24-48 hours</p>
+    </div>
+    
+    <a href="about:welcome" class="back-link">← Back to Home</a>
+</body>
+</html>
+        "#;
+        
+        self.current_page = Some(Page::from_html(html, &self.js_engine));
+        self.current_url = "about:bugreport-thanks".to_string();
         self.update_ai_page_context();
     }
 
@@ -484,13 +771,30 @@ impl Browser {
     pub fn navigate(&mut self, url: &str) {
         log::info!("Navigating to: {}", url);
         
+        // Handle special about: pages
+        match url {
+            "about:welcome" | "about:home" => {
+                self.navigate_to_welcome();
+                return;
+            }
+            "about:bugreport" | "about:bug" | "about:report" => {
+                self.navigate_to_bugreport();
+                return;
+            }
+            "about:bugreport-thanks" => {
+                self.navigate_to_bugreport_thanks();
+                return;
+            }
+            _ => {}
+        }
+
         // Check HTTPS upgrade first
         if let Some(upgraded_url) = self.shield.should_upgrade_https(url) {
             log::info!("🛡️ Shield upgrading to HTTPS: {}", upgraded_url);
             self.navigate(&upgraded_url);
             return;
         }
-        
+
         // Check Spacey Shield (built-in protection)
         let details = self.make_request_details(url, ResourceType::MainFrame);
         if let Some(reason) = self.shield.should_block(&details) {
@@ -613,31 +917,31 @@ impl Browser {
     pub fn current_url(&self) -> &str {
         &self.current_url
     }
-    
+
     // ===== Spacey Shield Controls =====
-    
+
     /// Get reference to Spacey Shield
     pub fn shield(&self) -> &SpaceyShield {
         &self.shield
     }
-    
+
     /// Set Shield protection level
     pub fn set_shield_level(&self, level: ShieldLevel) {
         log::info!("🛡️ Shield level changed to: {:?}", level);
         self.shield.set_level(level);
     }
-    
+
     /// Get Shield statistics
     pub fn shield_stats(&self) -> crate::shield::ShieldStats {
         self.shield.stats()
     }
-    
+
     /// Add a site exception to Shield
     pub fn add_shield_exception(&self, domain: &str) {
         log::info!("🛡️ Shield exception added for: {}", domain);
         self.shield.add_exception(domain);
     }
-    
+
     /// Remove a site exception from Shield
     pub fn remove_shield_exception(&self, domain: &str) {
         self.shield.remove_exception(domain);
