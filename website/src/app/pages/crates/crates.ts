@@ -113,7 +113,7 @@ spacey run script.js`,
 
 fn main() {
     let mut engine = Engine::new();
-    
+
     match engine.eval("1 + 2 * 3") {
         Ok(result) => println!("Result: {}", result),
         Err(e) => eprintln!("Error: {}", e),
@@ -172,7 +172,7 @@ defer!(println!("cleanup"));`,
 
 fn main() {
     let servo = SpaceyServo::new();
-    
+
     // Execute script in browser context
     servo.execute_script(r#"
         document.getElementById('app')
@@ -251,13 +251,13 @@ snpm run build`,
   }
 
   copyInstall(crateName: string) {
-    const command = crateName === 'spacey-npm' 
-      ? `cargo install spacey-npm` 
+    const command = crateName === 'spacey-npm'
+      ? `cargo install spacey-npm`
       : `cargo add ${crateName}`;
-    
+
     navigator.clipboard.writeText(command);
     this.copiedCrate.set(crateName);
-    
+
     setTimeout(() => {
       this.copiedCrate.set(null);
     }, 2000);

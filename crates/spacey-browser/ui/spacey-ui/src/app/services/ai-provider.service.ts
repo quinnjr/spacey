@@ -6,6 +6,11 @@ import { Injectable } from '@angular/core';
 export type AiProviderType = 'local' | 'claude' | 'openai';
 
 /**
+ * Thinking display style options
+ */
+export type ThinkingStyle = 'collapsed' | 'expanded' | 'streaming';
+
+/**
  * AI Provider configuration
  */
 export interface AiProviderConfig {
@@ -19,6 +24,10 @@ export interface AiProviderConfig {
   model?: string;
   /** API key for cloud providers */
   apiKey?: string;
+  /** Whether to show AI thinking/reasoning */
+  showThinking?: boolean;
+  /** How to display thinking: collapsed (click to expand), expanded (always shown), streaming (real-time) */
+  thinkingStyle?: ThinkingStyle;
 }
 
 /**
@@ -93,7 +102,9 @@ export class AiProviderService {
     enabled: true,
     localEnabled: true,
     provider: 'local',
-    model: 'phi-3-mini-4k'
+    model: 'phi-3-mini-4k',
+    showThinking: true,
+    thinkingStyle: 'collapsed'
   };
 
   /**
@@ -292,6 +303,8 @@ export class AiProviderService {
         provider: config.provider ?? 'local',
         model: config.model,
         apiKey: config.apiKey,
+        showThinking: config.showThinking ?? true,
+        thinkingStyle: config.thinkingStyle ?? 'collapsed',
       };
       
       // Deobfuscate key if present

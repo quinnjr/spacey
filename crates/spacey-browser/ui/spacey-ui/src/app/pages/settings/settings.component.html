@@ -287,6 +287,39 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
+
+          <!-- Thinking Style (only shown when showThoughts is enabled) -->
+          <div *ngIf="aiSettings.showThoughts" class="py-4 px-4 rounded-lg bg-purple-500/5">
+            <span class="font-medium text-[--color-text-bright] block mb-3">Display Mode</span>
+            <div class="flex gap-3">
+              <button
+                class="flex-1 py-2 px-3 rounded-lg text-sm transition-all duration-200"
+                [ngClass]="{'bg-cyan-500/20 border-cyan-500 text-cyan-400': aiSettings.thinkingStyle === 'collapsed', 'bg-transparent border-[--color-border-space] text-[--color-text-dim]': aiSettings.thinkingStyle !== 'collapsed'}"
+                style="border: 1px solid;"
+                (click)="aiSettings.thinkingStyle = 'collapsed'; saveAiConfig()">
+                Collapsed
+              </button>
+              <button
+                class="flex-1 py-2 px-3 rounded-lg text-sm transition-all duration-200"
+                [ngClass]="{'bg-cyan-500/20 border-cyan-500 text-cyan-400': aiSettings.thinkingStyle === 'expanded', 'bg-transparent border-[--color-border-space] text-[--color-text-dim]': aiSettings.thinkingStyle !== 'expanded'}"
+                style="border: 1px solid;"
+                (click)="aiSettings.thinkingStyle = 'expanded'; saveAiConfig()">
+                Expanded
+              </button>
+              <button
+                class="flex-1 py-2 px-3 rounded-lg text-sm transition-all duration-200"
+                [ngClass]="{'bg-cyan-500/20 border-cyan-500 text-cyan-400': aiSettings.thinkingStyle === 'streaming', 'bg-transparent border-[--color-border-space] text-[--color-text-dim]': aiSettings.thinkingStyle !== 'streaming'}"
+                style="border: 1px solid;"
+                (click)="aiSettings.thinkingStyle = 'streaming'; saveAiConfig()">
+                Streaming
+              </button>
+            </div>
+            <p class="text-xs text-[--color-text-faint] mt-2">
+              {{ aiSettings.thinkingStyle === 'collapsed' ? 'Click to expand AI reasoning' :
+                 aiSettings.thinkingStyle === 'expanded' ? 'Always show full reasoning' :
+                 'Watch reasoning appear in real-time' }}
+            </p>
+          </div>
         </div>
       </div>
       

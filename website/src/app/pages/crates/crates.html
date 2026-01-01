@@ -1,6 +1,6 @@
 <!-- Spacey Crates Documentation -->
 <main class="min-h-screen text-white overflow-x-hidden" style="background: var(--color-background);">
-  
+
   <!-- Animated Background -->
   <div class="fixed inset-0 overflow-hidden pointer-events-none">
     <div class="absolute top-0 right-1/4 w-96 h-96 rounded-full blur-3xl animate-pulse" style="background: rgba(144, 89, 255, 0.15);"></div>
@@ -78,7 +78,7 @@
       <!-- Quick install -->
       <div class="inline-flex items-center gap-4 p-4 rounded-xl" style="background: var(--color-surface); border: 1px solid var(--color-border);">
         <code class="text-sm" style="color: var(--color-text-muted);">cargo add spacey-spidermonkey</code>
-        <button 
+        <button
           class="px-3 py-1 rounded-lg transition-colors text-sm"
           style="background: rgba(255, 113, 57, 0.1);"
           (click)="copyInstall('spacey-spidermonkey')"
@@ -93,7 +93,7 @@
   <section class="relative z-10 px-6 lg:px-12 py-12" style="border-top: 1px solid var(--color-border);">
     <div class="max-w-6xl mx-auto">
       <h2 class="text-2xl font-bold mb-8 text-center" style="font-family: var(--font-heading);">Dependency Graph</h2>
-      
+
       <div class="p-6 rounded-2xl" style="background: var(--color-surface); border: 1px solid var(--color-border);">
         <div class="flex flex-col items-center gap-4">
           <!-- Layer 1: Base -->
@@ -102,9 +102,9 @@
               spacey-macros
             </div>
           </div>
-          
+
           <fa-icon [icon]="faArrowRight" class="text-xl rotate-90" style="color: var(--color-border);"></fa-icon>
-          
+
           <!-- Layer 2: Core -->
           <div class="flex flex-wrap justify-center gap-4">
             <div class="px-4 py-2 rounded-lg text-sm font-mono" style="background: rgba(144, 89, 255, 0.1); border: 1px solid rgba(144, 89, 255, 0.3); color: #9059ff;">
@@ -114,9 +114,9 @@
               spacey-npm
             </div>
           </div>
-          
+
           <fa-icon [icon]="faArrowRight" class="text-xl rotate-90" style="color: var(--color-border);"></fa-icon>
-          
+
           <!-- Layer 3: Integrations -->
           <div class="flex flex-wrap justify-center gap-4">
             <div class="px-4 py-2 rounded-lg text-sm font-mono" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: #3b82f6;">
@@ -126,9 +126,9 @@
               spacey-node
             </div>
           </div>
-          
+
           <fa-icon [icon]="faArrowRight" class="text-xl rotate-90" style="color: var(--color-border);"></fa-icon>
-          
+
           <!-- Layer 4: Root -->
           <div class="flex flex-wrap justify-center gap-4">
             <div class="px-4 py-2 rounded-lg text-sm font-mono" style="background: rgba(255, 113, 57, 0.1); border: 1px solid rgba(255, 113, 57, 0.3); color: #ff7139;">
@@ -136,7 +136,7 @@
             </div>
           </div>
         </div>
-        
+
         <p class="text-center mt-6 text-sm" style="color: var(--color-text-muted);">
           Arrows show publishing order (bottom depends on top)
         </p>
@@ -161,10 +161,10 @@
                   <p class="text-sm" style="color: var(--color-text-muted);">{{ crate.description }}</p>
                 </div>
               </div>
-              
+
               <div class="flex items-center gap-3">
                 <!-- Copy install command -->
-                <button 
+                <button
                   class="flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm"
                   [style.background]="copiedCrate() === crate.name ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 113, 57, 0.1)'"
                   [style.border]="copiedCrate() === crate.name ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(255, 113, 57, 0.3)'"
@@ -175,7 +175,7 @@
                     {{ copiedCrate() === crate.name ? 'Copied!' : 'cargo add' }}
                   </span>
                 </button>
-                
+
                 <!-- Links -->
                 <a [href]="crate.cratesIoUrl" target="_blank" class="p-2 rounded-lg transition-colors" style="background: rgba(144, 89, 255, 0.1);" title="View on crates.io">
                   <fa-icon [icon]="faRust" class="text-lg" style="color: #9059ff;"></fa-icon>
@@ -185,13 +185,13 @@
                 </a>
               </div>
             </div>
-            
+
             <!-- Content -->
             <div class="p-6 grid lg:grid-cols-2 gap-6">
               <!-- Description & Features -->
               <div>
                 <p class="mb-4" style="color: var(--color-text-muted);">{{ crate.longDescription }}</p>
-                
+
                 <h4 class="font-semibold mb-3 text-sm uppercase tracking-wider" style="color: var(--color-text-muted);">Features</h4>
                 <ul class="space-y-2">
                   @for (feature of crate.features; track feature) {
@@ -201,7 +201,7 @@
                     </li>
                   }
                 </ul>
-                
+
                 @if (crate.dependencies.length > 0) {
                   <h4 class="font-semibold mb-3 mt-4 text-sm uppercase tracking-wider" style="color: var(--color-text-muted);">Dependencies</h4>
                   <div class="flex flex-wrap gap-2">
@@ -213,7 +213,7 @@
                   </div>
                 }
               </div>
-              
+
               <!-- Usage Example -->
               <div>
                 <h4 class="font-semibold mb-3 text-sm uppercase tracking-wider" style="color: var(--color-text-muted);">Usage</h4>

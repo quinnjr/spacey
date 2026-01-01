@@ -6,6 +6,7 @@ import {
   AiProviderService,
   AiProviderType,
   AiProviderConfig,
+  ThinkingStyle,
   PROVIDER_INFO,
   CLAUDE_MODELS,
   OPENAI_MODELS,
@@ -56,6 +57,7 @@ export class SettingsComponent implements OnInit {
     autoLoad: false,
     maxIterations: 10,
     showThoughts: true,
+    thinkingStyle: 'collapsed' as ThinkingStyle,
   };
 
   // AI Provider settings (BYOK)
@@ -112,6 +114,8 @@ export class SettingsComponent implements OnInit {
     this.aiModel = aiConfig.model || this.getDefaultModel(aiConfig.provider);
     this.aiSettings.enabled = aiConfig.enabled;
     this.aiSettings.localEnabled = aiConfig.localEnabled;
+    this.aiSettings.showThoughts = aiConfig.showThinking ?? true;
+    this.aiSettings.thinkingStyle = aiConfig.thinkingStyle ?? 'collapsed';
 
     if (aiConfig.apiKey) {
       this.aiApiKey = aiConfig.apiKey;
@@ -129,6 +133,10 @@ export class SettingsComponent implements OnInit {
   }
 
   onToggle(setting: string, section: string) {
+    // Save AI-specific settings to the provider service
+    if (section === 'ai' && (setting === 'showThoughts' || setting === 'enabled')) {
+      this.saveAiConfig();
+    }
     this.saveSettings();
   }
 
@@ -195,6 +203,8 @@ export class SettingsComponent implements OnInit {
       localEnabled: this.aiSettings.localEnabled,
       provider: this.aiProvider,
       model: this.aiModel,
+      showThinking: this.aiSettings.showThoughts,
+      thinkingStyle: this.aiSettings.thinkingStyle,
     };
 
     if (this.aiProvider !== 'local' && this.aiApiKey) {
@@ -274,6 +284,7 @@ export class SettingsComponent implements OnInit {
       autoLoad: false,
       maxIterations: 10,
       showThoughts: true,
+      thinkingStyle: 'collapsed' as ThinkingStyle,
     };
     this.aiProvider = 'local';
     this.aiModel = 'phi-3-mini-4k';
