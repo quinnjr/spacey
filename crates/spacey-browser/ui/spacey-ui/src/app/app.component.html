@@ -1,41 +1,67 @@
 <div class="flex min-h-screen">
   <!-- Sidebar Navigation -->
-  <aside class="w-56 bg-[--color-bg-secondary] border-r border-[--color-border] flex flex-col fixed top-0 left-0 h-screen z-50">
-    <div class="p-5 border-b border-[--color-border]">
-      <div class="flex items-center gap-2.5">
-        <span class="text-3xl">🚀</span>
-        <span class="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">Spacey</span>
+  <aside class="w-64 border-r border-[--color-border-space] flex flex-col fixed top-0 left-0 h-screen z-50 backdrop-blur-xl"
+         style="background: linear-gradient(180deg, rgba(10, 5, 32, 0.95) 0%, rgba(3, 0, 20, 0.98) 100%);">
+    
+    <!-- Logo -->
+    <div class="p-6 border-b border-[--color-border-space]">
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <span class="text-4xl animate-float">🚀</span>
+          <div class="absolute -inset-2 bg-purple-500/20 rounded-full blur-lg"></div>
+        </div>
+        <div>
+          <span class="text-2xl font-bold tracking-wider cosmic-text" style="font-family: var(--font-display);">SPACEY</span>
+          <div class="text-xs text-[--color-text-dim] tracking-widest">BROWSER</div>
+        </div>
       </div>
     </div>
     
-    <nav class="flex-1 p-3 flex flex-col gap-1">
-      <a routerLink="/welcome" routerLinkActive="bg-cyan-500/10 text-cyan-400" 
-         class="flex items-center gap-3 px-4 py-3 rounded-lg text-[--color-text-secondary] no-underline transition-all duration-150 font-medium hover:bg-[--color-bg-tertiary] hover:text-[--color-text-primary]">
-        <span class="text-lg">🏠</span>
-        <span class="text-sm">Welcome</span>
+    <!-- Navigation -->
+    <nav class="flex-1 p-4 flex flex-col gap-2">
+      <a routerLink="/welcome" routerLinkActive="nav-active" 
+         class="nav-item group flex items-center gap-4 px-4 py-3 rounded-xl text-[--color-text-dim] no-underline transition-all duration-300 hover:text-[--color-text-bright] hover:bg-purple-500/10"
+         style="font-family: var(--font-display);">
+        <span class="text-xl group-hover:animate-pulse">🏠</span>
+        <span class="text-sm tracking-wide">COMMAND</span>
       </a>
-      <a routerLink="/settings" routerLinkActive="bg-cyan-500/10 text-cyan-400" 
-         class="flex items-center gap-3 px-4 py-3 rounded-lg text-[--color-text-secondary] no-underline transition-all duration-150 font-medium hover:bg-[--color-bg-tertiary] hover:text-[--color-text-primary]">
-        <span class="text-lg">⚙️</span>
-        <span class="text-sm">Settings</span>
+      <a routerLink="/settings" routerLinkActive="nav-active" 
+         class="nav-item group flex items-center gap-4 px-4 py-3 rounded-xl text-[--color-text-dim] no-underline transition-all duration-300 hover:text-[--color-text-bright] hover:bg-purple-500/10"
+         style="font-family: var(--font-display);">
+        <span class="text-xl group-hover:animate-spin-slow">⚙️</span>
+        <span class="text-sm tracking-wide">SYSTEMS</span>
       </a>
-      <a routerLink="/bugreport" routerLinkActive="bg-cyan-500/10 text-cyan-400" 
-         class="flex items-center gap-3 px-4 py-3 rounded-lg text-[--color-text-secondary] no-underline transition-all duration-150 font-medium hover:bg-[--color-bg-tertiary] hover:text-[--color-text-primary]">
-        <span class="text-lg">🐛</span>
-        <span class="text-sm">Report Bug</span>
+      <a routerLink="/bugreport" routerLinkActive="nav-active" 
+         class="nav-item group flex items-center gap-4 px-4 py-3 rounded-xl text-[--color-text-dim] no-underline transition-all duration-300 hover:text-[--color-text-bright] hover:bg-purple-500/10"
+         style="font-family: var(--font-display);">
+        <span class="text-xl">🛸</span>
+        <span class="text-sm tracking-wide">TRANSMIT</span>
       </a>
     </nav>
     
-    <div class="p-4 border-t border-[--color-border]">
-      <div class="flex justify-between items-center text-xs">
-        <span class="text-[--color-text-muted]">Version</span>
-        <span class="text-[--color-text-secondary] font-mono">0.1.0</span>
+    <!-- Footer -->
+    <div class="p-4 border-t border-[--color-border-space]">
+      <div class="flex justify-between items-center text-xs" style="font-family: var(--font-mono);">
+        <span class="text-[--color-text-faint]">VERSION</span>
+        <span class="text-[--color-nebula-cyan]">0.1.0</span>
+      </div>
+      <div class="mt-2 text-xs text-[--color-text-faint] tracking-wider">
+        🌟 PEGASUS HEAVY
       </div>
     </div>
   </aside>
   
   <!-- Main Content -->
-  <main class="flex-1 ml-56 min-h-screen" style="background: linear-gradient(180deg, var(--color-bg-primary) 0%, #0a0e14 100%);">
+  <main class="flex-1 ml-64 min-h-screen constellation-bg">
     <router-outlet></router-outlet>
   </main>
 </div>
+
+<style>
+  .nav-active {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(34, 211, 238, 0.1)) !important;
+    color: var(--color-nebula-cyan) !important;
+    border: 1px solid var(--color-border-space);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+  }
+</style>

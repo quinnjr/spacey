@@ -1,131 +1,183 @@
-<div class="max-w-4xl mx-auto px-6 py-10">
+<div class="max-w-5xl mx-auto px-8 py-12 shooting-star">
   <!-- Hero Section -->
-  <header class="text-center py-10 pb-12">
-    <div class="text-6xl mb-4 animate-bounce">🚀</div>
-    <h1 class="text-4xl font-bold mb-3 bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-      Welcome to Spacey Browser!
+  <header class="text-center py-16 relative">
+    <!-- Planet/Rocket Animation -->
+    <div class="relative inline-block mb-8">
+      <div class="text-8xl animate-float planet-glow">🚀</div>
+      <!-- Orbit rings -->
+      <div class="absolute inset-0 -m-8 border border-purple-500/20 rounded-full animate-spin-slow"></div>
+      <div class="absolute inset-0 -m-16 border border-cyan-500/10 rounded-full animate-spin-slow" style="animation-duration: 30s; animation-direction: reverse;"></div>
+    </div>
+    
+    <h1 class="text-5xl font-black mb-4 tracking-wider" style="font-family: var(--font-display);">
+      <span class="cosmic-text">WELCOME ABOARD</span>
     </h1>
-    <p class="text-[--color-text-secondary] text-lg max-w-lg mx-auto">
-      A modern, privacy-focused web browser powered by a custom JavaScript engine
+    <p class="text-xl text-[--color-text-dim] max-w-2xl mx-auto" style="font-family: var(--font-body);">
+      Your mission begins here. A privacy-focused web browser powered by a custom JavaScript engine.
     </p>
+    
+    <!-- Status Indicator -->
+    <div class="mt-8 inline-flex items-center gap-3 px-6 py-3 rounded-full border border-[--color-aurora-green]/30 bg-[--color-aurora-green]/10">
+      <span class="w-2 h-2 bg-[--color-aurora-green] rounded-full animate-pulse"></span>
+      <span class="text-[--color-aurora-green] text-sm tracking-wider" style="font-family: var(--font-display);">ALL SYSTEMS OPERATIONAL</span>
+    </div>
   </header>
   
-  <!-- Quick Stats -->
-  <section class="grid grid-cols-4 gap-4 mb-12" *ngIf="systemInfo">
-    <div class="card flex items-center gap-4 hover:border-cyan-500/50 hover:-translate-y-0.5">
-      <span class="text-3xl">🛡️</span>
-      <div class="flex flex-col">
-        <span class="text-xl font-bold text-[--color-text-primary]">{{ systemInfo.shieldLevel }}</span>
-        <span class="text-xs text-[--color-text-muted]">Shield Level</span>
+  <!-- Mission Stats -->
+  <section class="grid grid-cols-4 gap-4 mb-16" *ngIf="systemInfo">
+    <div class="card group hover:animate-pulse-glow">
+      <div class="flex items-center gap-4">
+        <div class="text-4xl">🛡️</div>
+        <div>
+          <div class="text-2xl font-bold text-[--color-nebula-cyan]" style="font-family: var(--font-display);">{{ systemInfo.shieldLevel }}</div>
+          <div class="text-xs text-[--color-text-faint] tracking-widest uppercase">SHIELD STATUS</div>
+        </div>
       </div>
     </div>
-    <div class="card flex items-center gap-4 hover:border-cyan-500/50 hover:-translate-y-0.5">
-      <span class="text-3xl">🧩</span>
-      <div class="flex flex-col">
-        <span class="text-xl font-bold text-[--color-text-primary]">{{ systemInfo.extensionCount }}</span>
-        <span class="text-xs text-[--color-text-muted]">Extensions</span>
+    <div class="card group hover:animate-pulse-glow">
+      <div class="flex items-center gap-4">
+        <div class="text-4xl">🧩</div>
+        <div>
+          <div class="text-2xl font-bold text-[--color-nebula-purple]" style="font-family: var(--font-display);">{{ systemInfo.extensionCount }}</div>
+          <div class="text-xs text-[--color-text-faint] tracking-widest uppercase">MODULES</div>
+        </div>
       </div>
     </div>
-    <div class="card flex items-center gap-4 hover:border-cyan-500/50 hover:-translate-y-0.5">
-      <span class="text-3xl">🚫</span>
-      <div class="flex flex-col">
-        <span class="text-xl font-bold text-[--color-text-primary]">{{ systemInfo.blockedDomains }}</span>
-        <span class="text-xs text-[--color-text-muted]">Blocked Domains</span>
+    <div class="card group hover:animate-pulse-glow">
+      <div class="flex items-center gap-4">
+        <div class="text-4xl">🚫</div>
+        <div>
+          <div class="text-2xl font-bold text-[--color-nebula-pink]" style="font-family: var(--font-display);">{{ systemInfo.blockedDomains }}</div>
+          <div class="text-xs text-[--color-text-faint] tracking-widest uppercase">THREATS BLOCKED</div>
+        </div>
       </div>
     </div>
-    <div class="card flex items-center gap-4 hover:border-cyan-500/50 hover:-translate-y-0.5">
-      <span class="text-3xl">⚡</span>
-      <div class="flex flex-col">
-        <span class="text-xl font-bold text-[--color-text-primary]">v{{ systemInfo.version }}</span>
-        <span class="text-xs text-[--color-text-muted]">Version</span>
+    <div class="card group hover:animate-pulse-glow">
+      <div class="flex items-center gap-4">
+        <div class="text-4xl">⚡</div>
+        <div>
+          <div class="text-2xl font-bold text-[--color-star-yellow]" style="font-family: var(--font-display);">v{{ systemInfo.version }}</div>
+          <div class="text-xs text-[--color-text-faint] tracking-widest uppercase">BUILD</div>
+        </div>
       </div>
     </div>
   </section>
   
-  <!-- Features Grid -->
-  <section class="mb-12">
-    <h2 class="text-2xl font-semibold mb-5 text-[--color-text-primary]">✨ Features</h2>
+  <!-- Systems Online -->
+  <section class="mb-16">
+    <h2 class="text-2xl font-bold mb-6 tracking-wider flex items-center gap-3" style="font-family: var(--font-display);">
+      <span class="text-[--color-nebula-cyan]">✦</span>
+      <span class="cosmic-text">SYSTEMS ONLINE</span>
+    </h2>
     <div class="grid grid-cols-2 gap-3">
       <div *ngFor="let feature of features" 
-           class="flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-150 hover:border-[--color-border-hover]"
-           [class.opacity-60]="feature.status === 'wip'"
-           style="background: var(--color-bg-card); border-color: var(--color-border);">
-        <span class="text-lg">{{ feature.icon }}</span>
-        <span class="text-sm text-[--color-text-secondary]">{{ feature.text }}</span>
+           class="flex items-center gap-4 px-5 py-4 rounded-xl border transition-all duration-300 group"
+           [ngClass]="{'opacity-50': feature.status === 'wip', 'border-green-500/30': feature.status === 'complete', 'border-yellow-500/30': feature.status === 'wip'}"
+           style="background: linear-gradient(135deg, rgba(10, 5, 32, 0.6), rgba(18, 10, 46, 0.4));">
+        <span class="text-2xl">{{ feature.icon }}</span>
+        <span class="text-sm text-[--color-text-dim] group-hover:text-[--color-text-bright] transition-colors">{{ feature.text }}</span>
+        <span *ngIf="feature.status === 'complete'" class="ml-auto w-2 h-2 bg-green-500 rounded-full"></span>
+        <span *ngIf="feature.status === 'wip'" class="ml-auto w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
       </div>
     </div>
   </section>
   
-  <!-- Shield Info -->
-  <section class="mb-12" *ngIf="systemInfo">
-    <h2 class="text-2xl font-semibold mb-5 text-[--color-text-primary]">🛡️ Spacey Shield</h2>
-    <div class="card border-cyan-500/30" style="background: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(168, 85, 247, 0.05));">
-      <p class="text-green-400 font-semibold mb-4">
-        Built-in privacy protection is ACTIVE!
-      </p>
-      <ul class="space-y-2 mb-4">
-        <li class="flex items-center gap-2.5 text-[--color-text-secondary]">
-          <span class="text-green-400 font-bold">✓</span>
-          Protection Level: <strong class="text-[--color-text-primary]">{{ systemInfo.shieldLevel }}</strong>
-        </li>
-        <li class="flex items-center gap-2.5 text-[--color-text-secondary]">
-          <span class="text-green-400 font-bold">✓</span>
-          Blocking <strong class="text-[--color-text-primary]">{{ systemInfo.blockedDomains }}</strong> known ad/tracker domains
-        </li>
-        <li class="flex items-center gap-2.5 text-[--color-text-secondary]">
-          <span class="text-green-400 font-bold">✓</span>
-          Fingerprint protection enabled
-        </li>
-        <li class="flex items-center gap-2.5 text-[--color-text-secondary]">
-          <span class="text-green-400 font-bold">✓</span>
-          HTTPS upgrade enabled
-        </li>
-        <li class="flex items-center gap-2.5 text-[--color-text-secondary]">
-          <span class="text-green-400 font-bold">✓</span>
-          Tracking parameter stripping enabled
-        </li>
-      </ul>
-      <p class="text-sm text-[--color-text-muted] p-3 rounded-lg border-l-4 border-purple-500" style="background: var(--color-bg-secondary);">
-        Spacey Shield complements extensions like uBlock Origin - they work together!
-        Shield handles domain blocking + fingerprinting, uBlock handles cosmetic rules + advanced filters.
-      </p>
+  <!-- Defense Matrix -->
+  <section class="mb-16" *ngIf="systemInfo">
+    <h2 class="text-2xl font-bold mb-6 tracking-wider flex items-center gap-3" style="font-family: var(--font-display);">
+      <span class="text-[--color-nebula-purple]">◆</span>
+      <span class="cosmic-text">DEFENSE MATRIX</span>
+    </h2>
+    <div class="card solar-flare" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(10, 5, 32, 0.9));">
+      <div class="flex items-start gap-6">
+        <div class="text-6xl animate-float">🛡️</div>
+        <div class="flex-1">
+          <h3 class="text-xl font-bold text-[--color-aurora-green] mb-4 tracking-wider" style="font-family: var(--font-display);">
+            SHIELDS ACTIVE
+          </h3>
+          <ul class="space-y-3">
+            <li class="flex items-center gap-3 text-[--color-text-dim]">
+              <span class="text-[--color-aurora-green]">▸</span>
+              Protection Level: <strong class="text-[--color-text-bright]">{{ systemInfo.shieldLevel }}</strong>
+            </li>
+            <li class="flex items-center gap-3 text-[--color-text-dim]">
+              <span class="text-[--color-aurora-green]">▸</span>
+              Blocking <strong class="text-[--color-nebula-pink]">{{ systemInfo.blockedDomains }}</strong> hostile domains
+            </li>
+            <li class="flex items-center gap-3 text-[--color-text-dim]">
+              <span class="text-[--color-aurora-green]">▸</span>
+              Fingerprint cloaking <span class="badge badge-nebula ml-2">ENABLED</span>
+            </li>
+            <li class="flex items-center gap-3 text-[--color-text-dim]">
+              <span class="text-[--color-aurora-green]">▸</span>
+              HTTPS force field active
+            </li>
+            <li class="flex items-center gap-3 text-[--color-text-dim]">
+              <span class="text-[--color-aurora-green]">▸</span>
+              Tracking beacon neutralizer engaged
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="mt-6 p-4 rounded-xl border border-[--color-nebula-purple]/30" style="background: rgba(139, 92, 246, 0.1);">
+        <p class="text-sm text-[--color-text-dim]">
+          <span class="text-[--color-nebula-cyan]">💡</span> Spacey Shield works in parallel with extensions like uBlock Origin—they complement each other for maximum protection.
+        </p>
+      </div>
     </div>
   </section>
   
-  <!-- AI Assistant -->
-  <section class="mb-12">
-    <h2 class="text-2xl font-semibold mb-5 text-[--color-text-primary]">🤖 AI Assistant</h2>
+  <!-- AI Copilot -->
+  <section class="mb-16">
+    <h2 class="text-2xl font-bold mb-6 tracking-wider flex items-center gap-3" style="font-family: var(--font-display);">
+      <span class="text-[--color-nebula-pink]">★</span>
+      <span class="cosmic-text">AI COPILOT</span>
+    </h2>
     <div class="card">
-      <p class="text-[--color-text-secondary] mb-4">Use the AI panel on the right to automate browsing tasks! Try commands like:</p>
-      <div class="flex flex-wrap gap-2.5">
-        <code *ngFor="let cmd of aiCommands" 
-              class="px-3.5 py-2 rounded-lg border text-cyan-400 font-mono text-sm"
-              style="background: var(--color-bg-secondary); border-color: var(--color-border);">
-          "{{ cmd }}"
-        </code>
+      <div class="flex items-start gap-6">
+        <div class="text-5xl animate-pulse">🤖</div>
+        <div class="flex-1">
+          <p class="text-[--color-text-dim] mb-4">Engage the AI panel to automate your mission. Voice commands:</p>
+          <div class="flex flex-wrap gap-3">
+            <code *ngFor="let cmd of aiCommands" 
+                  class="px-4 py-2 rounded-lg border border-[--color-nebula-cyan]/30 text-[--color-nebula-cyan] text-sm"
+                  style="font-family: var(--font-mono); background: rgba(34, 211, 238, 0.1);">
+              "{{ cmd }}"
+            </code>
+          </div>
+        </div>
       </div>
     </div>
   </section>
   
-  <!-- Quick Links -->
-  <section class="mb-12">
-    <h2 class="text-2xl font-semibold mb-5 text-[--color-text-primary]">🔗 Quick Links</h2>
+  <!-- Quick Navigation -->
+  <section class="mb-16">
+    <h2 class="text-2xl font-bold mb-6 tracking-wider flex items-center gap-3" style="font-family: var(--font-display);">
+      <span class="text-[--color-star-yellow]">⬡</span>
+      <span class="cosmic-text">NAVIGATION</span>
+    </h2>
     <div class="grid grid-cols-2 gap-4">
       <a *ngFor="let link of quickLinks" 
          [routerLink]="link.route" 
-         class="card flex items-center gap-4 no-underline group hover:border-cyan-500/50 hover:-translate-y-0.5">
-        <span class="text-3xl">{{ link.icon }}</span>
+         class="card flex items-center gap-5 no-underline group hover:border-[--color-nebula-cyan]">
+        <div class="text-4xl group-hover:animate-float">{{ link.icon }}</div>
         <div class="flex-1">
-          <h3 class="text-[--color-text-primary] font-semibold mb-1">{{ link.title }}</h3>
-          <p class="text-sm text-[--color-text-muted] m-0">{{ link.description }}</p>
+          <h3 class="text-lg font-bold text-[--color-text-bright] mb-1 tracking-wide" style="font-family: var(--font-display);">{{ link.title }}</h3>
+          <p class="text-sm text-[--color-text-faint]">{{ link.description }}</p>
         </div>
-        <span class="text-xl text-[--color-text-muted] transition-transform duration-150 group-hover:translate-x-1 group-hover:text-cyan-400">→</span>
+        <span class="text-2xl text-[--color-text-faint] transition-all duration-300 group-hover:translate-x-2 group-hover:text-[--color-nebula-cyan]">→</span>
       </a>
     </div>
   </section>
   
   <!-- Footer -->
-  <footer class="text-center py-8 border-t border-[--color-border] mt-12 text-[--color-text-muted]">
-    <p>Built with ❤️ by <a href="https://pegasusheavy.dev" target="_blank" class="text-cyan-400 hover:text-purple-400">Pegasus Heavy Industries</a></p>
+  <footer class="text-center py-12 border-t border-[--color-border-space]">
+    <div class="text-[--color-text-faint] text-sm tracking-wider" style="font-family: var(--font-display);">
+      CRAFTED WITH 💜 BY 
+      <a href="https://pegasusheavy.dev" target="_blank" class="text-[--color-nebula-cyan] hover:glow-text">PEGASUS HEAVY INDUSTRIES</a>
+    </div>
+    <div class="mt-2 text-[--color-text-faint] text-xs tracking-widest">
+      AD ASTRA PER ASPERA
+    </div>
   </footer>
 </div>
