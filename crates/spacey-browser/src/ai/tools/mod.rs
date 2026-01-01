@@ -10,6 +10,7 @@ mod extract;
 mod scroll;
 mod execute_js;
 mod wait;
+mod screenshot;
 
 pub use click::ClickTool;
 pub use type_text::TypeTool;
@@ -18,6 +19,10 @@ pub use extract::ExtractTool;
 pub use scroll::ScrollTool;
 pub use execute_js::ExecuteJsTool;
 pub use wait::WaitTool;
+pub use screenshot::{
+    ScreenshotTool, ScreenshotRegion, ScreenshotFormat, 
+    ScreenshotResult, ScreenshotCapture
+};
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -135,6 +140,22 @@ pub enum BrowserTool {
         #[serde(default = "default_timeout")]
         timeout_ms: u64,
     },
+    /// Capture a screenshot of the page
+    Screenshot {
+        /// Region to capture: viewport, full_page, or element with selector
+        #[serde(default)]
+        region: ScreenshotRegion,
+        /// Image format: png, jpeg, or webp
+        #[serde(default)]
+        format: ScreenshotFormat,
+        /// Quality for jpeg/webp (1-100)
+        #[serde(default = "default_quality")]
+        quality: u8,
+    },
+}
+
+fn default_quality() -> u8 {
+    80
 }
 
 fn default_scroll_amount() -> i32 {
@@ -156,6 +177,7 @@ impl BrowserTool {
             BrowserTool::Scroll { .. } => "scroll",
             BrowserTool::ExecuteJs { .. } => "execute_js",
             BrowserTool::Wait { .. } => "wait",
+            BrowserTool::Screenshot { .. } => "screenshot",
         }
     }
 
@@ -163,6 +185,33 @@ impl BrowserTool {
     pub fn from_json(json: &serde_json::Value) -> Result<Self, String> {
         serde_json::from_value(json.clone())
             .map_err(|e| format!("Failed to parse tool: {}", e))
+    }
+    
+    /// Create a viewport screenshot tool
+    pub fn screenshot_viewport() -> Self {
+        BrowserTool::Screenshot {
+            region: ScreenshotRegion::Viewport,
+            format: ScreenshotFormat::Png,
+            quality: 80,
+        }
+    }
+    
+    /// Create a full page screenshot tool
+    pub fn screenshot_full_page() -> Self {
+        BrowserTool::Screenshot {
+            region: ScreenshotRegion::FullPage,
+            format: ScreenshotFormat::Png,
+            quality: 80,
+        }
+    }
+    
+    /// Create an element screenshot tool
+    pub fn screenshot_element(selector: impl Into<String>) -> Self {
+        BrowserTool::Screenshot {
+            region: ScreenshotRegion::Element { selector: selector.into() },
+            format: ScreenshotFormat::Png,
+            quality: 80,
+        }
     }
 }
 
@@ -316,6 +365,34 @@ impl ToolRegistry {
                     ParameterDescription {
                         name: "timeout_ms".to_string(),
                         description: "Maximum time to wait in milliseconds (default: 5000)".to_string(),
+                        required: false,
+                        param_type: "integer".to_string(),
+                    },
+                ],
+            },
+        );
+
+        tools.insert(
+            "screenshot".to_string(),
+            ToolDescription {
+                name: "screenshot".to_string(),
+                description: "Capture a screenshot of the current page for visual analysis. Use this to see what's on the page, verify UI state, or capture visual information.".to_string(),
+                parameters: vec![
+                    ParameterDescription {
+                        name: "region".to_string(),
+                        description: "Region to capture: 'viewport' (visible area), 'full_page' (entire scrollable page), or { element: 'selector' } for a specific element".to_string(),
+                        required: false,
+                        param_type: "string|object".to_string(),
+                    },
+                    ParameterDescription {
+                        name: "format".to_string(),
+                        description: "Image format: 'png' (default, lossless), 'jpeg' (smaller), or 'webp' (modern)".to_string(),
+                        required: false,
+                        param_type: "string".to_string(),
+                    },
+                    ParameterDescription {
+                        name: "quality".to_string(),
+                        description: "Quality for jpeg/webp format (1-100, default: 80)".to_string(),
                         required: false,
                         param_type: "integer".to_string(),
                     },

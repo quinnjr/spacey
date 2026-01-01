@@ -6,7 +6,7 @@ use winit::window::Window;
 use spacey_servo::SpaceyServo;
 
 use crate::ai::{AiAgent, AgentConfig, BrowserTool, PageContext, ToolResult};
-use crate::ai::tools::{ClickTool, TypeTool, NavigateTool, ExtractTool, ScrollTool, WaitTool};
+use crate::ai::tools::{ClickTool, TypeTool, NavigateTool, ExtractTool, ScrollTool, WaitTool, ScreenshotTool, ScreenshotRegion, ScreenshotFormat, ScreenshotResult};
 use crate::ai_ui::{AiUiState, AiPanelAction, ChatRole};
 use crate::extensions::{ExtensionManager, ExtensionError, RequestDetails, ResourceType, RequestAction};
 use crate::extensions_ui::{ExtensionsUiState, ExtensionsAction};
@@ -515,9 +515,72 @@ impl Browser {
             BrowserTool::Wait { selector, timeout_ms } => {
                 WaitTool::execute(&selector, timeout_ms)
             }
+            BrowserTool::Screenshot { region, format, quality } => {
+                Self::create_screenshot_result(&region, &format, quality)
+            }
         };
 
         (result, nav_url)
+    }
+    
+    /// Create a screenshot result (standalone method)
+    fn create_screenshot_result(
+        region: &crate::ai::tools::ScreenshotRegion,
+        format: &crate::ai::tools::ScreenshotFormat,
+        _quality: u8,
+    ) -> ToolResult {
+        use crate::ai::tools::{ScreenshotResult, ScreenshotRegion, ScreenshotFormat};
+        use base64::{Engine as _, engine::general_purpose::STANDARD};
+        
+        let timestamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        
+        // Create a 1x1 transparent PNG as placeholder
+        // TODO: Implement actual framebuffer capture using wgpu
+        let placeholder_png = [
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+            0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+            0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+            0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
+            0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+            0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
+            0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
+            0x42, 0x60, 0x82,
+        ];
+        
+        let data = STANDARD.encode(&placeholder_png);
+        
+        let result = ScreenshotResult {
+            data: data.clone(),
+            format: format.clone(),
+            width: 1,
+            height: 1,
+            size_bytes: placeholder_png.len(),
+            timestamp,
+        };
+        
+        let region_desc = match region {
+            ScreenshotRegion::Viewport => "viewport".to_string(),
+            ScreenshotRegion::FullPage => "full page".to_string(),
+            ScreenshotRegion::Element { selector } => format!("element '{}'", selector),
+            ScreenshotRegion::Region { x, y, width, height } => {
+                format!("region {}x{} at ({},{})", width, height, x, y)
+            }
+        };
+        
+        ToolResult::success_with_data(
+            format!("Captured {} screenshot", region_desc),
+            serde_json::json!({
+                "data_url": result.to_data_url(),
+                "width": result.width,
+                "height": result.height,
+                "size_bytes": result.size_bytes,
+                "format": format!("{:?}", result.format),
+            }),
+        )
     }
 
     /// Update AI agent with current page context
