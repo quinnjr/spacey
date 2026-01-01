@@ -1,38 +1,41 @@
-<div class="app-layout">
+<div class="flex min-h-screen">
   <!-- Sidebar Navigation -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="logo">
-        <span class="logo-icon">🚀</span>
-        <span class="logo-text">Spacey</span>
+  <aside class="w-56 bg-[--color-bg-secondary] border-r border-[--color-border] flex flex-col fixed top-0 left-0 h-screen z-50">
+    <div class="p-5 border-b border-[--color-border]">
+      <div class="flex items-center gap-2.5">
+        <span class="text-3xl">🚀</span>
+        <span class="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">Spacey</span>
       </div>
     </div>
     
-    <nav class="sidebar-nav">
-      <a routerLink="/welcome" routerLinkActive="active" class="nav-item">
-        <span class="nav-icon">🏠</span>
-        <span class="nav-text">Welcome</span>
+    <nav class="flex-1 p-3 flex flex-col gap-1">
+      <a routerLink="/welcome" routerLinkActive="bg-cyan-500/10 text-cyan-400" 
+         class="flex items-center gap-3 px-4 py-3 rounded-lg text-[--color-text-secondary] no-underline transition-all duration-150 font-medium hover:bg-[--color-bg-tertiary] hover:text-[--color-text-primary]">
+        <span class="text-lg">🏠</span>
+        <span class="text-sm">Welcome</span>
       </a>
-      <a routerLink="/settings" routerLinkActive="active" class="nav-item">
-        <span class="nav-icon">⚙️</span>
-        <span class="nav-text">Settings</span>
+      <a routerLink="/settings" routerLinkActive="bg-cyan-500/10 text-cyan-400" 
+         class="flex items-center gap-3 px-4 py-3 rounded-lg text-[--color-text-secondary] no-underline transition-all duration-150 font-medium hover:bg-[--color-bg-tertiary] hover:text-[--color-text-primary]">
+        <span class="text-lg">⚙️</span>
+        <span class="text-sm">Settings</span>
       </a>
-      <a routerLink="/bugreport" routerLinkActive="active" class="nav-item">
-        <span class="nav-icon">🐛</span>
-        <span class="nav-text">Report Bug</span>
+      <a routerLink="/bugreport" routerLinkActive="bg-cyan-500/10 text-cyan-400" 
+         class="flex items-center gap-3 px-4 py-3 rounded-lg text-[--color-text-secondary] no-underline transition-all duration-150 font-medium hover:bg-[--color-bg-tertiary] hover:text-[--color-text-primary]">
+        <span class="text-lg">🐛</span>
+        <span class="text-sm">Report Bug</span>
       </a>
     </nav>
     
-    <div class="sidebar-footer">
-      <div class="version-info">
-        <span class="version-label">Version</span>
-        <span class="version-number">0.1.0</span>
+    <div class="p-4 border-t border-[--color-border]">
+      <div class="flex justify-between items-center text-xs">
+        <span class="text-[--color-text-muted]">Version</span>
+        <span class="text-[--color-text-secondary] font-mono">0.1.0</span>
       </div>
     </div>
   </aside>
   
   <!-- Main Content -->
-  <main class="main-content">
+  <main class="flex-1 ml-56 min-h-screen" style="background: linear-gradient(180deg, var(--color-bg-primary) 0%, #0a0e14 100%);">
     <router-outlet></router-outlet>
   </main>
 </div>

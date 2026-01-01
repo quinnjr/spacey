@@ -19,7 +19,7 @@ interface SettingsSection {
 export class SettingsComponent implements OnInit {
   systemInfo: SystemInfo | null = null;
   activeSection = 'shield';
-  
+
   sections: SettingsSection[] = [
     { id: 'shield', icon: '🛡️', title: 'Spacey Shield' },
     { id: 'ai', icon: '🤖', title: 'AI Assistant' },
@@ -28,7 +28,7 @@ export class SettingsComponent implements OnInit {
     { id: 'appearance', icon: '🎨', title: 'Appearance' },
     { id: 'advanced', icon: '⚙️', title: 'Advanced' },
   ];
-  
+
   // Shield settings
   shieldLevel: 'off' | 'standard' | 'strict' = 'standard';
   shieldOptions = {
@@ -39,7 +39,7 @@ export class SettingsComponent implements OnInit {
     httpsUpgrade: true,
     stripTracking: true,
   };
-  
+
   // AI settings
   aiSettings = {
     enabled: true,
@@ -47,7 +47,7 @@ export class SettingsComponent implements OnInit {
     maxIterations: 10,
     showThoughts: true,
   };
-  
+
   // Privacy settings
   privacySettings = {
     doNotTrack: true,
@@ -55,7 +55,7 @@ export class SettingsComponent implements OnInit {
     clearOnExit: false,
     blockThirdPartyCookies: true,
   };
-  
+
   // Appearance settings
   appearanceSettings = {
     theme: 'dark',
@@ -63,38 +63,38 @@ export class SettingsComponent implements OnInit {
     showBookmarksBar: true,
     compactMode: false,
   };
-  
+
   // Advanced settings
   advancedSettings = {
     hardwareAcceleration: true,
     experimentalFeatures: false,
     developerMode: false,
   };
-  
+
   constructor(private systemInfoService: SystemInfoService) {}
-  
+
   ngOnInit() {
     this.systemInfo = this.systemInfoService.getSystemInfo();
     if (this.systemInfo) {
       this.shieldLevel = this.systemInfo.shieldLevel.toLowerCase() as 'off' | 'standard' | 'strict';
     }
   }
-  
+
   setActiveSection(id: string) {
     this.activeSection = id;
   }
-  
+
   setShieldLevel(level: 'off' | 'standard' | 'strict') {
     this.shieldLevel = level;
     // In a real app, this would communicate with the browser backend
     this.saveSettings();
   }
-  
+
   onToggle(setting: string, section: string) {
     // Save settings when toggled
     this.saveSettings();
   }
-  
+
   saveSettings() {
     // In a real implementation, this would send settings to the browser backend
     console.log('Settings saved:', {
@@ -105,7 +105,7 @@ export class SettingsComponent implements OnInit {
       advanced: this.advancedSettings,
     });
   }
-  
+
   resetToDefaults() {
     this.shieldLevel = 'standard';
     this.shieldOptions = {

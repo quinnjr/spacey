@@ -12,7 +12,7 @@ import { SystemInfoService, SystemInfo } from '../../services/system-info.servic
 })
 export class WelcomeComponent implements OnInit {
   systemInfo: SystemInfo | null = null;
-  
+
   features = [
     { icon: '✅', text: 'Custom JavaScript engine (Spacey)', status: 'complete' },
     { icon: '✅', text: 'Basic HTML rendering', status: 'complete' },
@@ -24,20 +24,20 @@ export class WelcomeComponent implements OnInit {
     { icon: '🚧', text: 'CSS support', status: 'wip' },
     { icon: '🚧', text: 'Full DOM API', status: 'wip' },
   ];
-  
+
   quickLinks = [
     { icon: '⚙️', title: 'Settings', description: 'Configure browser preferences', route: '/settings' },
     { icon: '🐛', title: 'Report Bug', description: 'Help us improve Spacey', route: '/bugreport' },
   ];
-  
+
   aiCommands = [
     'Search for Rust tutorials',
     'Navigate to github.com',
     'Extract all headings from this page'
   ];
-  
+
   constructor(private systemInfoService: SystemInfoService) {}
-  
+
   ngOnInit() {
     this.systemInfo = this.systemInfoService.getSystemInfo();
   }

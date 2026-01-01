@@ -1,44 +1,46 @@
-<div class="container">
-  <header class="page-header">
-    <div class="header-icon">🐛</div>
-    <h1>Report a Bug</h1>
-    <p>Found an issue with Spacey Browser? Let us know and we'll fix it!</p>
+<div class="max-w-3xl mx-auto px-6 py-10">
+  <header class="text-center mb-8">
+    <div class="text-6xl mb-4">🐛</div>
+    <h1 class="text-4xl font-bold mb-3 bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+      Report a Bug
+    </h1>
+    <p class="text-[--color-text-secondary] text-lg">Found an issue with Spacey Browser? Let us know and we'll fix it!</p>
   </header>
   
   <!-- Email notice -->
   <div class="alert alert-info">
-    <span class="alert-icon">📧</span>
-    <span>Your report will be sent to: <strong>support&#64;pegasusheavy.dev</strong></span>
+    <span class="text-xl">📧</span>
+    <span class="text-[--color-text-secondary]">Your report will be sent to: <strong class="text-[--color-text-primary]">support&#64;pegasusheavy.dev</strong></span>
   </div>
   
   <!-- System Information -->
-  <section class="section" *ngIf="systemInfo">
-    <h2>System Information</h2>
-    <div class="system-info-card">
-      <div class="info-row">
-        <span class="info-label">Browser Version</span>
-        <span class="info-value">Spacey v{{ systemInfo.version }}</span>
+  <section class="mb-8" *ngIf="systemInfo">
+    <h2 class="text-xl font-semibold mb-4 text-[--color-text-primary]">System Information</h2>
+    <div class="rounded-2xl overflow-hidden border border-[--color-border]" style="background: var(--color-bg-card);">
+      <div class="flex justify-between px-5 py-3.5 border-b border-[--color-border]">
+        <span class="text-sm text-[--color-text-secondary]">Browser Version</span>
+        <span class="text-sm font-mono font-medium text-[--color-text-primary]">Spacey v{{ systemInfo.version }}</span>
       </div>
-      <div class="info-row">
-        <span class="info-label">Operating System</span>
-        <span class="info-value">{{ systemInfo.os }} ({{ systemInfo.arch }})</span>
+      <div class="flex justify-between px-5 py-3.5 border-b border-[--color-border]">
+        <span class="text-sm text-[--color-text-secondary]">Operating System</span>
+        <span class="text-sm font-mono font-medium text-[--color-text-primary]">{{ systemInfo.os }} ({{ systemInfo.arch }})</span>
       </div>
-      <div class="info-row">
-        <span class="info-label">Shield Level</span>
-        <span class="info-value">{{ systemInfo.shieldLevel }}</span>
+      <div class="flex justify-between px-5 py-3.5 border-b border-[--color-border]">
+        <span class="text-sm text-[--color-text-secondary]">Shield Level</span>
+        <span class="text-sm font-mono font-medium text-[--color-text-primary]">{{ systemInfo.shieldLevel }}</span>
       </div>
-      <div class="info-row">
-        <span class="info-label">Extensions Installed</span>
-        <span class="info-value">{{ systemInfo.extensionCount }}</span>
+      <div class="flex justify-between px-5 py-3.5">
+        <span class="text-sm text-[--color-text-secondary]">Extensions Installed</span>
+        <span class="text-sm font-mono font-medium text-[--color-text-primary]">{{ systemInfo.extensionCount }}</span>
       </div>
     </div>
   </section>
   
   <!-- Bug Report Form -->
-  <section class="section">
-    <h2>Bug Details</h2>
+  <section>
+    <h2 class="text-xl font-semibold mb-4 text-[--color-text-primary]">Bug Details</h2>
     
-    <form [action]="getFormAction()" method="POST" (ngSubmit)="onSubmit()" #bugForm="ngForm">
+    <form [action]="getFormAction()" method="POST" (ngSubmit)="onSubmit()" #bugForm="ngForm" class="space-y-5">
       <!-- FormSubmit Configuration -->
       <input type="hidden" name="_subject" value="[Spacey Bug Report] New Issue Reported">
       <input type="hidden" name="_captcha" value="false">
@@ -47,9 +49,9 @@
       <input type="hidden" name="System Info" [value]="getSystemInfoString()">
       
       <!-- Issue Type -->
-      <div class="form-group">
-        <label class="form-label" for="issueType">
-          Issue Type <span class="required">*</span>
+      <div>
+        <label class="block text-sm font-medium text-[--color-text-secondary] mb-2" for="issueType">
+          Issue Type <span class="text-red-400">*</span>
         </label>
         <select 
           id="issueType" 
@@ -63,9 +65,9 @@
       </div>
       
       <!-- Summary -->
-      <div class="form-group">
-        <label class="form-label" for="summary">
-          Summary <span class="required">*</span>
+      <div>
+        <label class="block text-sm font-medium text-[--color-text-secondary] mb-2" for="summary">
+          Summary <span class="text-red-400">*</span>
         </label>
         <input 
           type="text" 
@@ -78,9 +80,9 @@
       </div>
       
       <!-- URL -->
-      <div class="form-group">
-        <label class="form-label" for="url">
-          URL where issue occurred <span class="optional">(optional)</span>
+      <div>
+        <label class="block text-sm font-medium text-[--color-text-secondary] mb-2" for="url">
+          URL where issue occurred <span class="text-[--color-text-muted] font-normal text-xs">(optional)</span>
         </label>
         <input 
           type="text" 
@@ -92,23 +94,23 @@
       </div>
       
       <!-- Steps to Reproduce -->
-      <div class="form-group">
-        <label class="form-label" for="steps">
-          Steps to Reproduce <span class="required">*</span>
+      <div>
+        <label class="block text-sm font-medium text-[--color-text-secondary] mb-2" for="steps">
+          Steps to Reproduce <span class="text-red-400">*</span>
         </label>
         <textarea 
           id="steps" 
           name="Steps to Reproduce" 
-          class="form-textarea"
+          class="form-textarea min-h-[140px]"
           [(ngModel)]="report.steps"
           placeholder="1. Go to...&#10;2. Click on...&#10;3. Observe..."
           required></textarea>
       </div>
       
       <!-- Expected Behavior -->
-      <div class="form-group">
-        <label class="form-label" for="expected">
-          Expected Behavior <span class="optional">(optional)</span>
+      <div>
+        <label class="block text-sm font-medium text-[--color-text-secondary] mb-2" for="expected">
+          Expected Behavior <span class="text-[--color-text-muted] font-normal text-xs">(optional)</span>
         </label>
         <textarea 
           id="expected" 
@@ -119,9 +121,9 @@
       </div>
       
       <!-- Actual Behavior -->
-      <div class="form-group">
-        <label class="form-label" for="actual">
-          Actual Behavior <span class="required">*</span>
+      <div>
+        <label class="block text-sm font-medium text-[--color-text-secondary] mb-2" for="actual">
+          Actual Behavior <span class="text-red-400">*</span>
         </label>
         <textarea 
           id="actual" 
@@ -133,9 +135,9 @@
       </div>
       
       <!-- Additional Information -->
-      <div class="form-group">
-        <label class="form-label" for="additional">
-          Additional Information <span class="optional">(optional)</span>
+      <div>
+        <label class="block text-sm font-medium text-[--color-text-secondary] mb-2" for="additional">
+          Additional Information <span class="text-[--color-text-muted] font-normal text-xs">(optional)</span>
         </label>
         <textarea 
           id="additional" 
@@ -146,9 +148,9 @@
       </div>
       
       <!-- Email -->
-      <div class="form-group">
-        <label class="form-label" for="email">
-          Your Email <span class="optional">(optional, for follow-up)</span>
+      <div>
+        <label class="block text-sm font-medium text-[--color-text-secondary] mb-2" for="email">
+          Your Email <span class="text-[--color-text-muted] font-normal text-xs">(optional, for follow-up)</span>
         </label>
         <input 
           type="email" 
@@ -160,20 +162,26 @@
       </div>
       
       <!-- Submit -->
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary" [disabled]="!bugForm.valid || submitting">
+      <div class="pt-6 border-t border-[--color-border]">
+        <button type="submit" class="btn btn-primary min-w-[200px]" [disabled]="!bugForm.valid || submitting">
           <span *ngIf="!submitting">📨 Submit Bug Report</span>
-          <span *ngIf="submitting">Submitting...</span>
+          <span *ngIf="submitting" class="flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Submitting...
+          </span>
         </button>
       </div>
     </form>
   </section>
   
   <!-- Tips -->
-  <div class="alert alert-info tip-alert">
-    <span class="alert-icon">💡</span>
-    <span>
-      <strong>Tip:</strong> For faster resolution, include as much detail as possible.
+  <div class="alert alert-info mt-8">
+    <span class="text-xl">💡</span>
+    <span class="text-[--color-text-secondary]">
+      <strong class="text-[--color-text-primary]">Tip:</strong> For faster resolution, include as much detail as possible.
       Screenshots or screen recordings can be shared via links in the Additional Information field.
     </span>
   </div>

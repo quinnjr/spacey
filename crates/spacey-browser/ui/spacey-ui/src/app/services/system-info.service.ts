@@ -23,7 +23,7 @@ declare global {
   providedIn: 'root'
 })
 export class SystemInfoService {
-  
+
   /**
    * Get system information from the browser bridge or return defaults.
    * In a real implementation, this would communicate with the Rust backend.
@@ -33,7 +33,7 @@ export class SystemInfoService {
     if (typeof window !== 'undefined' && window.spaceyBridge) {
       return window.spaceyBridge.getSystemInfo();
     }
-    
+
     // Return default values for development/preview
     return {
       version: '0.1.0',
@@ -44,7 +44,7 @@ export class SystemInfoService {
       blockedDomains: 127,
     };
   }
-  
+
   /**
    * Set the Shield protection level
    */
@@ -55,7 +55,7 @@ export class SystemInfoService {
       console.log('[Dev Mode] Setting shield level:', level);
     }
   }
-  
+
   /**
    * Save settings to the browser backend
    */
@@ -68,7 +68,7 @@ export class SystemInfoService {
       localStorage.setItem('spacey_settings', JSON.stringify(settings));
     }
   }
-  
+
   /**
    * Load settings from storage
    */
@@ -85,10 +85,10 @@ export class SystemInfoService {
     }
     return null;
   }
-  
+
   private detectOS(): string {
     if (typeof navigator === 'undefined') return 'Unknown';
-    
+
     const userAgent = navigator.userAgent.toLowerCase();
     if (userAgent.includes('win')) return 'Windows';
     if (userAgent.includes('mac')) return 'macOS';
@@ -97,16 +97,16 @@ export class SystemInfoService {
     if (userAgent.includes('ios')) return 'iOS';
     return 'Unknown';
   }
-  
+
   private detectArch(): string {
     if (typeof navigator === 'undefined') return 'Unknown';
-    
+
     // Modern browsers expose this via userAgentData
     const nav = navigator as any;
     if (nav.userAgentData?.platform) {
       return nav.userAgentData.platform.includes('64') ? 'x86_64' : 'x86';
     }
-    
+
     // Fallback detection
     const userAgent = navigator.userAgent;
     if (userAgent.includes('x86_64') || userAgent.includes('x64') || userAgent.includes('Win64') || userAgent.includes('WOW64')) {

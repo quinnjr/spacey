@@ -1,86 +1,91 @@
-<div class="container">
+<div class="max-w-4xl mx-auto px-6 py-10">
   <!-- Hero Section -->
-  <header class="hero">
-    <div class="hero-icon">🚀</div>
-    <h1>Welcome to Spacey Browser!</h1>
-    <p class="hero-subtitle">
+  <header class="text-center py-10 pb-12">
+    <div class="text-6xl mb-4 animate-bounce">🚀</div>
+    <h1 class="text-4xl font-bold mb-3 bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+      Welcome to Spacey Browser!
+    </h1>
+    <p class="text-[--color-text-secondary] text-lg max-w-lg mx-auto">
       A modern, privacy-focused web browser powered by a custom JavaScript engine
     </p>
   </header>
   
   <!-- Quick Stats -->
-  <section class="stats-grid" *ngIf="systemInfo">
-    <div class="stat-card">
-      <span class="stat-icon">🛡️</span>
-      <div class="stat-content">
-        <span class="stat-value">{{ systemInfo.shieldLevel }}</span>
-        <span class="stat-label">Shield Level</span>
+  <section class="grid grid-cols-4 gap-4 mb-12" *ngIf="systemInfo">
+    <div class="card flex items-center gap-4 hover:border-cyan-500/50 hover:-translate-y-0.5">
+      <span class="text-3xl">🛡️</span>
+      <div class="flex flex-col">
+        <span class="text-xl font-bold text-[--color-text-primary]">{{ systemInfo.shieldLevel }}</span>
+        <span class="text-xs text-[--color-text-muted]">Shield Level</span>
       </div>
     </div>
-    <div class="stat-card">
-      <span class="stat-icon">🧩</span>
-      <div class="stat-content">
-        <span class="stat-value">{{ systemInfo.extensionCount }}</span>
-        <span class="stat-label">Extensions</span>
+    <div class="card flex items-center gap-4 hover:border-cyan-500/50 hover:-translate-y-0.5">
+      <span class="text-3xl">🧩</span>
+      <div class="flex flex-col">
+        <span class="text-xl font-bold text-[--color-text-primary]">{{ systemInfo.extensionCount }}</span>
+        <span class="text-xs text-[--color-text-muted]">Extensions</span>
       </div>
     </div>
-    <div class="stat-card">
-      <span class="stat-icon">🚫</span>
-      <div class="stat-content">
-        <span class="stat-value">{{ systemInfo.blockedDomains }}</span>
-        <span class="stat-label">Blocked Domains</span>
+    <div class="card flex items-center gap-4 hover:border-cyan-500/50 hover:-translate-y-0.5">
+      <span class="text-3xl">🚫</span>
+      <div class="flex flex-col">
+        <span class="text-xl font-bold text-[--color-text-primary]">{{ systemInfo.blockedDomains }}</span>
+        <span class="text-xs text-[--color-text-muted]">Blocked Domains</span>
       </div>
     </div>
-    <div class="stat-card">
-      <span class="stat-icon">⚡</span>
-      <div class="stat-content">
-        <span class="stat-value">v{{ systemInfo.version }}</span>
-        <span class="stat-label">Version</span>
+    <div class="card flex items-center gap-4 hover:border-cyan-500/50 hover:-translate-y-0.5">
+      <span class="text-3xl">⚡</span>
+      <div class="flex flex-col">
+        <span class="text-xl font-bold text-[--color-text-primary]">v{{ systemInfo.version }}</span>
+        <span class="text-xs text-[--color-text-muted]">Version</span>
       </div>
     </div>
   </section>
   
   <!-- Features Grid -->
-  <section class="section">
-    <h2>✨ Features</h2>
-    <div class="features-grid">
-      <div class="feature-item" *ngFor="let feature of features" [class.wip]="feature.status === 'wip'">
-        <span class="feature-icon">{{ feature.icon }}</span>
-        <span class="feature-text">{{ feature.text }}</span>
+  <section class="mb-12">
+    <h2 class="text-2xl font-semibold mb-5 text-[--color-text-primary]">✨ Features</h2>
+    <div class="grid grid-cols-2 gap-3">
+      <div *ngFor="let feature of features" 
+           class="flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-150 hover:border-[--color-border-hover]"
+           [class.opacity-60]="feature.status === 'wip'"
+           style="background: var(--color-bg-card); border-color: var(--color-border);">
+        <span class="text-lg">{{ feature.icon }}</span>
+        <span class="text-sm text-[--color-text-secondary]">{{ feature.text }}</span>
       </div>
     </div>
   </section>
   
   <!-- Shield Info -->
-  <section class="section" *ngIf="systemInfo">
-    <h2>🛡️ Spacey Shield</h2>
-    <div class="card shield-card">
-      <p class="shield-intro">
-        <strong>Built-in privacy protection is ACTIVE!</strong>
+  <section class="mb-12" *ngIf="systemInfo">
+    <h2 class="text-2xl font-semibold mb-5 text-[--color-text-primary]">🛡️ Spacey Shield</h2>
+    <div class="card border-cyan-500/30" style="background: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(168, 85, 247, 0.05));">
+      <p class="text-green-400 font-semibold mb-4">
+        Built-in privacy protection is ACTIVE!
       </p>
-      <ul class="shield-features">
-        <li>
-          <span class="check">✓</span>
-          Protection Level: <strong>{{ systemInfo.shieldLevel }}</strong>
+      <ul class="space-y-2 mb-4">
+        <li class="flex items-center gap-2.5 text-[--color-text-secondary]">
+          <span class="text-green-400 font-bold">✓</span>
+          Protection Level: <strong class="text-[--color-text-primary]">{{ systemInfo.shieldLevel }}</strong>
         </li>
-        <li>
-          <span class="check">✓</span>
-          Blocking <strong>{{ systemInfo.blockedDomains }}</strong> known ad/tracker domains
+        <li class="flex items-center gap-2.5 text-[--color-text-secondary]">
+          <span class="text-green-400 font-bold">✓</span>
+          Blocking <strong class="text-[--color-text-primary]">{{ systemInfo.blockedDomains }}</strong> known ad/tracker domains
         </li>
-        <li>
-          <span class="check">✓</span>
+        <li class="flex items-center gap-2.5 text-[--color-text-secondary]">
+          <span class="text-green-400 font-bold">✓</span>
           Fingerprint protection enabled
         </li>
-        <li>
-          <span class="check">✓</span>
+        <li class="flex items-center gap-2.5 text-[--color-text-secondary]">
+          <span class="text-green-400 font-bold">✓</span>
           HTTPS upgrade enabled
         </li>
-        <li>
-          <span class="check">✓</span>
+        <li class="flex items-center gap-2.5 text-[--color-text-secondary]">
+          <span class="text-green-400 font-bold">✓</span>
           Tracking parameter stripping enabled
         </li>
       </ul>
-      <p class="shield-note">
+      <p class="text-sm text-[--color-text-muted] p-3 rounded-lg border-l-4 border-purple-500" style="background: var(--color-bg-secondary);">
         Spacey Shield complements extensions like uBlock Origin - they work together!
         Shield handles domain blocking + fingerprinting, uBlock handles cosmetic rules + advanced filters.
       </p>
@@ -88,33 +93,39 @@
   </section>
   
   <!-- AI Assistant -->
-  <section class="section">
-    <h2>🤖 AI Assistant</h2>
-    <div class="card ai-card">
-      <p>Use the AI panel on the right to automate browsing tasks! Try commands like:</p>
-      <div class="ai-commands">
-        <code *ngFor="let cmd of aiCommands">"{{ cmd }}"</code>
+  <section class="mb-12">
+    <h2 class="text-2xl font-semibold mb-5 text-[--color-text-primary]">🤖 AI Assistant</h2>
+    <div class="card">
+      <p class="text-[--color-text-secondary] mb-4">Use the AI panel on the right to automate browsing tasks! Try commands like:</p>
+      <div class="flex flex-wrap gap-2.5">
+        <code *ngFor="let cmd of aiCommands" 
+              class="px-3.5 py-2 rounded-lg border text-cyan-400 font-mono text-sm"
+              style="background: var(--color-bg-secondary); border-color: var(--color-border);">
+          "{{ cmd }}"
+        </code>
       </div>
     </div>
   </section>
   
   <!-- Quick Links -->
-  <section class="section">
-    <h2>🔗 Quick Links</h2>
-    <div class="quick-links-grid">
-      <a [routerLink]="link.route" class="quick-link-card" *ngFor="let link of quickLinks">
-        <span class="quick-link-icon">{{ link.icon }}</span>
-        <div class="quick-link-content">
-          <h3>{{ link.title }}</h3>
-          <p>{{ link.description }}</p>
+  <section class="mb-12">
+    <h2 class="text-2xl font-semibold mb-5 text-[--color-text-primary]">🔗 Quick Links</h2>
+    <div class="grid grid-cols-2 gap-4">
+      <a *ngFor="let link of quickLinks" 
+         [routerLink]="link.route" 
+         class="card flex items-center gap-4 no-underline group hover:border-cyan-500/50 hover:-translate-y-0.5">
+        <span class="text-3xl">{{ link.icon }}</span>
+        <div class="flex-1">
+          <h3 class="text-[--color-text-primary] font-semibold mb-1">{{ link.title }}</h3>
+          <p class="text-sm text-[--color-text-muted] m-0">{{ link.description }}</p>
         </div>
-        <span class="quick-link-arrow">→</span>
+        <span class="text-xl text-[--color-text-muted] transition-transform duration-150 group-hover:translate-x-1 group-hover:text-cyan-400">→</span>
       </a>
     </div>
   </section>
   
   <!-- Footer -->
-  <footer class="welcome-footer">
-    <p>Built with ❤️ by <a href="https://pegasusheavy.dev" target="_blank">Pegasus Heavy Industries</a></p>
+  <footer class="text-center py-8 border-t border-[--color-border] mt-12 text-[--color-text-muted]">
+    <p>Built with ❤️ by <a href="https://pegasusheavy.dev" target="_blank" class="text-cyan-400 hover:text-purple-400">Pegasus Heavy Industries</a></p>
   </footer>
 </div>

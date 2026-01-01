@@ -23,7 +23,7 @@ interface BugReport {
 })
 export class BugreportComponent implements OnInit {
   systemInfo: SystemInfo | null = null;
-  
+
   issueTypes = [
     { value: 'crash', label: '💥 Crash / Freeze' },
     { value: 'rendering', label: '🎨 Rendering Issue' },
@@ -35,7 +35,7 @@ export class BugreportComponent implements OnInit {
     { value: 'ui', label: '🖼️ UI / UX Issue' },
     { value: 'other', label: '📝 Other' }
   ];
-  
+
   report: BugReport = {
     issueType: '',
     summary: '',
@@ -46,24 +46,24 @@ export class BugreportComponent implements OnInit {
     additional: '',
     email: ''
   };
-  
+
   submitting = false;
-  
+
   constructor(private systemInfoService: SystemInfoService) {}
-  
+
   ngOnInit() {
     this.systemInfo = this.systemInfoService.getSystemInfo();
   }
-  
+
   getFormAction(): string {
     return 'https://formsubmit.co/support@pegasusheavy.dev';
   }
-  
+
   getSystemInfoString(): string {
     if (!this.systemInfo) return '';
     return `Spacey v${this.systemInfo.version} | ${this.systemInfo.os} (${this.systemInfo.arch}) | Shield: ${this.systemInfo.shieldLevel} | Extensions: ${this.systemInfo.extensionCount}`;
   }
-  
+
   onSubmit() {
     this.submitting = true;
     // Form will submit via FormSubmit.co

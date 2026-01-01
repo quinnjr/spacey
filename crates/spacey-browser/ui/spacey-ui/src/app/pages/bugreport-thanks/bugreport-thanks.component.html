@@ -1,24 +1,28 @@
-<div class="container thanks-page">
-  <div class="success-animation">
-    <div class="success-icon">✅</div>
+<div class="max-w-xl mx-auto px-6 py-16 text-center">
+  <div class="mb-6">
+    <div class="text-7xl animate-bounce">✅</div>
   </div>
   
-  <h1>Thank You!</h1>
-  <p class="thanks-message">Your bug report has been submitted successfully.</p>
+  <h1 class="text-4xl font-bold mb-2 bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+    Thank You!
+  </h1>
+  <p class="text-lg text-[--color-text-secondary] mb-10">
+    Your bug report has been submitted successfully.
+  </p>
   
-  <div class="card next-steps">
-    <h2>🔮 What happens next?</h2>
-    <p>
+  <div class="card text-left mb-10">
+    <h2 class="text-xl font-semibold mb-4 text-[--color-text-primary]">🔮 What happens next?</h2>
+    <p class="text-[--color-text-secondary] mb-5 leading-relaxed">
       Our team will review your report and investigate the issue. 
       If you provided your email, we'll follow up with any questions or updates.
     </p>
-    <div class="response-time">
-      <span class="label">Typical response time:</span>
-      <span class="value">24-48 hours</span>
+    <div class="flex justify-between items-center px-4 py-3 rounded-lg" style="background: var(--color-bg-secondary);">
+      <span class="text-[--color-text-muted]">Typical response time:</span>
+      <span class="text-cyan-400 font-semibold">24-48 hours</span>
     </div>
   </div>
   
-  <div class="actions">
+  <div class="flex gap-4 justify-center">
     <a routerLink="/welcome" class="btn btn-primary">
       ← Back to Home
     </a>
