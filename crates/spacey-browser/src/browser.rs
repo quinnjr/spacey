@@ -6,7 +6,7 @@ use winit::window::Window;
 use spacey_servo::SpaceyServo;
 
 use crate::ai::{AiAgent, AgentConfig, BrowserTool, PageContext, ToolResult};
-use crate::ai::tools::{ClickTool, TypeTool, NavigateTool, ExtractTool, ScrollTool, WaitTool, ScreenshotTool, ScreenshotRegion, ScreenshotFormat, ScreenshotResult};
+use crate::ai::tools::{ClickTool, TypeTool, NavigateTool, ExtractTool, ScrollTool, WaitTool};
 use crate::ai_ui::{AiUiState, AiPanelAction, ChatRole};
 use crate::extensions::{ExtensionManager, ExtensionError, RequestDetails, ResourceType, RequestAction};
 use crate::extensions_ui::{ExtensionsUiState, ExtensionsAction};
@@ -522,7 +522,7 @@ impl Browser {
 
         (result, nav_url)
     }
-    
+
     /// Create a screenshot result (standalone method)
     fn create_screenshot_result(
         region: &crate::ai::tools::ScreenshotRegion,
@@ -531,12 +531,12 @@ impl Browser {
     ) -> ToolResult {
         use crate::ai::tools::{ScreenshotResult, ScreenshotRegion, ScreenshotFormat};
         use base64::{Engine as _, engine::general_purpose::STANDARD};
-        
+
         let timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs();
-        
+
         // Create a 1x1 transparent PNG as placeholder
         // TODO: Implement actual framebuffer capture using wgpu
         let placeholder_png = [
@@ -550,9 +550,9 @@ impl Browser {
             0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
             0x42, 0x60, 0x82,
         ];
-        
+
         let data = STANDARD.encode(&placeholder_png);
-        
+
         let result = ScreenshotResult {
             data: data.clone(),
             format: format.clone(),
@@ -561,7 +561,7 @@ impl Browser {
             size_bytes: placeholder_png.len(),
             timestamp,
         };
-        
+
         let region_desc = match region {
             ScreenshotRegion::Viewport => "viewport".to_string(),
             ScreenshotRegion::FullPage => "full page".to_string(),
@@ -570,7 +570,7 @@ impl Browser {
                 format!("region {}x{} at ({},{})", width, height, x, y)
             }
         };
-        
+
         ToolResult::success_with_data(
             format!("Captured {} screenshot", region_desc),
             serde_json::json!({

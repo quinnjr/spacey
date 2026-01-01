@@ -20,7 +20,7 @@ pub use scroll::ScrollTool;
 pub use execute_js::ExecuteJsTool;
 pub use wait::WaitTool;
 pub use screenshot::{
-    ScreenshotTool, ScreenshotRegion, ScreenshotFormat, 
+    ScreenshotTool, ScreenshotRegion, ScreenshotFormat,
     ScreenshotResult, ScreenshotCapture
 };
 
@@ -186,7 +186,7 @@ impl BrowserTool {
         serde_json::from_value(json.clone())
             .map_err(|e| format!("Failed to parse tool: {}", e))
     }
-    
+
     /// Create a viewport screenshot tool
     pub fn screenshot_viewport() -> Self {
         BrowserTool::Screenshot {
@@ -195,7 +195,7 @@ impl BrowserTool {
             quality: 80,
         }
     }
-    
+
     /// Create a full page screenshot tool
     pub fn screenshot_full_page() -> Self {
         BrowserTool::Screenshot {
@@ -204,7 +204,7 @@ impl BrowserTool {
             quality: 80,
         }
     }
-    
+
     /// Create an element screenshot tool
     pub fn screenshot_element(selector: impl Into<String>) -> Self {
         BrowserTool::Screenshot {

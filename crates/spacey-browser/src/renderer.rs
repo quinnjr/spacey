@@ -390,26 +390,26 @@ impl Renderer {
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();
     }
-    
+
     /// Get current viewport dimensions
     pub fn viewport_size(&self) -> (u32, u32) {
         (self.surface_config.width, self.surface_config.height)
     }
-    
+
     /// Capture a screenshot of the current frame
-    /// 
+    ///
     /// Returns the raw RGBA pixel data and dimensions
     pub fn capture_screenshot(&self) -> Result<ScreenshotData, String> {
         let width = self.surface_config.width;
         let height = self.surface_config.height;
-        
+
         // Calculate buffer size with proper alignment
         let bytes_per_pixel = 4u32; // RGBA
         let unpadded_bytes_per_row = width * bytes_per_pixel;
         let align = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
         let padded_bytes_per_row = (unpadded_bytes_per_row + align - 1) / align * align;
         let buffer_size = (padded_bytes_per_row * height) as u64;
-        
+
         // Create a texture to render to
         let screenshot_texture = self.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("Screenshot Texture"),
@@ -425,9 +425,9 @@ impl Renderer {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
             view_formats: &[],
         });
-        
+
         let screenshot_view = screenshot_texture.create_view(&wgpu::TextureViewDescriptor::default());
-        
+
         // Create output buffer
         let output_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Screenshot Buffer"),
@@ -435,12 +435,12 @@ impl Renderer {
             usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
             mapped_at_creation: false,
         });
-        
+
         // Create command encoder and render to the texture
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Screenshot Encoder"),
         });
-        
+
         // Render a frame to the screenshot texture
         {
             let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -465,7 +465,7 @@ impl Renderer {
             // Note: The actual content rendering would need to happen here
             // For now, we capture the current surface state
         }
-        
+
         // Copy texture to buffer
         encoder.copy_texture_to_buffer(
             wgpu::ImageCopyTexture {
@@ -488,9 +488,9 @@ impl Renderer {
                 depth_or_array_layers: 1,
             },
         );
-        
+
         self.queue.submit(std::iter::once(encoder.finish()));
-        
+
         // Read the buffer
         let buffer_slice = output_buffer.slice(..);
         let (tx, rx) = std::sync::mpsc::channel();
@@ -498,13 +498,13 @@ impl Renderer {
             tx.send(result).unwrap();
         });
         self.device.poll(wgpu::Maintain::Wait);
-        
+
         rx.recv()
             .map_err(|e| format!("Failed to receive screenshot data: {}", e))?
             .map_err(|e| format!("Failed to map screenshot buffer: {:?}", e))?;
-        
+
         let data = buffer_slice.get_mapped_range();
-        
+
         // Remove padding from rows
         let mut pixels = Vec::with_capacity((width * height * 4) as usize);
         for row in 0..height {
@@ -512,10 +512,10 @@ impl Renderer {
             let end = start + (width * bytes_per_pixel) as usize;
             pixels.extend_from_slice(&data[start..end]);
         }
-        
+
         drop(data);
         output_buffer.unmap();
-        
+
         Ok(ScreenshotData {
             pixels,
             width,
@@ -545,30 +545,30 @@ impl ScreenshotData {
     /// Encode as PNG and return base64 string
     pub fn to_png_base64(&self) -> Result<String, String> {
         use std::io::Write;
-        
+
         let mut png_data = Vec::new();
         {
             let mut encoder = ::png::Encoder::new(&mut png_data, self.width, self.height);
             encoder.set_color(::png::ColorType::Rgba);
             encoder.set_depth(::png::BitDepth::Eight);
-            
+
             let mut writer = encoder.write_header()
                 .map_err(|e| format!("PNG header error: {}", e))?;
-            
+
             writer.write_image_data(&self.pixels)
                 .map_err(|e| format!("PNG write error: {}", e))?;
         }
-        
+
         use base64::{Engine as _, engine::general_purpose};
         Ok(general_purpose::STANDARD.encode(&png_data))
     }
-    
+
     /// Get raw RGBA data as base64 (without PNG encoding)
     pub fn to_raw_base64(&self) -> String {
         use base64::{Engine as _, engine::general_purpose};
         general_purpose::STANDARD.encode(&self.pixels)
     }
-    
+
     /// Get size in bytes
     pub fn size_bytes(&self) -> usize {
         self.pixels.len()
