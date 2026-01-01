@@ -1,0 +1,143 @@
+<div class="ai-chat">
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="flex items-center gap-3">
+      <span class="text-2xl">{{ getProviderIcon() }}</span>
+      <div>
+        <h3 class="font-bold text-[--color-text-bright]" style="font-family: var(--font-display);">
+          AI COPILOT
+        </h3>
+        <p class="text-xs text-[--color-text-faint]">{{ getProviderName() }}</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="status-indicator" [class.active]="!isProcessing" [class.processing]="isProcessing"></span>
+      <span class="text-xs text-[--color-text-dim]">{{ isProcessing ? 'Thinking...' : 'Ready' }}</span>
+    </div>
+  </div>
+  
+  <!-- Messages -->
+  <div #messagesContainer class="messages-container">
+    <!-- Welcome message if empty -->
+    <div *ngIf="messages.length === 0" class="welcome-message">
+      <div class="text-4xl mb-4">🚀</div>
+      <h4 class="font-bold text-[--color-text-bright] mb-2" style="font-family: var(--font-display);">
+        READY FOR LAUNCH
+      </h4>
+      <p class="text-sm text-[--color-text-dim]">
+        Ask me to help you navigate the web, fill out forms, extract data, or automate tasks.
+      </p>
+      <div class="suggestions">
+        <button class="suggestion" (click)="userMessage = 'Search for Rust tutorials'; onSend()">
+          Search for Rust tutorials
+        </button>
+        <button class="suggestion" (click)="userMessage = 'Extract all links from this page'; onSend()">
+          Extract all links from this page
+        </button>
+        <button class="suggestion" (click)="userMessage = 'Navigate to github.com'; onSend()">
+          Navigate to github.com
+        </button>
+      </div>
+    </div>
+    
+    <!-- Message list -->
+    <div *ngFor="let message of messages" class="message" [class.user]="message.role === 'user'" [class.assistant]="message.role === 'assistant'" [class.system]="message.role === 'system'">
+      
+      <!-- User message -->
+      <div *ngIf="message.role === 'user'" class="message-bubble user-bubble">
+        <div class="message-content">{{ message.content }}</div>
+        <div class="message-time">{{ message.timestamp | date:'HH:mm' }}</div>
+      </div>
+      
+      <!-- Assistant message -->
+      <div *ngIf="message.role === 'assistant'" class="message-bubble assistant-bubble">
+        <!-- Thinking block -->
+        <div *ngIf="shouldShowThinking(message)" class="thinking-block" [class.expanded]="isThinkingExpanded(message.id)" [class.streaming]="message.isStreaming && config.thinkingStyle === 'streaming'">
+          
+          <!-- Collapsed header -->
+          <button *ngIf="config.thinkingStyle === 'collapsed'" class="thinking-header" (click)="toggleThinking(message.id)">
+            <span class="thinking-icon">💭</span>
+            <span class="thinking-label">
+              <span *ngIf="message.thinkingComplete">Thought for {{ formatThinkingTime(message.thinking!) }}</span>
+              <span *ngIf="!message.thinkingComplete">Thinking...</span>
+            </span>
+            <span class="expand-icon">{{ isThinkingExpanded(message.id) ? '▼' : '▶' }}</span>
+          </button>
+          
+          <!-- Expanded/Streaming header -->
+          <div *ngIf="config.thinkingStyle !== 'collapsed'" class="thinking-header-static">
+            <span class="thinking-icon">💭</span>
+            <span class="thinking-label">
+              <span *ngIf="config.thinkingStyle === 'streaming' && !message.thinkingComplete" class="streaming-indicator">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              </span>
+              {{ message.thinkingComplete ? 'Reasoning' : 'Thinking...' }}
+            </span>
+          </div>
+          
+          <!-- Thinking content -->
+          <div class="thinking-content" *ngIf="isThinkingExpanded(message.id)" [class.streaming-text]="message.isStreaming && config.thinkingStyle === 'streaming'">
+            <pre>{{ message.thinking }}</pre>
+          </div>
+        </div>
+        
+        <!-- Tool usage indicator -->
+        <div *ngIf="message.toolUsed" class="tool-indicator">
+          <span class="tool-icon">🔧</span>
+          <span class="tool-name">{{ message.toolUsed }}</span>
+          <span *ngIf="message.toolResult" class="tool-result">→ {{ message.toolResult }}</span>
+        </div>
+        
+        <!-- Main response content -->
+        <div class="message-content" [class.streaming]="message.isStreaming && !message.thinking">
+          {{ message.content }}
+          <span *ngIf="message.isStreaming && !message.thinking" class="cursor-blink">▌</span>
+        </div>
+        
+        <div class="message-time">{{ message.timestamp | date:'HH:mm' }}</div>
+      </div>
+      
+      <!-- System message -->
+      <div *ngIf="message.role === 'system'" class="message-bubble system-bubble">
+        <div class="message-content">{{ message.content }}</div>
+      </div>
+    </div>
+    
+    <!-- Processing indicator -->
+    <div *ngIf="isProcessing" class="processing-indicator">
+      <div class="processing-dots">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+      <span class="processing-text">{{ getProviderName() }} is thinking...</span>
+      <button class="cancel-btn" (click)="onCancel()">Cancel</button>
+    </div>
+  </div>
+  
+  <!-- Input -->
+  <div class="input-container">
+    <div class="input-wrapper">
+      <textarea 
+        #messageInput
+        class="message-input"
+        [(ngModel)]="userMessage"
+        (keydown)="onKeyDown($event)"
+        placeholder="Ask the AI to help you..."
+        [disabled]="isProcessing"
+        rows="1"></textarea>
+      <button 
+        class="send-btn"
+        (click)="onSend()"
+        [disabled]="!userMessage.trim() || isProcessing">
+        <span *ngIf="!isProcessing">🚀</span>
+        <span *ngIf="isProcessing">⏳</span>
+      </button>
+    </div>
+    <div class="input-hint">
+      <span class="text-xs text-[--color-text-faint]">
+        Press Enter to send • Shift+Enter for new line
+      </span>
+    </div>
+  </div>
+</div>

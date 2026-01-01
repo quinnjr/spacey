@@ -8,21 +8,21 @@
       <div class="absolute inset-0 -m-8 border border-purple-500/20 rounded-full animate-spin-slow"></div>
       <div class="absolute inset-0 -m-16 border border-cyan-500/10 rounded-full animate-spin-slow" style="animation-duration: 30s; animation-direction: reverse;"></div>
     </div>
-    
+
     <h1 class="text-5xl font-black mb-4 tracking-wider" style="font-family: var(--font-display);">
       <span class="cosmic-text">WELCOME ABOARD</span>
     </h1>
     <p class="text-xl text-[--color-text-dim] max-w-2xl mx-auto" style="font-family: var(--font-body);">
       Your mission begins here. A privacy-focused web browser powered by a custom JavaScript engine.
     </p>
-    
+
     <!-- Status Indicator -->
     <div class="mt-8 inline-flex items-center gap-3 px-6 py-3 rounded-full border border-[--color-aurora-green]/30 bg-[--color-aurora-green]/10">
       <span class="w-2 h-2 bg-[--color-aurora-green] rounded-full animate-pulse"></span>
       <span class="text-[--color-aurora-green] text-sm tracking-wider" style="font-family: var(--font-display);">ALL SYSTEMS OPERATIONAL</span>
     </div>
   </header>
-  
+
   <!-- Mission Stats -->
   <section class="grid grid-cols-4 gap-4 mb-16" *ngIf="systemInfo">
     <div class="card group hover:animate-pulse-glow">
@@ -62,7 +62,7 @@
       </div>
     </div>
   </section>
-  
+
   <!-- Systems Online -->
   <section class="mb-16">
     <h2 class="text-2xl font-bold mb-6 tracking-wider flex items-center gap-3" style="font-family: var(--font-display);">
@@ -70,7 +70,7 @@
       <span class="cosmic-text">SYSTEMS ONLINE</span>
     </h2>
     <div class="grid grid-cols-2 gap-3">
-      <div *ngFor="let feature of features" 
+      <div *ngFor="let feature of features"
            class="flex items-center gap-4 px-5 py-4 rounded-xl border transition-all duration-300 group"
            [ngClass]="{'opacity-50': feature.status === 'wip', 'border-green-500/30': feature.status === 'complete', 'border-yellow-500/30': feature.status === 'wip'}"
            style="background: linear-gradient(135deg, rgba(10, 5, 32, 0.6), rgba(18, 10, 46, 0.4));">
@@ -81,7 +81,7 @@
       </div>
     </div>
   </section>
-  
+
   <!-- Defense Matrix -->
   <section class="mb-16" *ngIf="systemInfo">
     <h2 class="text-2xl font-bold mb-6 tracking-wider flex items-center gap-3" style="font-family: var(--font-display);">
@@ -126,7 +126,7 @@
       </div>
     </div>
   </section>
-  
+
   <!-- AI Copilot -->
   <section class="mb-16">
     <h2 class="text-2xl font-bold mb-6 tracking-wider flex items-center gap-3" style="font-family: var(--font-display);">
@@ -139,7 +139,7 @@
         <div class="flex-1">
           <p class="text-[--color-text-dim] mb-4">Engage the AI panel to automate your mission. Voice commands:</p>
           <div class="flex flex-wrap gap-3">
-            <code *ngFor="let cmd of aiCommands" 
+            <code *ngFor="let cmd of aiCommands"
                   class="px-4 py-2 rounded-lg border border-[--color-nebula-cyan]/30 text-[--color-nebula-cyan] text-sm"
                   style="font-family: var(--font-mono); background: rgba(34, 211, 238, 0.1);">
               "{{ cmd }}"
@@ -149,7 +149,7 @@
       </div>
     </div>
   </section>
-  
+
   <!-- Quick Navigation -->
   <section class="mb-16">
     <h2 class="text-2xl font-bold mb-6 tracking-wider flex items-center gap-3" style="font-family: var(--font-display);">
@@ -157,8 +157,8 @@
       <span class="cosmic-text">NAVIGATION</span>
     </h2>
     <div class="grid grid-cols-2 gap-4">
-      <a *ngFor="let link of quickLinks" 
-         [routerLink]="link.route" 
+      <a *ngFor="let link of quickLinks"
+         [routerLink]="link.route"
          class="card flex items-center gap-5 no-underline group hover:border-[--color-nebula-cyan]">
         <div class="text-4xl group-hover:animate-float">{{ link.icon }}</div>
         <div class="flex-1">
@@ -169,11 +169,11 @@
       </a>
     </div>
   </section>
-  
+
   <!-- Footer -->
   <footer class="text-center py-12 border-t border-[--color-border-space]">
     <div class="text-[--color-text-faint] text-sm tracking-wider" style="font-family: var(--font-display);">
-      CRAFTED WITH 💜 BY 
+      CRAFTED WITH 💜 BY
       <a href="https://pegasusheavy.dev" target="_blank" class="text-[--color-nebula-cyan] hover:glow-text">PEGASUS HEAVY INDUSTRIES</a>
     </div>
     <div class="mt-2 text-[--color-text-faint] text-xs tracking-widest">

@@ -2,7 +2,7 @@
   <!-- Sidebar Navigation -->
   <aside class="w-64 border-r border-[--color-border-space] flex flex-col fixed top-0 left-0 h-screen z-50 backdrop-blur-xl"
          style="background: linear-gradient(180deg, rgba(10, 5, 32, 0.95) 0%, rgba(3, 0, 20, 0.98) 100%);">
-    
+
     <!-- Logo -->
     <div class="p-6 border-b border-[--color-border-space]">
       <div class="flex items-center gap-3">
@@ -16,29 +16,29 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Navigation -->
     <nav class="flex-1 p-4 flex flex-col gap-2">
-      <a routerLink="/welcome" routerLinkActive="nav-active" 
+      <a routerLink="/welcome" routerLinkActive="nav-active"
          class="nav-item group flex items-center gap-4 px-4 py-3 rounded-xl text-[--color-text-dim] no-underline transition-all duration-300 hover:text-[--color-text-bright] hover:bg-purple-500/10"
          style="font-family: var(--font-display);">
         <span class="text-xl group-hover:animate-pulse">🏠</span>
         <span class="text-sm tracking-wide">COMMAND</span>
       </a>
-      <a routerLink="/settings" routerLinkActive="nav-active" 
+      <a routerLink="/settings" routerLinkActive="nav-active"
          class="nav-item group flex items-center gap-4 px-4 py-3 rounded-xl text-[--color-text-dim] no-underline transition-all duration-300 hover:text-[--color-text-bright] hover:bg-purple-500/10"
          style="font-family: var(--font-display);">
         <span class="text-xl group-hover:animate-spin-slow">⚙️</span>
         <span class="text-sm tracking-wide">SYSTEMS</span>
       </a>
-      <a routerLink="/bugreport" routerLinkActive="nav-active" 
+      <a routerLink="/bugreport" routerLinkActive="nav-active"
          class="nav-item group flex items-center gap-4 px-4 py-3 rounded-xl text-[--color-text-dim] no-underline transition-all duration-300 hover:text-[--color-text-bright] hover:bg-purple-500/10"
          style="font-family: var(--font-display);">
         <span class="text-xl">🛸</span>
         <span class="text-sm tracking-wide">TRANSMIT</span>
       </a>
     </nav>
-    
+
     <!-- Footer -->
     <div class="p-4 border-t border-[--color-border-space]">
       <div class="flex justify-between items-center text-xs" style="font-family: var(--font-mono);">
@@ -50,7 +50,7 @@
       </div>
     </div>
   </aside>
-  
+
   <!-- Main Content -->
   <main class="flex-1 ml-64 min-h-screen constellation-bg">
     <router-outlet></router-outlet>

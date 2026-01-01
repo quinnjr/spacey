@@ -4807,6 +4807,7 @@ dependencies = [
  "spacey-servo",
  "spacey-spidermonkey",
  "tempfile",
+ "thiserror 1.0.69",
  "tokenizers",
  "tokio",
  "url",

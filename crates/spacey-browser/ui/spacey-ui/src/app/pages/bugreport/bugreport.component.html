@@ -5,7 +5,7 @@
       <div class="text-7xl animate-float">🛸</div>
       <div class="absolute inset-0 -m-4 border border-purple-500/20 rounded-full animate-spin-slow"></div>
     </div>
-    
+
     <h1 class="text-4xl font-black mb-4 tracking-wider" style="font-family: var(--font-display);">
       <span class="cosmic-text">TRANSMIT REPORT</span>
     </h1>
@@ -13,7 +13,7 @@
       Encountered an anomaly? Send us a subspace message.
     </p>
   </header>
-  
+
   <!-- Transmission Info -->
   <div class="alert alert-info mb-8">
     <span class="text-2xl">📡</span>
@@ -22,7 +22,7 @@
       <div class="text-[--color-nebula-cyan] tracking-wider" style="font-family: var(--font-mono);">support&#64;pegasusheavy.dev</div>
     </div>
   </div>
-  
+
   <!-- System Telemetry -->
   <section class="mb-10" *ngIf="systemInfo">
     <h2 class="text-lg font-bold mb-4 tracking-wider flex items-center gap-2" style="font-family: var(--font-display);">
@@ -50,14 +50,14 @@
       </div>
     </div>
   </section>
-  
+
   <!-- Report Form -->
   <section>
     <h2 class="text-lg font-bold mb-6 tracking-wider flex items-center gap-2" style="font-family: var(--font-display);">
       <span class="text-[--color-nebula-cyan]">◈</span>
       <span class="text-[--color-text-bright]">ANOMALY DETAILS</span>
     </h2>
-    
+
     <form [action]="getFormAction()" method="POST" (ngSubmit)="onSubmit()" #bugForm="ngForm" class="space-y-6">
       <!-- FormSubmit Configuration -->
       <input type="hidden" name="_subject" value="[Spacey Bug Report] Incoming Transmission">
@@ -65,15 +65,15 @@
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_next" [value]="'/bugreport-thanks'">
       <input type="hidden" name="System Telemetry" [value]="getSystemInfoString()">
-      
+
       <!-- Anomaly Type -->
       <div>
         <label class="block text-sm font-semibold text-[--color-text-dim] mb-2 tracking-wider" style="font-family: var(--font-display);" for="issueType">
           ANOMALY TYPE <span class="text-[--color-nebula-pink]">*</span>
         </label>
-        <select 
-          id="issueType" 
-          name="Issue Type" 
+        <select
+          id="issueType"
+          name="Issue Type"
           class="form-select"
           [(ngModel)]="report.issueType"
           required>
@@ -81,104 +81,104 @@
           <option *ngFor="let type of issueTypes" [value]="type.value">{{ type.label }}</option>
         </select>
       </div>
-      
+
       <!-- Subject -->
       <div>
         <label class="block text-sm font-semibold text-[--color-text-dim] mb-2 tracking-wider" style="font-family: var(--font-display);" for="summary">
           SUBJECT <span class="text-[--color-nebula-pink]">*</span>
         </label>
-        <input 
-          type="text" 
-          id="summary" 
-          name="Summary" 
+        <input
+          type="text"
+          id="summary"
+          name="Summary"
           class="form-input"
           [(ngModel)]="report.summary"
           placeholder="Brief description of the anomaly"
           required>
       </div>
-      
+
       <!-- Coordinates -->
       <div>
         <label class="block text-sm font-semibold text-[--color-text-dim] mb-2 tracking-wider" style="font-family: var(--font-display);" for="url">
           COORDINATES <span class="text-[--color-text-faint] font-normal text-xs">(URL where encountered)</span>
         </label>
-        <input 
-          type="text" 
-          id="url" 
-          name="URL" 
+        <input
+          type="text"
+          id="url"
+          name="URL"
           class="form-input"
           [(ngModel)]="report.url"
           placeholder="https://...">
       </div>
-      
+
       <!-- Recreation Protocol -->
       <div>
         <label class="block text-sm font-semibold text-[--color-text-dim] mb-2 tracking-wider" style="font-family: var(--font-display);" for="steps">
           RECREATION PROTOCOL <span class="text-[--color-nebula-pink]">*</span>
         </label>
-        <textarea 
-          id="steps" 
-          name="Steps to Reproduce" 
+        <textarea
+          id="steps"
+          name="Steps to Reproduce"
           class="form-textarea min-h-[160px]"
           [(ngModel)]="report.steps"
           placeholder="1. Navigate to...&#10;2. Initiate action...&#10;3. Observe anomaly..."
           required></textarea>
       </div>
-      
+
       <!-- Expected Outcome -->
       <div>
         <label class="block text-sm font-semibold text-[--color-text-dim] mb-2 tracking-wider" style="font-family: var(--font-display);" for="expected">
           EXPECTED OUTCOME <span class="text-[--color-text-faint] font-normal text-xs">(optional)</span>
         </label>
-        <textarea 
-          id="expected" 
-          name="Expected Behavior" 
+        <textarea
+          id="expected"
+          name="Expected Behavior"
           class="form-textarea"
           [(ngModel)]="report.expected"
           placeholder="What should have occurred..."></textarea>
       </div>
-      
+
       <!-- Actual Outcome -->
       <div>
         <label class="block text-sm font-semibold text-[--color-text-dim] mb-2 tracking-wider" style="font-family: var(--font-display);" for="actual">
           ACTUAL OUTCOME <span class="text-[--color-nebula-pink]">*</span>
         </label>
-        <textarea 
-          id="actual" 
-          name="Actual Behavior" 
+        <textarea
+          id="actual"
+          name="Actual Behavior"
           class="form-textarea"
           [(ngModel)]="report.actual"
           placeholder="What actually occurred..."
           required></textarea>
       </div>
-      
+
       <!-- Supplemental Data -->
       <div>
         <label class="block text-sm font-semibold text-[--color-text-dim] mb-2 tracking-wider" style="font-family: var(--font-display);" for="additional">
           SUPPLEMENTAL DATA <span class="text-[--color-text-faint] font-normal text-xs">(optional)</span>
         </label>
-        <textarea 
-          id="additional" 
-          name="Additional Info" 
+        <textarea
+          id="additional"
+          name="Additional Info"
           class="form-textarea"
           [(ngModel)]="report.additional"
           placeholder="Error logs, screenshot links, or any additional observations..."></textarea>
       </div>
-      
+
       <!-- Return Frequency -->
       <div>
         <label class="block text-sm font-semibold text-[--color-text-dim] mb-2 tracking-wider" style="font-family: var(--font-display);" for="email">
           RETURN FREQUENCY <span class="text-[--color-text-faint] font-normal text-xs">(your email for follow-up)</span>
         </label>
-        <input 
-          type="email" 
-          id="email" 
-          name="Reporter Email" 
+        <input
+          type="email"
+          id="email"
+          name="Reporter Email"
           class="form-input"
           [(ngModel)]="report.email"
           placeholder="pilot@example.com">
       </div>
-      
+
       <!-- Submit -->
       <div class="pt-8 border-t border-[--color-border-space]">
         <button type="submit" class="btn btn-primary w-full py-4 text-base" [disabled]="!bugForm.valid || submitting">
@@ -197,7 +197,7 @@
       </div>
     </form>
   </section>
-  
+
   <!-- Tip -->
   <div class="alert alert-info mt-10">
     <span class="text-2xl">💡</span>

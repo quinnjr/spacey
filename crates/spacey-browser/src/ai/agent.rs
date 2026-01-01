@@ -11,6 +11,23 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use parking_lot::RwLock;
 
+/// Thinking mode display style
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ThinkingStyle {
+    /// Show thoughts collapsed by default
+    Collapsed,
+    /// Show thoughts expanded by default
+    Expanded,
+    /// Stream thoughts in real-time
+    Streaming,
+}
+
+impl Default for ThinkingStyle {
+    fn default() -> Self {
+        Self::Collapsed
+    }
+}
+
 /// Configuration for the AI agent
 #[derive(Debug, Clone)]
 pub struct AgentConfig {
@@ -22,6 +39,10 @@ pub struct AgentConfig {
     pub max_total_iterations: usize,
     /// Whether to automatically download the model
     pub auto_download_model: bool,
+    /// Whether to show thinking mode output
+    pub show_thinking: bool,
+    /// How to display thinking output
+    pub thinking_style: ThinkingStyle,
 }
 
 impl Default for AgentConfig {
@@ -31,6 +52,8 @@ impl Default for AgentConfig {
             max_iterations_per_step: 5,
             max_total_iterations: 50,
             auto_download_model: true,
+            show_thinking: true,
+            thinking_style: ThinkingStyle::Collapsed,
         }
     }
 }
@@ -75,12 +98,78 @@ impl TaskResult {
 pub struct ActionRecord {
     /// Timestamp of the action
     pub timestamp: u64,
-    /// The thought process
+    /// The thought process (visible to user)
     pub thought: String,
+    /// Internal reasoning (thinking mode - more detailed)
+    pub thinking: Option<ThinkingBlock>,
     /// The action taken
     pub action: Option<BrowserTool>,
     /// Result of the action
     pub result: ToolResult,
+}
+
+/// Represents a thinking block with extended reasoning
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThinkingBlock {
+    /// The full reasoning process
+    pub content: String,
+    /// Whether thinking is complete
+    pub complete: bool,
+    /// Duration of thinking in milliseconds
+    pub duration_ms: Option<u64>,
+    /// Summary of the thinking (first line or abbreviated)
+    pub summary: String,
+}
+
+impl ThinkingBlock {
+    /// Create a new thinking block
+    pub fn new(content: impl Into<String>) -> Self {
+        let content = content.into();
+        let summary = content.lines().next().unwrap_or(&content).chars().take(80).collect();
+        Self {
+            content,
+            complete: true,
+            duration_ms: None,
+            summary,
+        }
+    }
+    
+    /// Create a streaming thinking block (not yet complete)
+    pub fn streaming(content: impl Into<String>) -> Self {
+        let content = content.into();
+        let summary = content.lines().next().unwrap_or(&content).chars().take(80).collect();
+        Self {
+            content,
+            complete: false,
+            duration_ms: None,
+            summary,
+        }
+    }
+    
+    /// Mark as complete with duration
+    pub fn mark_complete(&mut self, duration_ms: u64) {
+        self.complete = true;
+        self.duration_ms = Some(duration_ms);
+    }
+}
+
+/// Events emitted during agent execution for UI updates
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum AgentEvent {
+    /// Agent started thinking
+    ThinkingStarted,
+    /// Streaming thinking content
+    ThinkingProgress(String),
+    /// Thinking completed
+    ThinkingComplete(ThinkingBlock),
+    /// Action about to be executed
+    ActionStarted(BrowserTool),
+    /// Action completed
+    ActionComplete(ToolResult),
+    /// Task completed
+    TaskComplete(TaskResult),
+    /// Error occurred
+    Error(String),
 }
 
 /// The AI Agent - coordinates all components
@@ -112,6 +201,10 @@ pub struct AgentState {
     pub is_running: bool,
     /// Last error encountered
     pub last_error: Option<String>,
+    /// Current thinking content (for streaming)
+    pub current_thinking: Option<String>,
+    /// Whether we're currently in thinking phase
+    pub is_thinking: bool,
 }
 
 /// Response from the model
@@ -205,6 +298,8 @@ impl AiAgent {
             total_iterations: 0,
             is_running: true,
             last_error: None,
+            current_thinking: None,
+            is_thinking: false,
         };
 
         let mut actions = Vec::new();
@@ -276,16 +371,39 @@ impl AiAgent {
             step_iterations += 1;
             self.state.total_iterations += 1;
 
-            // Get the model's response
-            let response = self.think(&step.description)?;
+            // Mark as thinking
+            self.state.is_thinking = true;
+            self.state.current_thinking = Some(String::new());
+            
+            // Track thinking time
+            let thinking_start = std::time::Instant::now();
 
-            // Record the action
+            // Get the model's response (with internal reasoning)
+            let (response, raw_thinking) = self.think_with_reasoning(&step.description)?;
+            
+            let thinking_duration = thinking_start.elapsed().as_millis() as u64;
+            
+            // Create thinking block if enabled
+            let thinking_block = if self.config.show_thinking && !raw_thinking.is_empty() {
+                let mut block = ThinkingBlock::new(&raw_thinking);
+                block.mark_complete(thinking_duration);
+                Some(block)
+            } else {
+                None
+            };
+            
+            // Clear thinking state
+            self.state.is_thinking = false;
+            self.state.current_thinking = None;
+
+            // Record the action with thinking
             let record = ActionRecord {
                 timestamp: std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
                     .unwrap_or_default()
                     .as_secs(),
                 thought: response.thought.clone(),
+                thinking: thinking_block,
                 action: None,
                 result: ToolResult::success("Thinking..."),
             };
@@ -328,6 +446,71 @@ impl AiAgent {
                 }
             }
         }
+    }
+    
+    /// Think with full reasoning output
+    fn think_with_reasoning(&mut self, step_description: &str) -> Result<(ModelResponse, String), String> {
+        let model = self.model.as_mut().ok_or("Model not loaded")?;
+
+        // Build the prompt with current context
+        let mut prompt = self.memory.build_prompt();
+        prompt.push_str(&format!(
+            "\nCurrent step: {}\n\n",
+            step_description
+        ));
+        
+        // Add thinking instructions for local model
+        prompt.push_str("Think step by step about how to accomplish this. ");
+        prompt.push_str("Show your reasoning, then provide your response as JSON.\n\n");
+        prompt.push_str("<thinking>\n");
+
+        // Generate response with thinking
+        let response_text = model
+            .generate(&prompt, 800) // More tokens for thinking
+            .map_err(|e| format!("Generation failed: {}", e))?;
+
+        // Extract thinking and JSON separately
+        let (thinking, json_part) = self.extract_thinking_and_response(&response_text);
+        
+        // Parse the JSON response
+        let model_response = self.parse_model_response(&json_part)?;
+        
+        Ok((model_response, thinking))
+    }
+    
+    /// Extract thinking block and JSON response from model output
+    fn extract_thinking_and_response(&self, response: &str) -> (String, String) {
+        // Look for thinking block markers
+        let thinking_end_markers = ["</thinking>", "</think>", "```json", "{"];
+        
+        let mut thinking = String::new();
+        let mut json_part = response.to_string();
+        
+        // Check for explicit thinking block
+        if let Some(think_start) = response.find("<thinking>") {
+            let content_start = think_start + "<thinking>".len();
+            
+            for marker in &thinking_end_markers {
+                if let Some(end) = response[content_start..].find(marker) {
+                    thinking = response[content_start..content_start + end].trim().to_string();
+                    json_part = response[content_start + end..].to_string();
+                    break;
+                }
+            }
+        } else if let Some(json_start) = response.find('{') {
+            // No explicit thinking block, but there might be text before JSON
+            thinking = response[..json_start].trim().to_string();
+            json_part = response[json_start..].to_string();
+        }
+        
+        // Clean up thinking (remove common artifacts)
+        thinking = thinking
+            .replace("</thinking>", "")
+            .replace("</think>", "")
+            .trim()
+            .to_string();
+        
+        (thinking, json_part)
     }
 
     /// Think about what to do next

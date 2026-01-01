@@ -8,7 +8,7 @@
     <nav class="flex flex-col gap-2">
       <button 
         *ngFor="let section of sections"
-        [ngClass]="{'bg-gradient-to-r from-purple-500/20 to-cyan-500/10 border-[--color-border-glow] shadow-lg shadow-purple-500/10': activeSection === section.id, 'border-transparent': activeSection !== section.id}"
+        [ngClass]="{'bg-gradient-to-r from-purple-500/20 to-cyan-500/10 border-cyan-500/50 shadow-lg shadow-purple-500/10': activeSection === section.id, 'border-transparent': activeSection !== section.id}"
         (click)="setActiveSection(section.id)"
         class="flex items-center gap-4 px-4 py-3 border rounded-xl text-[--color-text-dim] text-sm font-medium cursor-pointer transition-all duration-300 text-left w-full bg-transparent hover:bg-purple-500/10 hover:text-[--color-text-bright]"
         style="font-family: var(--font-display);">
@@ -27,7 +27,7 @@
           <span class="text-4xl">🛡️</span>
           <span class="cosmic-text">DEFENSE MATRIX</span>
         </h1>
-        <p class="text-[--color-text-dim]">Configure your vessel's protective shields and countermeasures.</p>
+        <p class="text-[--color-text-dim]">Configure your vessel's protective shields.</p>
       </header>
       
       <!-- Protection Level -->
@@ -38,7 +38,7 @@
         <div class="grid grid-cols-3 gap-4">
           <button 
             class="flex flex-col items-center p-6 rounded-xl border-2 cursor-pointer transition-all duration-300"
-            [ngClass]="{'border-[--color-nebula-cyan] bg-cyan-500/10 shadow-lg shadow-cyan-500/20': shieldLevel === 'off', 'border-[--color-border-space] bg-transparent': shieldLevel !== 'off'}"
+            [ngClass]="{'border-cyan-500 bg-cyan-500/10 shadow-lg shadow-cyan-500/20': shieldLevel === 'off', 'border-[--color-border-space] bg-transparent': shieldLevel !== 'off'}"
             (click)="setShieldLevel('off')">
             <span class="text-4xl mb-3">⚪</span>
             <span class="font-bold text-[--color-text-bright] tracking-wide" style="font-family: var(--font-display);">MINIMAL</span>
@@ -46,7 +46,7 @@
           </button>
           <button 
             class="flex flex-col items-center p-6 rounded-xl border-2 cursor-pointer transition-all duration-300"
-            [ngClass]="{'border-[--color-aurora-green] bg-green-500/10 shadow-lg shadow-green-500/20': shieldLevel === 'standard', 'border-[--color-border-space] bg-transparent': shieldLevel !== 'standard'}"
+            [ngClass]="{'border-green-500 bg-green-500/10 shadow-lg shadow-green-500/20': shieldLevel === 'standard', 'border-[--color-border-space] bg-transparent': shieldLevel !== 'standard'}"
             (click)="setShieldLevel('standard')">
             <span class="text-4xl mb-3">🟢</span>
             <span class="font-bold text-[--color-text-bright] tracking-wide" style="font-family: var(--font-display);">STANDARD</span>
@@ -54,11 +54,11 @@
           </button>
           <button 
             class="flex flex-col items-center p-6 rounded-xl border-2 cursor-pointer transition-all duration-300"
-            [ngClass]="{'border-[--color-nebula-pink] bg-pink-500/10 shadow-lg shadow-pink-500/20': shieldLevel === 'strict', 'border-[--color-border-space] bg-transparent': shieldLevel !== 'strict'}"
+            [ngClass]="{'border-pink-500 bg-pink-500/10 shadow-lg shadow-pink-500/20': shieldLevel === 'strict', 'border-[--color-border-space] bg-transparent': shieldLevel !== 'strict'}"
             (click)="setShieldLevel('strict')">
             <span class="text-4xl mb-3">🔴</span>
             <span class="font-bold text-[--color-text-bright] tracking-wide" style="font-family: var(--font-display);">MAXIMUM</span>
-            <span class="text-xs text-[--color-text-faint] text-center mt-2">May affect some sites</span>
+            <span class="text-xs text-[--color-text-faint] text-center mt-2">May affect sites</span>
           </button>
         </div>
       </div>
@@ -66,7 +66,6 @@
       <!-- Shield Subsystems -->
       <div class="card">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">SUBSYSTEMS</h3>
-        
         <div class="space-y-1">
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
@@ -78,7 +77,6 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-          
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
               <span class="font-medium text-[--color-text-bright]">Tracker Jamming</span>
@@ -89,18 +87,6 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-          
-          <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
-            <div>
-              <span class="font-medium text-[--color-text-bright]">Mining Defense</span>
-              <p class="text-sm text-[--color-text-faint]">Prevent cryptojacking</p>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" [(ngModel)]="shieldOptions.blockCryptominers" (change)="onToggle('blockCryptominers', 'shield')">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
               <span class="font-medium text-[--color-text-bright]">Identity Cloak</span>
@@ -111,7 +97,6 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-          
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
               <span class="font-medium text-[--color-text-bright]">Secure Channel</span>
@@ -122,21 +107,10 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-          
-          <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
-            <div>
-              <span class="font-medium text-[--color-text-bright]">Signal Scrubber</span>
-              <p class="text-sm text-[--color-text-faint]">Remove tracking parameters</p>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" [(ngModel)]="shieldOptions.stripTracking" (change)="onToggle('stripTracking', 'shield')">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
         </div>
       </div>
     </section>
-    
+
     <!-- AI Settings -->
     <section *ngIf="activeSection === 'ai'" class="animate-fadeIn">
       <header class="mb-10">
@@ -144,12 +118,134 @@
           <span class="text-4xl">🤖</span>
           <span class="cosmic-text">AI COPILOT</span>
         </h1>
-        <p class="text-[--color-text-dim]">Configure your embedded Phi-3 navigation assistant.</p>
+        <p class="text-[--color-text-dim]">Configure your AI assistant. Use the local model or bring your own API key.</p>
       </header>
       
+      <!-- AI Provider Selection (BYOK) -->
+      <div class="card mb-8">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-base font-bold tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">
+            NEURAL INTERFACE
+          </h3>
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full" 
+                  [ngClass]="{'bg-green-400': aiProvider === 'local' || aiKeyTestStatus === 'valid', 'bg-red-400': aiKeyTestStatus === 'invalid', 'bg-yellow-400': aiKeyTestStatus === 'idle' || aiKeyTestStatus === 'testing'}"></span>
+            <span class="text-xs tracking-wider" [ngClass]="getProviderStatusClass()" style="font-family: var(--font-display);">
+              {{ getProviderStatusText() }}
+            </span>
+          </div>
+        </div>
+        
+        <!-- Provider Cards -->
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <button *ngFor="let provider of providers"
+            class="flex flex-col items-center p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 text-center"
+            [ngClass]="{
+              'border-cyan-500 bg-cyan-500/10 shadow-lg shadow-cyan-500/20': aiProvider === provider.id,
+              'border-[--color-border-space] bg-transparent hover:bg-purple-500/5': aiProvider !== provider.id
+            }"
+            (click)="selectProvider(provider.id)">
+            <span class="text-3xl mb-2">{{ provider.icon }}</span>
+            <span class="font-bold text-sm text-[--color-text-bright] tracking-wide mb-1" style="font-family: var(--font-display);">
+              {{ provider.id === 'local' ? 'LOCAL' : provider.id === 'claude' ? 'CLAUDE' : 'OPENAI' }}
+            </span>
+            <span class="text-xs text-[--color-text-faint]">
+              {{ provider.id === 'local' ? 'Free & Private' : 'Bring Your Key' }}
+            </span>
+          </button>
+        </div>
+        
+        <!-- Provider Description -->
+        <div class="p-4 rounded-xl border border-[--color-border-space] mb-6" style="background: rgba(10, 5, 32, 0.6);">
+          <p class="text-sm text-[--color-text-dim]">
+            <span *ngIf="aiProvider === 'local'">
+              🖥️ <strong class="text-[--color-text-bright]">Local Phi-3 Model</strong> — Runs entirely on your device. 
+              Free, completely private, no API key needed. Requires ~4GB RAM.
+            </span>
+            <span *ngIf="aiProvider === 'claude'">
+              🟣 <strong class="text-[--color-text-bright]">Claude by Anthropic</strong> — Access powerful Claude models. 
+              Get your API key from <a href="https://console.anthropic.com" target="_blank" class="text-cyan-400 hover:underline">console.anthropic.com</a>
+            </span>
+            <span *ngIf="aiProvider === 'openai'">
+              🟢 <strong class="text-[--color-text-bright]">ChatGPT by OpenAI</strong> — Access GPT-4 and other models. 
+              Get your API key from <a href="https://platform.openai.com" target="_blank" class="text-cyan-400 hover:underline">platform.openai.com</a>
+            </span>
+          </p>
+        </div>
+        
+        <!-- API Key Input (for cloud providers) -->
+        <div *ngIf="aiProvider !== 'local'" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-[--color-text-dim] mb-2 tracking-wider" style="font-family: var(--font-display);">
+              API KEY <span class="text-pink-500">*</span>
+            </label>
+            <div class="flex gap-3">
+              <div class="flex-1 relative">
+                <input 
+                  [type]="aiApiKeyVisible ? 'text' : 'password'"
+                  class="form-input pr-12"
+                  [(ngModel)]="aiApiKey"
+                  [placeholder]="aiProvider === 'claude' ? 'sk-ant-...' : 'sk-...'"
+                  (blur)="aiApiKey && testApiKey()">
+                <button 
+                  type="button"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-[--color-text-faint] hover:text-[--color-text-bright] transition-colors"
+                  (click)="toggleApiKeyVisibility()">
+                  {{ aiApiKeyVisible ? '🙈' : '👁️' }}
+                </button>
+              </div>
+              <button 
+                type="button"
+                class="btn btn-secondary px-4"
+                [disabled]="!aiApiKey || aiKeyTestStatus === 'testing'"
+                (click)="testApiKey()">
+                <span *ngIf="aiKeyTestStatus === 'testing'" class="animate-spin">⟳</span>
+                <span *ngIf="aiKeyTestStatus !== 'testing'">TEST</span>
+              </button>
+            </div>
+            
+            <!-- Key Status -->
+            <div class="mt-2 flex items-center gap-2">
+              <span *ngIf="aiKeyTestStatus === 'valid'" class="text-green-400 text-sm flex items-center gap-1">
+                ✓ API key verified
+              </span>
+              <span *ngIf="aiKeyTestStatus === 'invalid'" class="text-red-400 text-sm flex items-center gap-1">
+                ✗ {{ aiKeyTestError }}
+              </span>
+              <span *ngIf="aiKeyTestStatus === 'idle' && !aiApiKey" class="text-[--color-text-faint] text-sm">
+                Enter your API key above
+              </span>
+            </div>
+          </div>
+          
+          <!-- Clear Key Button -->
+          <button *ngIf="aiApiKey" 
+            type="button"
+            class="text-sm text-[--color-text-faint] hover:text-red-400 transition-colors"
+            (click)="clearApiKey()">
+            🗑️ Clear saved API key
+          </button>
+        </div>
+        
+        <!-- Model Selection -->
+        <div class="mt-6">
+          <label class="block text-sm font-semibold text-[--color-text-dim] mb-2 tracking-wider" style="font-family: var(--font-display);">
+            MODEL
+          </label>
+          <select 
+            class="form-select"
+            [(ngModel)]="aiModel"
+            (change)="saveAiConfig()">
+            <option *ngFor="let model of getModelsForProvider()" [value]="model.id">
+              {{ model.name }} — {{ model.description }}
+            </option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Core Settings -->
       <div class="card mb-8">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">CORE SYSTEMS</h3>
-        
         <div class="space-y-1">
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
@@ -161,18 +257,16 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-          
-          <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
+          <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors" *ngIf="aiProvider === 'local'">
             <div>
               <span class="font-medium text-[--color-text-bright]">Auto-Initialize</span>
-              <p class="text-sm text-[--color-text-faint]">Load neural net at launch (~4GB)</p>
+              <p class="text-sm text-[--color-text-faint]">Load local model at launch (~4GB RAM)</p>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" [(ngModel)]="aiSettings.autoLoad" (change)="onToggle('autoLoad', 'ai')">
               <span class="toggle-slider"></span>
             </label>
           </div>
-          
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
               <span class="font-medium text-[--color-text-bright]">Thought Stream</span>
@@ -185,24 +279,27 @@
           </div>
         </div>
       </div>
-      
+
       <div class="card">
         <h3 class="text-base font-bold mb-4 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">PROCESSING LIMITS</h3>
-        
         <div class="flex items-center gap-4">
           <label class="text-sm text-[--color-text-dim]" for="maxIterations">Max cycles per task</label>
-          <input 
-            type="number" 
-            id="maxIterations" 
-            class="form-input w-24 text-center"
-            [(ngModel)]="aiSettings.maxIterations"
-            min="1" 
-            max="50">
+          <input type="number" id="maxIterations" class="form-input w-24 text-center" [(ngModel)]="aiSettings.maxIterations" min="1" max="50">
         </div>
         <p class="text-xs text-[--color-text-faint] mt-2">Higher values enable complex missions but increase processing time</p>
       </div>
+      
+      <!-- Privacy Notice -->
+      <div class="alert alert-info mt-8">
+        <span class="text-xl">🔒</span>
+        <div class="text-sm text-[--color-text-dim]">
+          <strong class="text-[--color-text-bright]">Privacy:</strong> 
+          API keys are stored locally and encrypted. When using cloud providers, your prompts are sent to their servers.
+          The local Phi-3 model keeps everything on your device.
+        </div>
+      </div>
     </section>
-    
+
     <!-- Extensions Settings -->
     <section *ngIf="activeSection === 'extensions'" class="animate-fadeIn">
       <header class="mb-10">
@@ -217,12 +314,10 @@
         <div class="text-6xl mb-6 animate-float">🧩</div>
         <h3 class="text-xl font-bold mb-3 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">MODULE BAY</h3>
         <p class="text-[--color-text-dim] mb-2">Access the Extensions panel to install modules from the Firefox marketplace.</p>
-        <p class="text-[--color-nebula-cyan] font-medium tracking-wide" style="font-family: var(--font-display);">
-          FULL WEBREQUEST API SUPPORTED
-        </p>
+        <p class="text-cyan-400 font-medium tracking-wide" style="font-family: var(--font-display);">FULL WEBREQUEST API SUPPORTED</p>
       </div>
     </section>
-    
+
     <!-- Privacy Settings -->
     <section *ngIf="activeSection === 'privacy'" class="animate-fadeIn">
       <header class="mb-10">
@@ -235,7 +330,6 @@
       
       <div class="card">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">PRIVACY BEACONS</h3>
-        
         <div class="space-y-1">
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
@@ -247,7 +341,6 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-          
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
               <span class="font-medium text-[--color-text-bright]">Global Privacy Control</span>
@@ -258,7 +351,6 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-          
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
               <span class="font-medium text-[--color-text-bright]">Third-Party Isolation</span>
@@ -269,7 +361,6 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-          
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
               <span class="font-medium text-[--color-text-bright]">Memory Wipe</span>
@@ -283,7 +374,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- Appearance Settings -->
     <section *ngIf="activeSection === 'appearance'" class="animate-fadeIn">
       <header class="mb-10">
@@ -296,11 +387,10 @@
       
       <div class="card mb-8">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">ENVIRONMENT</h3>
-        
         <div class="flex gap-4">
           <button 
             class="flex flex-col items-center p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 flex-1"
-            [ngClass]="{'border-[--color-nebula-cyan] shadow-lg shadow-cyan-500/20': appearanceSettings.theme === 'dark', 'border-[--color-border-space]': appearanceSettings.theme !== 'dark'}"
+            [ngClass]="{'border-cyan-500 shadow-lg shadow-cyan-500/20': appearanceSettings.theme === 'dark', 'border-[--color-border-space]': appearanceSettings.theme !== 'dark'}"
             style="background: linear-gradient(135deg, rgba(10, 5, 32, 0.8), rgba(3, 0, 20, 0.9));"
             (click)="appearanceSettings.theme = 'dark'; saveSettings()">
             <div class="w-14 h-10 rounded-lg mb-3 overflow-hidden border border-purple-500/30">
@@ -310,7 +400,7 @@
           </button>
           <button 
             class="flex flex-col items-center p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 flex-1"
-            [ngClass]="{'border-[--color-nebula-cyan] shadow-lg shadow-cyan-500/20': appearanceSettings.theme === 'light', 'border-[--color-border-space]': appearanceSettings.theme !== 'light'}"
+            [ngClass]="{'border-cyan-500 shadow-lg shadow-cyan-500/20': appearanceSettings.theme === 'light', 'border-[--color-border-space]': appearanceSettings.theme !== 'light'}"
             style="background: linear-gradient(135deg, rgba(10, 5, 32, 0.8), rgba(3, 0, 20, 0.9));"
             (click)="appearanceSettings.theme = 'light'; saveSettings()">
             <div class="w-14 h-10 rounded-lg mb-3 overflow-hidden border border-gray-300">
@@ -320,7 +410,7 @@
           </button>
           <button 
             class="flex flex-col items-center p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 flex-1"
-            [ngClass]="{'border-[--color-nebula-cyan] shadow-lg shadow-cyan-500/20': appearanceSettings.theme === 'system', 'border-[--color-border-space]': appearanceSettings.theme !== 'system'}"
+            [ngClass]="{'border-cyan-500 shadow-lg shadow-cyan-500/20': appearanceSettings.theme === 'system', 'border-[--color-border-space]': appearanceSettings.theme !== 'system'}"
             style="background: linear-gradient(135deg, rgba(10, 5, 32, 0.8), rgba(3, 0, 20, 0.9));"
             (click)="appearanceSettings.theme = 'system'; saveSettings()">
             <div class="w-14 h-10 rounded-lg mb-3 overflow-hidden border border-purple-500/30">
@@ -333,7 +423,6 @@
       
       <div class="card">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">INTERFACE</h3>
-        
         <div class="space-y-1">
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
@@ -345,7 +434,6 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-          
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
               <span class="font-medium text-[--color-text-bright]">Compact Mode</span>
@@ -359,7 +447,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- Advanced Settings -->
     <section *ngIf="activeSection === 'advanced'" class="animate-fadeIn">
       <header class="mb-10">
@@ -372,7 +460,6 @@
       
       <div class="card mb-8">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">PROPULSION</h3>
-        
         <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
           <div>
             <span class="font-medium text-[--color-text-bright]">GPU Thrust</span>
@@ -387,7 +474,6 @@
       
       <div class="card mb-8">
         <h3 class="text-base font-bold mb-6 tracking-wider text-[--color-text-bright]" style="font-family: var(--font-display);">EXPERIMENTAL</h3>
-        
         <div class="space-y-1">
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
@@ -399,7 +485,6 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-          
           <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
             <div>
               <span class="font-medium text-[--color-text-bright]">Prototype Systems</span>
@@ -413,8 +498,8 @@
         </div>
       </div>
       
-      <div class="card border-[--color-nebula-pink]/30">
-        <h3 class="text-base font-bold mb-2 tracking-wider text-[--color-nebula-pink]" style="font-family: var(--font-display);">⚠️ SYSTEM RESET</h3>
+      <div class="card border-pink-500/30">
+        <h3 class="text-base font-bold mb-2 tracking-wider text-pink-500" style="font-family: var(--font-display);">⚠️ SYSTEM RESET</h3>
         <p class="text-sm text-[--color-text-faint] mb-4">Restore all systems to factory defaults</p>
         <button class="btn btn-secondary" (click)="resetToDefaults()">
           <span>🔄</span>

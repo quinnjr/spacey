@@ -9,12 +9,23 @@ export interface SystemInfo {
   blockedDomains: number;
 }
 
+export interface AiProviderConfig {
+  provider: 'local' | 'claude' | 'openai';
+  model?: string;
+  apiKey?: string;
+}
+
 declare global {
   interface Window {
     spaceyBridge?: {
+      // System info
       getSystemInfo: () => SystemInfo;
       setShieldLevel: (level: string) => void;
       saveSettings: (settings: any) => void;
+      // AI provider (BYOK)
+      getAiConfig?: () => AiProviderConfig;
+      setAiConfig?: (config: AiProviderConfig) => void;
+      testApiKey?: (provider: string, apiKey: string) => Promise<{ valid: boolean; error?: string }>;
     };
   }
 }

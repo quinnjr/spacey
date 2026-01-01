@@ -15,31 +15,31 @@
   --color-nebula-dark: #120a2e;
   --color-nebula-mid: #1a1040;
   --color-cosmic-dust: #241654;
-  
+
   /* Star Colors */
   --color-star-white: #ffffff;
   --color-star-blue: #a0d2ff;
   --color-star-yellow: #fff4b8;
-  
+
   /* Nebula Accents */
   --color-nebula-pink: #ff6b9d;
   --color-nebula-purple: #a855f7;
   --color-nebula-blue: #3b82f6;
   --color-nebula-cyan: #22d3ee;
   --color-nebula-teal: #14b8a6;
-  
+
   /* Aurora Colors */
   --color-aurora-green: #4ade80;
   --color-aurora-blue: #60a5fa;
   --color-aurora-purple: #c084fc;
-  
+
   /* UI Colors */
   --color-text-bright: #f0f6ff;
   --color-text-dim: #8892b0;
   --color-text-faint: #4a5568;
   --color-border-space: rgba(139, 92, 246, 0.3);
   --color-border-glow: rgba(34, 211, 238, 0.5);
-  
+
   /* Fonts */
   --font-display: 'Orbitron', sans-serif;
   --font-body: 'Exo 2', sans-serif;
@@ -68,7 +68,7 @@
     height: 100%;
     pointer-events: none;
     z-index: -2;
-    background: 
+    background:
       radial-gradient(ellipse at 20% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 80%, rgba(34, 211, 238, 0.1) 0%, transparent 50%),
       radial-gradient(ellipse at 50% 50%, rgba(168, 85, 247, 0.08) 0%, transparent 70%),
@@ -85,7 +85,7 @@
     height: 100%;
     pointer-events: none;
     z-index: -1;
-    background-image: 
+    background-image:
       radial-gradient(1px 1px at 20px 30px, white, transparent),
       radial-gradient(1px 1px at 40px 70px, rgba(255,255,255,0.8), transparent),
       radial-gradient(1px 1px at 50px 160px, rgba(255,255,255,0.6), transparent),
@@ -163,41 +163,41 @@
     font-family: var(--font-display);
     letter-spacing: 0.05em;
   }
-  
+
   .btn-primary {
     @apply text-white relative overflow-hidden;
     background: linear-gradient(135deg, var(--color-nebula-purple), var(--color-nebula-pink));
-    box-shadow: 
+    box-shadow:
       0 0 20px rgba(168, 85, 247, 0.4),
       0 0 40px rgba(255, 107, 157, 0.2),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
-  
+
   .btn-primary::before {
     content: '';
     @apply absolute inset-0 opacity-0 transition-opacity duration-300;
     background: linear-gradient(135deg, var(--color-nebula-pink), var(--color-nebula-cyan));
   }
-  
+
   .btn-primary:hover {
     @apply -translate-y-1 no-underline text-white;
-    box-shadow: 
+    box-shadow:
       0 0 30px rgba(168, 85, 247, 0.6),
       0 0 60px rgba(255, 107, 157, 0.4),
       0 10px 40px rgba(168, 85, 247, 0.3);
   }
-  
+
   .btn-primary:hover::before {
     @apply opacity-100;
   }
-  
+
   .btn-secondary {
     @apply text-white relative;
     background: rgba(139, 92, 246, 0.1);
     border: 1px solid var(--color-border-space);
     backdrop-filter: blur(10px);
   }
-  
+
   .btn-secondary:hover {
     @apply no-underline;
     background: rgba(139, 92, 246, 0.2);
@@ -223,7 +223,7 @@
 
   .card:hover {
     border-color: var(--color-border-glow);
-    box-shadow: 
+    box-shadow:
       0 0 30px rgba(34, 211, 238, 0.15),
       inset 0 0 60px rgba(139, 92, 246, 0.05);
   }
@@ -251,7 +251,7 @@
   .form-textarea:focus {
     @apply outline-none;
     border-color: var(--color-nebula-cyan);
-    box-shadow: 
+    box-shadow:
       0 0 20px rgba(34, 211, 238, 0.2),
       inset 0 0 30px rgba(34, 211, 238, 0.05);
   }
@@ -299,7 +299,7 @@
   .toggle-switch input:checked + .toggle-slider {
     background: linear-gradient(135deg, var(--color-nebula-purple), var(--color-nebula-cyan));
     border-color: var(--color-nebula-cyan);
-    box-shadow: 
+    box-shadow:
       0 0 20px rgba(34, 211, 238, 0.4),
       inset 0 0 20px rgba(168, 85, 247, 0.3);
   }
@@ -340,10 +340,10 @@
   /* ─────────────────────────────────────────────────────────────────────────
      SPECIAL EFFECTS
      ───────────────────────────────────────────────────────────────────────── */
-  
+
   /* Glowing Text */
   .glow-text {
-    text-shadow: 
+    text-shadow:
       0 0 10px currentColor,
       0 0 20px currentColor,
       0 0 40px currentColor;
@@ -370,11 +370,11 @@
   }
 
   @keyframes orbit-pulse {
-    0%, 100% { 
+    0%, 100% {
       transform: scale(1);
       opacity: 0.3;
     }
-    50% { 
+    50% {
       transform: scale(1.05);
       opacity: 0.6;
     }
@@ -430,13 +430,13 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @keyframes fadeIn {
-  from { 
-    opacity: 0; 
-    transform: translateY(20px); 
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -446,10 +446,10 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { 
+  0%, 100% {
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
   }
-  50% { 
+  50% {
     box-shadow: 0 0 40px rgba(139, 92, 246, 0.6), 0 0 60px rgba(34, 211, 238, 0.3);
   }
 }
