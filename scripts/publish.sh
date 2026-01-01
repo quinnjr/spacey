@@ -2,7 +2,11 @@
 # Spacey Crates Publishing Script
 #
 # Publishes all Spacey crates to crates.io in the correct dependency order.
-# Excludes spacey-browser which is distributed as a standalone application.
+# Excludes spacey-browser which is distributed via:
+#   - Steam (Windows, macOS, Linux)
+#   - Microsoft Store (Windows 10/11)
+#   - Apple App Store (macOS)
+#   - Direct download (all platforms)
 #
 # Usage:
 #   ./scripts/publish.sh          # Dry run (default)

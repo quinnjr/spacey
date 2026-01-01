@@ -6,6 +6,11 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 description = "Minimal browser using Spacey JavaScript engine with Servo rendering"
+# Not published to crates.io - distributed as standalone application via:
+#   - Steam (Windows, macOS, Linux)
+#   - Microsoft Store (Windows 10/11)
+#   - Apple App Store (macOS)
+#   - Direct download (all platforms)
 publish = false
 
 [lib]
