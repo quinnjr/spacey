@@ -205,7 +205,7 @@ impl SpaceyShield {
                         }
                         DisconnectCategory::Social => {
                             stats.social_blocked += 1;
-                            BlockReason::Tracker // Social tracking
+                            BlockReason::Social
                         }
                         DisconnectCategory::Fingerprinting => {
                             stats.fingerprints_blocked += 1;
@@ -217,11 +217,11 @@ impl SpaceyShield {
                         }
                         DisconnectCategory::Content => {
                             stats.trackers_blocked += 1;
-                            BlockReason::Tracker
+                            BlockReason::Disconnect
                         }
                         DisconnectCategory::Disconnect => {
                             stats.trackers_blocked += 1;
-                            BlockReason::Tracker
+                            BlockReason::Disconnect
                         }
                     };
                     return Some(reason);
@@ -292,9 +292,32 @@ impl SpaceyShield {
             || url_lower.ends_with("/t")
     }
 
-    /// Get blocked domain count
+    /// Get blocked domain count (Spacey list only)
     pub fn blocked_domain_count(&self) -> usize {
         self.blocklist.domain_count()
+    }
+    
+    /// Get Disconnect list domain count
+    pub fn disconnect_domain_count(&self) -> usize {
+        self.disconnect.domain_count()
+    }
+    
+    /// Get total blocked domain count (Spacey + Disconnect)
+    pub fn total_domain_count(&self) -> usize {
+        self.blocklist.domain_count() + self.disconnect.domain_count()
+    }
+    
+    /// Get Disconnect category statistics
+    pub fn disconnect_category_stats(&self) -> Vec<(DisconnectCategory, usize)> {
+        vec![
+            (DisconnectCategory::Advertising, self.disconnect.category_count(DisconnectCategory::Advertising)),
+            (DisconnectCategory::Analytics, self.disconnect.category_count(DisconnectCategory::Analytics)),
+            (DisconnectCategory::Social, self.disconnect.category_count(DisconnectCategory::Social)),
+            (DisconnectCategory::Fingerprinting, self.disconnect.category_count(DisconnectCategory::Fingerprinting)),
+            (DisconnectCategory::Cryptomining, self.disconnect.category_count(DisconnectCategory::Cryptomining)),
+            (DisconnectCategory::Content, self.disconnect.category_count(DisconnectCategory::Content)),
+            (DisconnectCategory::Disconnect, self.disconnect.category_count(DisconnectCategory::Disconnect)),
+        ]
     }
 }
 

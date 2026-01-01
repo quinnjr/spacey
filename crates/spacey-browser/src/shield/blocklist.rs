@@ -14,6 +14,8 @@ pub enum BlockReason {
     Advertising,
     /// Tracking/analytics
     Tracker,
+    /// Social media widget/tracking
+    Social,
     /// Malware/phishing
     Malware,
     /// Cryptomining
@@ -22,6 +24,8 @@ pub enum BlockReason {
     TrackingPixel,
     /// Known fingerprinter
     Fingerprinting,
+    /// Disconnect list match
+    Disconnect,
 }
 
 impl BlockReason {
@@ -29,10 +33,40 @@ impl BlockReason {
         match self {
             BlockReason::Advertising => "Advertising network",
             BlockReason::Tracker => "Tracking/analytics",
+            BlockReason::Social => "Social media tracking",
             BlockReason::Malware => "Malware/phishing",
             BlockReason::Cryptominer => "Cryptomining script",
             BlockReason::TrackingPixel => "Tracking pixel",
             BlockReason::Fingerprinting => "Fingerprinting attempt",
+            BlockReason::Disconnect => "Disconnect list match",
+        }
+    }
+    
+    /// Get icon for this block reason
+    pub fn icon(&self) -> &'static str {
+        match self {
+            BlockReason::Advertising => "🚫",
+            BlockReason::Tracker => "👁️",
+            BlockReason::Social => "📱",
+            BlockReason::Malware => "☠️",
+            BlockReason::Cryptominer => "⛏️",
+            BlockReason::TrackingPixel => "🔍",
+            BlockReason::Fingerprinting => "🖐️",
+            BlockReason::Disconnect => "🔌",
+        }
+    }
+    
+    /// Get short name for UI display
+    pub fn short_name(&self) -> &'static str {
+        match self {
+            BlockReason::Advertising => "Ad",
+            BlockReason::Tracker => "Tracker",
+            BlockReason::Social => "Social",
+            BlockReason::Malware => "Malware",
+            BlockReason::Cryptominer => "Miner",
+            BlockReason::TrackingPixel => "Pixel",
+            BlockReason::Fingerprinting => "FP",
+            BlockReason::Disconnect => "Disconnect",
         }
     }
 }

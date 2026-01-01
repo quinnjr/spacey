@@ -32,6 +32,13 @@ impl std::fmt::Display for AiProviderType {
 /// Configuration for an AI provider
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AiProviderConfig {
+    /// Whether AI features are enabled at all
+    #[serde(default = "default_enabled")]
+    pub enabled: bool,
+    /// Whether the local model is enabled
+    #[serde(default = "default_enabled")]
+    pub local_enabled: bool,
+    /// The active provider
     pub provider: AiProviderType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub api_key: Option<String>,
@@ -41,14 +48,32 @@ pub struct AiProviderConfig {
     pub base_url: Option<String>,
 }
 
+fn default_enabled() -> bool {
+    true
+}
+
 impl Default for AiProviderConfig {
     fn default() -> Self {
         Self {
+            enabled: true,
+            local_enabled: true,
             provider: AiProviderType::Local,
             api_key: None,
             model: Some("phi-3-mini-4k".to_string()),
             base_url: None,
         }
+    }
+}
+
+impl AiProviderConfig {
+    /// Check if AI is completely disabled
+    pub fn is_disabled(&self) -> bool {
+        !self.enabled
+    }
+    
+    /// Check if local model is available
+    pub fn local_available(&self) -> bool {
+        self.enabled && self.local_enabled
     }
 }
 
@@ -360,12 +385,60 @@ impl ProviderManager {
         self.config.read().clone()
     }
     
+    /// Check if AI is enabled
+    pub fn is_enabled(&self) -> bool {
+        self.config.read().enabled
+    }
+    
+    /// Enable or disable AI features entirely
+    pub fn set_enabled(&self, enabled: bool) {
+        self.config.write().enabled = enabled;
+    }
+    
+    /// Check if local model is enabled
+    pub fn local_enabled(&self) -> bool {
+        self.config.read().local_enabled
+    }
+    
+    /// Enable or disable the local model
+    pub fn set_local_enabled(&self, enabled: bool) {
+        let mut config = self.config.write();
+        config.local_enabled = enabled;
+        
+        // If disabling local and it's the current provider, switch to a fallback
+        if !enabled && config.provider == AiProviderType::Local {
+            // If Claude is configured, use it; otherwise OpenAI; otherwise stay on Local (disabled)
+            if self.claude.read().is_some() {
+                config.provider = AiProviderType::Claude;
+            } else if self.openai.read().is_some() {
+                config.provider = AiProviderType::OpenAI;
+            }
+            // If no other provider is available, the local will just not work
+        }
+    }
+    
+    /// Unload the local model to free memory
+    pub fn unload_local_model(&self) {
+        *self.local.write() = LocalProvider::new();
+    }
+    
     /// Set the configuration
     pub fn set_config(&self, config: AiProviderConfig) -> Result<(), ProviderError> {
+        // Check if AI is disabled
+        if !config.enabled {
+            *self.config.write() = config;
+            return Ok(());
+        }
+        
         // Validate and set up the provider
         match config.provider {
             AiProviderType::Local => {
-                // Local doesn't need API key
+                // Check if local is enabled
+                if !config.local_enabled {
+                    return Err(ProviderError::NotSupported(
+                        "Local model is disabled. Enable it in settings or use a cloud provider.".to_string()
+                    ));
+                }
             }
             AiProviderType::Claude => {
                 let api_key = config.api_key.as_ref()
@@ -389,8 +462,18 @@ impl ProviderManager {
     pub fn generate(&self, messages: &[ChatMessage], max_tokens: usize) -> Result<String, ProviderError> {
         let config = self.config.read();
         
+        // Check if AI is enabled
+        if !config.enabled {
+            return Err(ProviderError::NotSupported("AI features are disabled".to_string()));
+        }
+        
         match config.provider {
             AiProviderType::Local => {
+                if !config.local_enabled {
+                    return Err(ProviderError::NotSupported(
+                        "Local model is disabled. Enable it in settings or use a cloud provider.".to_string()
+                    ));
+                }
                 self.local.read().generate(messages, max_tokens)
             }
             AiProviderType::Claude => {
@@ -410,6 +493,15 @@ impl ProviderManager {
     
     /// Load the local Phi-3 model
     pub fn load_local_model(&self, config: super::model::ModelConfig) -> Result<(), ProviderError> {
+        let ai_config = self.config.read();
+        
+        if !ai_config.local_enabled {
+            return Err(ProviderError::NotSupported(
+                "Local model is disabled in settings".to_string()
+            ));
+        }
+        
+        drop(ai_config); // Release lock before loading
         self.local.write().load_model(config)
     }
     
@@ -417,8 +509,15 @@ impl ProviderManager {
     pub fn is_ready(&self) -> bool {
         let config = self.config.read();
         
+        // Not ready if disabled
+        if !config.enabled {
+            return false;
+        }
+        
         match config.provider {
-            AiProviderType::Local => self.local.read().is_ready(),
+            AiProviderType::Local => {
+                config.local_enabled && self.local.read().is_ready()
+            }
             AiProviderType::Claude => {
                 self.claude.read().as_ref().map_or(false, |p| p.is_ready())
             }
@@ -431,6 +530,26 @@ impl ProviderManager {
     /// Get the current provider type
     pub fn current_provider(&self) -> AiProviderType {
         self.config.read().provider
+    }
+    
+    /// Get available providers (those that can be used)
+    pub fn available_providers(&self) -> Vec<AiProviderType> {
+        let config = self.config.read();
+        let mut providers = Vec::new();
+        
+        if config.local_enabled {
+            providers.push(AiProviderType::Local);
+        }
+        
+        if self.claude.read().is_some() {
+            providers.push(AiProviderType::Claude);
+        }
+        
+        if self.openai.read().is_some() {
+            providers.push(AiProviderType::OpenAI);
+        }
+        
+        providers
     }
 }
 

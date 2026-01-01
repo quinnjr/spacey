@@ -27,7 +27,7 @@ pub enum LicenseStatus {
     /// License is being verified
     Verifying,
     /// No license found - running in trial mode
-    Trial { 
+    Trial {
         /// Days remaining in trial
         days_remaining: u32,
         /// Whether this is the first run
@@ -54,17 +54,17 @@ impl LicenseStatus {
                 | LicenseStatus::Standalone
         )
     }
-    
+
     /// Check if this is a trial
     pub fn is_trial(&self) -> bool {
         matches!(self, LicenseStatus::Trial { .. })
     }
-    
+
     /// Check if trial has expired
     pub fn is_expired(&self) -> bool {
         matches!(self, LicenseStatus::TrialExpired | LicenseStatus::Trial { days_remaining: 0, .. })
     }
-    
+
     /// Get days remaining (for trial)
     pub fn days_remaining(&self) -> Option<u32> {
         match self {
@@ -102,7 +102,7 @@ impl TrialInfo {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs();
-        
+
         Self {
             started_at: now,
             expires_at: now + (TRIAL_DURATION_DAYS as u64 * SECONDS_PER_DAY),
@@ -111,73 +111,73 @@ impl TrialInfo {
             version: env!("CARGO_PKG_VERSION").to_string(),
         }
     }
-    
+
     /// Calculate days remaining in trial
     pub fn days_remaining(&self) -> u32 {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs();
-        
+
         if now >= self.expires_at {
             0
         } else {
             ((self.expires_at - now) / SECONDS_PER_DAY) as u32 + 1
         }
     }
-    
+
     /// Check if trial has expired
     pub fn is_expired(&self) -> bool {
         self.days_remaining() == 0
     }
-    
+
     /// Validate the trial hasn't been tampered with
     pub fn is_valid(&self) -> bool {
         // Check machine ID matches
         if self.machine_id != Self::generate_machine_id() {
             return false;
         }
-        
+
         // Check timestamps are reasonable
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs();
-        
+
         // Trial can't start in the future
         if self.started_at > now {
             return false;
         }
-        
+
         // Expiry should be start + trial duration
         let expected_expiry = self.started_at + (TRIAL_DURATION_DAYS as u64 * SECONDS_PER_DAY);
         if self.expires_at != expected_expiry {
             return false;
         }
-        
+
         true
     }
-    
+
     /// Generate a machine-specific identifier
     fn generate_machine_id() -> String {
         // Use a combination of system properties to create a stable ID
         let mut id_parts = Vec::new();
-        
+
         // Try to get hostname
         if let Ok(hostname) = hostname::get() {
             id_parts.push(hostname.to_string_lossy().to_string());
         }
-        
+
         // Add username
         if let Ok(user) = std::env::var("USER").or_else(|_| std::env::var("USERNAME")) {
             id_parts.push(user);
         }
-        
+
         // Add home directory
         if let Some(home) = dirs::home_dir() {
             id_parts.push(format!("{:x}", hash_path(&home)));
         }
-        
+
         // Create a simple hash of all parts
         let combined = id_parts.join("|");
         format!("{:016x}", simple_hash(&combined))
@@ -261,7 +261,7 @@ impl SpaceyEntitlement {
             SpaceyEntitlement::DevTools => Some(0),   // Placeholder
         }
     }
-    
+
     /// Check if this entitlement is available during trial
     pub fn available_in_trial(&self) -> bool {
         match self {
@@ -312,7 +312,7 @@ impl Platform {
             Platform::Standalone => "Standalone",
         }
     }
-    
+
     /// Get store URL
     pub fn store_url(&self) -> Option<&'static str> {
         match self {
@@ -359,10 +359,10 @@ impl LicenseManager {
         let data_dir = dirs::data_local_dir()
             .unwrap_or_else(|| PathBuf::from("."))
             .join("spacey");
-        
+
         let cache_path = data_dir.join("license.cache");
         let trial_path = data_dir.join(".trial");
-        
+
         Self {
             status: Arc::new(RwLock::new(LicenseStatus::Verifying)),
             user: Arc::new(RwLock::new(None)),
@@ -380,7 +380,7 @@ impl LicenseManager {
             trial_path,
         }
     }
-    
+
     /// Detect the platform we're running on
     fn detect_platform() -> Platform {
         // Check Steam first (cross-platform)
@@ -390,7 +390,7 @@ impl LicenseManager {
                 return Platform::Steam;
             }
         }
-        
+
         // Check Windows Store
         #[cfg(all(windows, feature = "windows-store"))]
         {
@@ -398,7 +398,7 @@ impl LicenseManager {
                 return Platform::WindowsStore;
             }
         }
-        
+
         // Check Apple Store
         #[cfg(all(target_os = "macos", feature = "apple-store"))]
         {
@@ -406,24 +406,24 @@ impl LicenseManager {
                 return Platform::AppleStore;
             }
         }
-        
+
         Platform::Standalone
     }
-    
+
     #[cfg(all(windows, feature = "windows-store"))]
     fn is_windows_store_package() -> bool {
-        std::env::var("MSIX_PACKAGE_NAME").is_ok() 
+        std::env::var("MSIX_PACKAGE_NAME").is_ok()
             || std::path::Path::new("C:\\Program Files\\WindowsApps").exists()
                 && std::env::current_exe()
                     .map(|p| p.to_string_lossy().contains("WindowsApps"))
                     .unwrap_or(false)
     }
-    
+
     #[cfg(not(all(windows, feature = "windows-store")))]
     fn is_windows_store_package() -> bool {
         false
     }
-    
+
     #[cfg(all(target_os = "macos", feature = "apple-store"))]
     fn is_apple_store_app() -> bool {
         // Check for MAS (Mac App Store) receipt
@@ -433,12 +433,12 @@ impl LicenseManager {
             .map(|app_dir| app_dir.join("../_MASReceipt/receipt").exists())
             .unwrap_or(false)
     }
-    
+
     #[cfg(not(all(target_os = "macos", feature = "apple-store")))]
     fn is_apple_store_app() -> bool {
         false
     }
-    
+
     /// Get the current platform
     pub fn platform(&self) -> Platform {
         self.platform
@@ -455,11 +455,11 @@ impl LicenseManager {
     /// 6. Fall back to trial mode if no license found
     pub fn initialize(&mut self) -> Result<(), LicenseError> {
         log::info!("Initializing license manager...");
-        
+
         // Detect platform
         self.platform = Self::detect_platform();
         log::info!("Detected platform: {:?}", self.platform);
-        
+
         match self.platform {
             Platform::Steam => self.initialize_steam(),
             Platform::WindowsStore => self.initialize_windows_store(),
@@ -467,7 +467,7 @@ impl LicenseManager {
             Platform::Standalone => self.initialize_standalone(),
         }
     }
-    
+
     /// Initialize Steam
     #[cfg(feature = "steam")]
     fn initialize_steam(&mut self) -> Result<(), LicenseError> {
@@ -499,24 +499,24 @@ impl LicenseManager {
 
         self.fallback_to_cache_or_trial()
     }
-    
+
     #[cfg(not(feature = "steam"))]
     fn initialize_steam(&mut self) -> Result<(), LicenseError> {
         self.initialize_standalone()
     }
-    
+
     /// Initialize Windows Store
     #[cfg(all(windows, feature = "windows-store"))]
     fn initialize_windows_store(&mut self) -> Result<(), LicenseError> {
         match windows::WindowsStoreLicense::new() {
             Ok(store) => {
                 log::info!("Windows Store client initialized");
-                
+
                 // Note: Full implementation would use async/await
                 // For now, we'll cache the store and verify lazily
                 self.windows_store = Some(store);
                 *self.status.write() = LicenseStatus::Valid;
-                
+
                 *self.user.write() = Some(LicenseUser {
                     id: "windows_store".to_string(),
                     name: whoami::username(),
@@ -524,7 +524,7 @@ impl LicenseManager {
                     avatar_url: None,
                     country: None,
                 });
-                
+
                 self.cache_license()?;
                 Ok(())
             }
@@ -534,23 +534,23 @@ impl LicenseManager {
             }
         }
     }
-    
+
     #[cfg(not(all(windows, feature = "windows-store")))]
     fn initialize_windows_store(&mut self) -> Result<(), LicenseError> {
         self.initialize_standalone()
     }
-    
+
     /// Initialize Apple Store
     #[cfg(all(target_os = "macos", feature = "apple-store"))]
     fn initialize_apple_store(&mut self) -> Result<(), LicenseError> {
         match apple::AppStoreLicense::new() {
             Ok(store) => {
                 log::info!("Apple Store client initialized");
-                
+
                 self.apple_store = Some(store);
                 // App Store apps are inherently licensed
                 *self.status.write() = LicenseStatus::Valid;
-                
+
                 *self.user.write() = Some(LicenseUser {
                     id: "apple_store".to_string(),
                     name: whoami::username(),
@@ -558,7 +558,7 @@ impl LicenseManager {
                     avatar_url: None,
                     country: None,
                 });
-                
+
                 self.cache_license()?;
                 Ok(())
             }
@@ -568,12 +568,12 @@ impl LicenseManager {
             }
         }
     }
-    
+
     #[cfg(not(all(target_os = "macos", feature = "apple-store")))]
     fn initialize_apple_store(&mut self) -> Result<(), LicenseError> {
         self.initialize_standalone()
     }
-    
+
     /// Initialize standalone mode (with trial)
     fn initialize_standalone(&mut self) -> Result<(), LicenseError> {
         log::info!("Initializing in standalone mode...");
@@ -587,7 +587,7 @@ impl LicenseManager {
         // Fall back to trial mode
         self.initialize_trial()
     }
-    
+
     /// Fallback to cache or trial mode
     fn fallback_to_cache_or_trial(&mut self) -> Result<(), LicenseError> {
         if let Ok(cached) = self.load_cached_license() {
@@ -597,18 +597,18 @@ impl LicenseManager {
             self.initialize_trial()
         }
     }
-    
+
     /// Initialize or continue trial mode
     fn initialize_trial(&mut self) -> Result<(), LicenseError> {
         // Create data directory if needed
         std::fs::create_dir_all(&self.data_dir)
             .map_err(|e| LicenseError::CacheError(e.to_string()))?;
-        
+
         // Check for existing trial
         if let Ok(trial) = self.load_trial_info() {
             if trial.is_valid() {
                 let days = trial.days_remaining();
-                
+
                 if days == 0 {
                     log::info!("Trial has expired");
                     *self.status.write() = LicenseStatus::TrialExpired;
@@ -618,14 +618,14 @@ impl LicenseManager {
                         days_remaining: days,
                         first_run: false,
                     };
-                    
+
                     // Update launch count
                     let mut updated_trial = trial;
                     updated_trial.launch_count += 1;
                     self.save_trial_info(&updated_trial)?;
                     *self.trial_info.write() = Some(updated_trial);
                 }
-                
+
                 // Set trial user
                 *self.user.write() = Some(LicenseUser {
                     id: "trial".to_string(),
@@ -634,24 +634,24 @@ impl LicenseManager {
                     avatar_url: None,
                     country: None,
                 });
-                
+
                 return Ok(());
             } else {
                 log::warn!("Trial info invalid, may have been tampered with");
             }
         }
-        
+
         // Start new trial
         log::info!("Starting {} day free trial", TRIAL_DURATION_DAYS);
         let trial = TrialInfo::new();
         self.save_trial_info(&trial)?;
-        
+
         *self.trial_info.write() = Some(trial);
         *self.status.write() = LicenseStatus::Trial {
             days_remaining: TRIAL_DURATION_DAYS,
             first_run: true,
         };
-        
+
         // Set trial user
         *self.user.write() = Some(LicenseUser {
             id: "trial".to_string(),
@@ -660,42 +660,42 @@ impl LicenseManager {
             avatar_url: None,
             country: None,
         });
-        
+
         Ok(())
     }
-    
+
     /// Load trial info from disk
     fn load_trial_info(&self) -> Result<TrialInfo, LicenseError> {
         let data = std::fs::read_to_string(&self.trial_path)
             .map_err(|e| LicenseError::CacheError(e.to_string()))?;
-        
+
         // Decode from base64 for slight obfuscation
         let decoded = base64::Engine::decode(
             &base64::engine::general_purpose::STANDARD,
             data.trim(),
         ).map_err(|e| LicenseError::CacheError(e.to_string()))?;
-        
+
         let json = String::from_utf8(decoded)
             .map_err(|e| LicenseError::CacheError(e.to_string()))?;
-        
+
         serde_json::from_str(&json)
             .map_err(|e| LicenseError::CacheError(e.to_string()))
     }
-    
+
     /// Save trial info to disk
     fn save_trial_info(&self, trial: &TrialInfo) -> Result<(), LicenseError> {
         let json = serde_json::to_string(trial)
             .map_err(|e| LicenseError::CacheError(e.to_string()))?;
-        
+
         // Encode to base64 for slight obfuscation
         let encoded = base64::Engine::encode(
             &base64::engine::general_purpose::STANDARD,
             json.as_bytes(),
         );
-        
+
         std::fs::write(&self.trial_path, encoded)
             .map_err(|e| LicenseError::CacheError(e.to_string()))?;
-        
+
         Ok(())
     }
 
@@ -703,22 +703,22 @@ impl LicenseManager {
     pub fn status(&self) -> LicenseStatus {
         self.status.read().clone()
     }
-    
+
     /// Get trial info if in trial mode
     pub fn trial_info(&self) -> Option<TrialInfo> {
         self.trial_info.read().clone()
     }
-    
+
     /// Check if currently in trial mode
     pub fn is_trial(&self) -> bool {
         self.status.read().is_trial()
     }
-    
+
     /// Check if trial has expired
     pub fn is_trial_expired(&self) -> bool {
         self.status.read().is_expired()
     }
-    
+
     /// Get days remaining in trial (None if not in trial)
     pub fn trial_days_remaining(&self) -> Option<u32> {
         self.status.read().days_remaining()
@@ -727,12 +727,12 @@ impl LicenseManager {
     /// Check if a specific entitlement is owned
     pub fn has_entitlement(&self, entitlement: SpaceyEntitlement) -> bool {
         let status = self.status.read().clone();
-        
+
         // In standalone mode, all entitlements are available
         if matches!(status, LicenseStatus::Standalone) {
             return true;
         }
-        
+
         // Check trial mode
         if let LicenseStatus::Trial { days_remaining, .. } = status {
             if days_remaining > 0 {
@@ -740,7 +740,7 @@ impl LicenseManager {
             }
             return false;
         }
-        
+
         // Trial expired - no access
         if matches!(status, LicenseStatus::TrialExpired) {
             return false;
@@ -866,14 +866,14 @@ impl LicenseManager {
 
         Ok(LicenseStatus::OfflineValid { expires_at: cache.expires_at })
     }
-    
+
     /// Activate a license key (placeholder for future implementation)
     pub fn activate_license(&mut self, _license_key: &str) -> Result<(), LicenseError> {
         // TODO: Implement license key activation
         // This would validate the key with a server and upgrade from trial
         Err(LicenseError::VerificationFailed("License key activation not yet implemented".to_string()))
     }
-    
+
     /// Reset trial (for testing only, would be removed in production)
     #[cfg(debug_assertions)]
     pub fn reset_trial(&mut self) -> Result<(), LicenseError> {
@@ -908,10 +908,10 @@ struct LicenseCache {
 pub enum LicenseError {
     #[error("Steam initialization failed: {0}")]
     SteamError(String),
-    
+
     #[error("Windows Store error: {0}")]
     WindowsStoreError(String),
-    
+
     #[error("Apple App Store error: {0}")]
     AppleStoreError(String),
 
@@ -926,7 +926,7 @@ pub enum LicenseError {
 
     #[error("Network error: {0}")]
     NetworkError(String),
-    
+
     #[error("Trial expired")]
     TrialExpired,
 }
@@ -940,7 +940,7 @@ mod tests {
         let status = LicenseStatus::default();
         assert!(matches!(status, LicenseStatus::Verifying));
     }
-    
+
     #[test]
     fn test_license_status_has_access() {
         assert!(LicenseStatus::Valid.has_access());
@@ -949,7 +949,7 @@ mod tests {
         assert!(!LicenseStatus::Trial { days_remaining: 0, first_run: false }.has_access());
         assert!(!LicenseStatus::TrialExpired.has_access());
     }
-    
+
     #[test]
     fn test_trial_info_creation() {
         let trial = TrialInfo::new();
@@ -957,7 +957,7 @@ mod tests {
         assert!(!trial.is_expired());
         assert_eq!(trial.launch_count, 1);
     }
-    
+
     #[test]
     fn test_trial_info_expiry() {
         let mut trial = TrialInfo::new();
@@ -972,7 +972,7 @@ mod tests {
         assert_eq!(SpaceyEntitlement::Browser.name(), "Spacey Browser");
         assert_eq!(SpaceyEntitlement::AiPro.name(), "AI Copilot Pro");
     }
-    
+
     #[test]
     fn test_entitlement_trial_availability() {
         assert!(SpaceyEntitlement::Browser.available_in_trial());
@@ -986,13 +986,13 @@ mod tests {
         let manager = LicenseManager::new();
         assert!(matches!(manager.status(), LicenseStatus::Verifying));
     }
-    
+
     #[test]
     fn test_simple_hash() {
         let hash1 = simple_hash("test");
         let hash2 = simple_hash("test");
         let hash3 = simple_hash("different");
-        
+
         assert_eq!(hash1, hash2);
         assert_ne!(hash1, hash3);
     }
