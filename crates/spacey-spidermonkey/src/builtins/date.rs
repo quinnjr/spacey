@@ -525,7 +525,7 @@ fn make_date(
 
     // Very rough approximation
     let days_since_epoch = (y - 1970) * 365 + ((month as i32) * 30) + (day as i32) - 1;
-    
+
 
     (days_since_epoch as f64) * 86400000.0
         + hours * 3600000.0
