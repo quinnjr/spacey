@@ -207,7 +207,7 @@ impl Renderer {
 
         action
     }
-    
+
     /// Render the page with both AI and Extensions panels
     pub fn render_with_panels(
         &mut self,
@@ -235,7 +235,7 @@ impl Renderer {
         let full_output = self.egui_ctx.run(raw_input, |ctx| {
             // Render the AI panel (on the right)
             ai_action = render_ai_panel(ctx, ai_state);
-            
+
             // Render the extensions panel
             ext_action = render_extensions_panel(ctx, ext_state, installed);
 

@@ -108,7 +108,7 @@ impl ExtensionLoader {
     /// Load an unpacked extension from a directory
     pub fn load_unpacked(&mut self, path: &Path) -> Result<ExtensionId, ExtensionError> {
         let manifest_path = path.join("manifest.json");
-        
+
         if !manifest_path.exists() {
             return Err(ExtensionError::ManifestNotFound);
         }
@@ -143,7 +143,7 @@ impl ExtensionLoader {
     /// Load a temporary (developer) extension
     pub fn load_temporary(&mut self, path: &Path) -> Result<ExtensionId, ExtensionError> {
         let id = self.load_unpacked(path)?;
-        
+
         if let Some(ext) = self.extensions.get_mut(&id) {
             ext.temporary = true;
         }
@@ -357,7 +357,7 @@ impl ExtensionLoader {
     pub fn read_extension_file(&self, id: &str, path: &str) -> Result<Vec<u8>, ExtensionError> {
         let extension = self.get(id).ok_or(ExtensionError::NotFound)?;
         let file_path = extension.path.join(path);
-        
+
         fs::read(&file_path).map_err(|e| ExtensionError::IoError(e.to_string()))
     }
 }

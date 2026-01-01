@@ -94,7 +94,7 @@ impl ExtensionManager {
 
         // Download XPI
         let xpi_path = self.data_dir.join("downloads").join(format!("{}.xpi", slug));
-        
+
         if let Some(parent) = xpi_path.parent() {
             std::fs::create_dir_all(parent).ok();
         }
@@ -206,7 +206,7 @@ impl ExtensionManager {
     pub fn get_content_scripts_for_url(&self, url: &str) -> Vec<(Extension, manifest::ContentScript)> {
         let loader = self.loader.read();
         let content_scripts = loader.get_content_scripts_for_url(url);
-        
+
         content_scripts
             .into_iter()
             .map(|(ext, cs)| (ext.clone(), cs.clone()))
@@ -229,7 +229,7 @@ mod tests {
     fn test_extension_manager_creation() {
         let temp_dir = TempDir::new().unwrap();
         let manager = ExtensionManager::new(temp_dir.path().to_path_buf());
-        
+
         assert!(manager.list().is_empty());
     }
 }

@@ -33,7 +33,7 @@ impl Page {
             js_engine: js_engine.clone(),
         }
     }
-    
+
     /// Inject and execute a script in this page's context
     pub fn inject_script(&self, script: &str) -> Result<(), String> {
         log::debug!("Injecting script: {} bytes", script.len());
@@ -70,23 +70,23 @@ impl Page {
 
     fn extract_text_content(node: &Handle) -> String {
         let mut text = String::new();
-        
+
         match &node.data {
             NodeData::Text { contents } => {
                 text.push_str(&contents.borrow());
             }
             NodeData::Element { name, .. } => {
                 let tag = name.local.as_ref();
-                
+
                 // Add newlines for block elements
                 if matches!(tag, "p" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "li") {
                     text.push('\n');
                 }
-                
+
                 for child in node.children.borrow().iter() {
                     text.push_str(&Self::extract_text_content(child));
                 }
-                
+
                 if matches!(tag, "p" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6") {
                     text.push('\n');
                 }
@@ -97,7 +97,7 @@ impl Page {
                 }
             }
         }
-        
+
         text
     }
 
@@ -113,7 +113,7 @@ impl Page {
                     if let NodeData::Text { contents } = &child.data {
                         let script = contents.borrow().to_string();
                         log::info!("Executing inline script: {} bytes", script.len());
-                        
+
                         match js_engine.eval(&script) {
                             Ok(result) => log::debug!("Script result: {}", result),
                             Err(e) => log::error!("Script error: {}", e),
@@ -134,7 +134,7 @@ impl Page {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.heading(&self.title);
                 ui.separator();
-                
+
                 // Render content
                 self.render_node(&self.dom.document, ui);
             });
@@ -145,7 +145,7 @@ impl Page {
         match &node.data {
             NodeData::Element { name, .. } => {
                 let tag = name.local.as_ref();
-                
+
                 match tag {
                     "h1" => {
                         for child in node.children.borrow().iter() {

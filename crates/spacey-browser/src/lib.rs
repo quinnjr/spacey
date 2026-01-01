@@ -5,6 +5,7 @@
 //! - HTML parsing and rendering
 //! - JavaScript execution via Spacey engine
 //! - Firefox-compatible extension system with FULL webRequest support
+//! - Built-in Spacey Shield privacy protection
 
 pub mod ai;
 pub mod ai_ui;
@@ -13,7 +14,9 @@ pub mod extensions;
 pub mod extensions_ui;
 pub mod page;
 pub mod renderer;
+pub mod shield;
 
 pub use browser::Browser;
 pub use ai::{AiAgent, AgentConfig};
 pub use extensions::{ExtensionManager, Extension, ExtensionManifest};
+pub use shield::{SpaceyShield, ShieldLevel, ShieldStats};

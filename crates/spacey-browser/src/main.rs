@@ -22,13 +22,14 @@ mod extensions;
 mod extensions_ui;
 mod renderer;
 mod page;
+mod shield;
 
 use ai::AgentConfig;
 use browser::Browser;
 
 fn main() {
     env_logger::init();
-    
+
     println!("🚀 Starting Spacey Browser...");
     println!("   JavaScript Engine: Spacey");
     println!("   Rendering: Custom (wgpu + egui)");

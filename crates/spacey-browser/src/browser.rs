@@ -10,6 +10,7 @@ use crate::ai::tools::{ClickTool, TypeTool, NavigateTool, ExtractTool, ScrollToo
 use crate::ai_ui::{AiUiState, AiPanelAction, ChatRole};
 use crate::extensions::{ExtensionManager, ExtensionError, RequestDetails, ResourceType, RequestAction};
 use crate::extensions_ui::{ExtensionsUiState, ExtensionsAction};
+use crate::shield::{SpaceyShield, ShieldLevel, BlockReason};
 use crate::renderer::Renderer;
 use crate::page::Page;
 
@@ -20,29 +21,39 @@ pub struct Browser {
     js_engine: SpaceyServo,
     current_page: Option<Page>,
     current_url: String,
-    
+
     // AI components
     ai_agent: Option<AiAgent>,
     ai_ui_state: AiUiState,
     ai_task_running: bool,
-    
+
     // Extension system
     extension_manager: ExtensionManager,
     extensions_ui_state: ExtensionsUiState,
+    
+    // Built-in privacy protection
+    shield: SpaceyShield,
 }
 
 impl Browser {
     pub fn new(window: Arc<Window>) -> Self {
         let renderer = Renderer::new(Arc::clone(&window));
         let js_engine = SpaceyServo::new();
-        
+
         // Setup extension system data directory
         let data_dir = dirs::data_dir()
             .unwrap_or_else(|| PathBuf::from("."))
             .join("spacey-browser");
-        
+
         let extension_manager = ExtensionManager::new(data_dir);
         
+        // Initialize built-in privacy protection
+        let shield = SpaceyShield::new();
+        log::info!(
+            "🛡️ Spacey Shield initialized with {} blocked domains",
+            shield.blocked_domain_count()
+        );
+
         // Load a default page
         let mut browser = Self {
             window: Arc::clone(&window),
@@ -55,21 +66,29 @@ impl Browser {
             ai_task_running: false,
             extension_manager,
             extensions_ui_state: ExtensionsUiState::new(),
+            shield,
         };
-        
+
         // Initialize installed extensions
         if let Err(e) = browser.extension_manager.init() {
             log::warn!("Failed to load extensions: {:?}", e);
         }
-        
+
         // Load the welcome page
         browser.navigate_to_welcome();
-        
+
         browser
     }
 
     fn navigate_to_welcome(&mut self) {
         let ext_count = self.extension_manager.list().len();
+        let shield_domains = self.shield.blocked_domain_count();
+        let shield_level = match self.shield.level() {
+            ShieldLevel::Off => "Off",
+            ShieldLevel::Standard => "Standard",
+            ShieldLevel::Strict => "Strict",
+        };
+        
         let html = format!(r#"
 <!DOCTYPE html>
 <html>
@@ -79,7 +98,7 @@ impl Browser {
 <body>
     <h1>🚀 Welcome to Spacey Browser!</h1>
     <p>This is a minimal web browser powered by the Spacey JavaScript engine.</p>
-    
+
     <h2>Features:</h2>
     <ul>
         <li>✅ Custom JavaScript engine (Spacey)</li>
@@ -91,11 +110,23 @@ impl Browser {
         <li>🚧 CSS support (coming soon)</li>
         <li>🚧 Full DOM API (in progress)</li>
     </ul>
-    
+
+    <h2>🛡️ Spacey Shield:</h2>
+    <p><strong>Built-in privacy protection is ACTIVE!</strong></p>
+    <ul>
+        <li>Protection Level: <strong>{}</strong></li>
+        <li>Blocking {} known ad/tracker domains</li>
+        <li>Fingerprint protection enabled</li>
+        <li>HTTPS upgrade enabled</li>
+        <li>Tracking parameter stripping enabled</li>
+    </ul>
+    <p>Spacey Shield complements extensions like uBlock Origin - they work together!</p>
+    <p>Shield handles domain blocking + fingerprinting, uBlock handles cosmetic rules + advanced filters.</p>
+
     <h2>Extensions:</h2>
     <p>Install extensions from the Firefox Add-ons Marketplace (AMO)!</p>
     <p>Unlike Chrome, we support FULL webRequest blocking for ad blockers like uBlock Origin.</p>
-    
+
     <h2>AI Assistant:</h2>
     <p>Use the AI panel on the right to automate browsing tasks!</p>
     <p>Try commands like:</p>
@@ -104,10 +135,10 @@ impl Browser {
         <li>"Navigate to github.com"</li>
         <li>"Extract all headings from this page"</li>
     </ul>
-    
+
     <h2>Try some JavaScript:</h2>
     <p>Open the developer console to execute JavaScript with the Spacey engine.</p>
-    
+
     <script>
         console.log("Hello from Spacey!");
         var x = 42;
@@ -116,8 +147,8 @@ impl Browser {
     </script>
 </body>
 </html>
-        "#, ext_count);
-        
+        "#, ext_count, shield_level, shield_domains);
+
         self.current_page = Some(Page::from_html(&html, &self.js_engine));
         self.current_url = "about:welcome".to_string();
         self.update_ai_page_context();
@@ -164,7 +195,7 @@ impl Browser {
         js_engine: &SpaceyServo,
     ) -> (ToolResult, Option<String>) {
         let mut nav_url = None;
-        
+
         let result = match tool {
             BrowserTool::Click { selector } => {
                 ClickTool::execute(&selector, page_content)
@@ -198,7 +229,7 @@ impl Browser {
                 WaitTool::execute(&selector, timeout_ms)
             }
         };
-        
+
         (result, nav_url)
     }
 
@@ -214,11 +245,11 @@ impl Browser {
             agent.set_page_context(context);
         }
     }
-    
+
     /// Inject content scripts for the current URL
     fn inject_content_scripts(&mut self) {
         let scripts = self.extension_manager.get_content_scripts_for_url(&self.current_url);
-        
+
         if let Some(page) = &self.current_page {
             for (ext, content_script) in scripts {
                 log::info!(
@@ -226,7 +257,7 @@ impl Browser {
                     ext.manifest.name,
                     self.current_url
                 );
-                
+
                 // Read and inject each JS file
                 for js_file in &content_script.js {
                     if let Ok(script) = self.extension_manager
@@ -238,7 +269,7 @@ impl Browser {
                             let wrapped = self.extension_manager
                                 .runtime()
                                 .wrap_content_script(&ext.id, &script_str, "ISOLATED");
-                            
+
                             if let Err(e) = page.inject_script(&wrapped) {
                                 log::warn!("Failed to inject content script: {}", e);
                             }
@@ -248,11 +279,10 @@ impl Browser {
             }
         }
     }
-    
-    /// Process a network request through extensions
-    #[allow(dead_code)]
-    fn process_request(&self, url: &str, resource_type: ResourceType) -> RequestAction {
-        let details = RequestDetails {
+
+    /// Create RequestDetails for a URL
+    fn make_request_details(&self, url: &str, resource_type: ResourceType) -> RequestDetails {
+        RequestDetails {
             request_id: self.extension_manager.runtime().webrequest().next_request_id(),
             url: url.to_string(),
             method: "GET".to_string(),
@@ -272,8 +302,13 @@ impl Browser {
             status_line: None,
             request_body: None,
             third_party: !url.contains(&self.current_url),
-        };
-        
+        }
+    }
+
+    /// Process a network request through extensions
+    #[allow(dead_code)]
+    fn process_request(&self, url: &str, resource_type: ResourceType) -> RequestAction {
+        let details = self.make_request_details(url, resource_type);
         self.extension_manager.process_request(&details)
     }
 
@@ -285,7 +320,7 @@ impl Browser {
     pub fn render(&mut self) {
         // Get installed extensions for the UI
         let installed = self.extension_manager.list();
-        
+
         // Handle AI panel actions
         let (ai_action, ext_action) = self.renderer.render_with_panels(
             self.current_page.as_ref(),
@@ -317,13 +352,13 @@ impl Browser {
                 }
             }
         }
-        
+
         // Process extension UI actions
         if let Some(action) = ext_action {
             self.handle_extension_action(action);
         }
     }
-    
+
     /// Handle extension UI actions
     fn handle_extension_action(&mut self, action: ExtensionsAction) {
         match action {
@@ -449,9 +484,42 @@ impl Browser {
     pub fn navigate(&mut self, url: &str) {
         log::info!("Navigating to: {}", url);
         
+        // Check HTTPS upgrade first
+        if let Some(upgraded_url) = self.shield.should_upgrade_https(url) {
+            log::info!("🛡️ Shield upgrading to HTTPS: {}", upgraded_url);
+            self.navigate(&upgraded_url);
+            return;
+        }
+        
+        // Check Spacey Shield (built-in protection)
+        let details = self.make_request_details(url, ResourceType::MainFrame);
+        if let Some(reason) = self.shield.should_block(&details) {
+            log::info!("🛡️ Shield blocked: {} ({})", url, reason.description());
+            let html = format!(r#"
+<!DOCTYPE html>
+<html>
+<head><title>Blocked by Spacey Shield</title></head>
+<body>
+    <h1>🛡️ Blocked by Spacey Shield</h1>
+    <p>This page was blocked by built-in privacy protection.</p>
+    <p><strong>Reason:</strong> {}</p>
+    <p><strong>URL:</strong> {}</p>
+    <hr>
+    <p>If you believe this is a mistake, you can:</p>
+    <ul>
+        <li>Add this site to Shield exceptions</li>
+        <li>Temporarily disable Shield protection</li>
+    </ul>
+</body>
+</html>"#, reason.description(), url);
+            self.current_page = Some(Page::from_html(&html, &self.js_engine));
+            self.current_url = "about:blocked".to_string();
+            return;
+        }
+
         // Check if any extension wants to block/redirect this navigation
         let action = self.process_request(url, ResourceType::MainFrame);
-        
+
         match action {
             RequestAction::Cancel => {
                 log::info!("Navigation blocked by extension: {}", url);
@@ -460,8 +528,8 @@ impl Browser {
 <html>
 <head><title>Blocked</title></head>
 <body>
-    <h1>🛡️ Request Blocked</h1>
-    <p>This page was blocked by an extension.</p>
+    <h1>🧩 Blocked by Extension</h1>
+    <p>This page was blocked by a browser extension.</p>
     <p>URL: {}</p>
 </body>
 </html>"#, url);
@@ -476,7 +544,7 @@ impl Browser {
             }
             _ => {}
         }
-        
+
         // For now, just show a placeholder
         let html = format!(
             r#"
@@ -494,13 +562,13 @@ impl Browser {
             "#,
             url, url
         );
-        
+
         self.current_url = url.to_string();
         self.current_page = Some(Page::from_html(&html, &self.js_engine));
-        
+
         // Inject content scripts for this URL
         self.inject_content_scripts();
-        
+
         self.update_ai_page_context();
         self.window.request_redraw();
     }
@@ -530,19 +598,48 @@ impl Browser {
     pub fn toggle_ai_panel(&mut self) {
         self.ai_ui_state.toggle_panel();
     }
-    
+
     /// Toggle extensions panel visibility
     pub fn toggle_extensions_panel(&mut self) {
         self.extensions_ui_state.toggle_panel();
     }
-    
+
     /// Get the extension manager
     pub fn extension_manager(&self) -> &ExtensionManager {
         &self.extension_manager
     }
-    
+
     /// Get the current URL
     pub fn current_url(&self) -> &str {
         &self.current_url
+    }
+    
+    // ===== Spacey Shield Controls =====
+    
+    /// Get reference to Spacey Shield
+    pub fn shield(&self) -> &SpaceyShield {
+        &self.shield
+    }
+    
+    /// Set Shield protection level
+    pub fn set_shield_level(&self, level: ShieldLevel) {
+        log::info!("🛡️ Shield level changed to: {:?}", level);
+        self.shield.set_level(level);
+    }
+    
+    /// Get Shield statistics
+    pub fn shield_stats(&self) -> crate::shield::ShieldStats {
+        self.shield.stats()
+    }
+    
+    /// Add a site exception to Shield
+    pub fn add_shield_exception(&self, domain: &str) {
+        log::info!("🛡️ Shield exception added for: {}", domain);
+        self.shield.add_exception(domain);
+    }
+    
+    /// Remove a site exception from Shield
+    pub fn remove_shield_exception(&self, domain: &str) {
+        self.shield.remove_exception(domain);
     }
 }
