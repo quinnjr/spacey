@@ -6,6 +6,8 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 description = "Servo browser integration with Spacey JavaScript engine"
+keywords = ["servo", "browser", "javascript", "engine", "dom"]
+categories = ["web-programming", "gui"]
 
 [dependencies]
 # Spacey JavaScript engine

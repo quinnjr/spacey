@@ -88,6 +88,13 @@ export const PROVIDER_INFO: Record<AiProviderType, {
 })
 export class AiProviderService {
   private readonly STORAGE_KEY = 'spacey_ai_config';
+  
+  private readonly DEFAULT_CONFIG: AiProviderConfig = {
+    enabled: true,
+    localEnabled: true,
+    provider: 'local',
+    model: 'phi-3-mini-4k'
+  };
 
   /**
    * Get the current AI configuration
@@ -100,7 +107,7 @@ export class AiProviderService {
 
     // Fallback to localStorage for development
     const stored = this.getStoredConfig();
-    return stored || { provider: 'local', model: 'phi-3-mini-4k' };
+    return stored || { ...this.DEFAULT_CONFIG };
   }
 
   /**
@@ -119,6 +126,78 @@ export class AiProviderService {
       toStore.apiKey = this.obfuscateKey(toStore.apiKey);
     }
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(toStore));
+  }
+  
+  /**
+   * Check if AI is enabled
+   */
+  isEnabled(): boolean {
+    return this.getConfig().enabled;
+  }
+  
+  /**
+   * Enable or disable AI features entirely
+   */
+  setEnabled(enabled: boolean): void {
+    const config = this.getConfig();
+    config.enabled = enabled;
+    this.setConfig(config);
+  }
+  
+  /**
+   * Check if local model is enabled
+   */
+  isLocalEnabled(): boolean {
+    return this.getConfig().localEnabled;
+  }
+  
+  /**
+   * Enable or disable the local model
+   * When disabled, the model is unloaded to free GPU/CPU memory
+   */
+  setLocalEnabled(enabled: boolean): void {
+    const config = this.getConfig();
+    config.localEnabled = enabled;
+    
+    // If disabling local and it's the current provider, switch to another if available
+    if (!enabled && config.provider === 'local') {
+      // Check if we have other providers configured
+      if (this.hasApiKey('claude')) {
+        config.provider = 'claude';
+      } else if (this.hasApiKey('openai')) {
+        config.provider = 'openai';
+      }
+      // Otherwise stay on local (will show as disabled in UI)
+    }
+    
+    this.setConfig(config);
+    
+    // Notify browser to unload the model if available
+    if (typeof window !== 'undefined' && window.spaceyBridge?.setLocalModelEnabled) {
+      window.spaceyBridge.setLocalModelEnabled(enabled);
+    }
+  }
+  
+  /**
+   * Get available providers (those that can be used)
+   */
+  getAvailableProviders(): AiProviderType[] {
+    const config = this.getConfig();
+    const providers: AiProviderType[] = [];
+    
+    if (config.localEnabled) {
+      providers.push('local');
+    }
+    
+    if (this.hasApiKey('claude')) {
+      providers.push('claude');
+    }
+    
+    if (this.hasApiKey('openai')) {
+      providers.push('openai');
+    }
+    
+    return providers;
   }
 
   /**
@@ -204,12 +283,22 @@ export class AiProviderService {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (!stored) return null;
 
-      const config = JSON.parse(stored) as AiProviderConfig;
+      const config = JSON.parse(stored) as Partial<AiProviderConfig>;
+      
+      // Merge with defaults to handle missing fields from older configs
+      const merged: AiProviderConfig = {
+        enabled: config.enabled ?? true,
+        localEnabled: config.localEnabled ?? true,
+        provider: config.provider ?? 'local',
+        model: config.model,
+        apiKey: config.apiKey,
+      };
+      
       // Deobfuscate key if present
-      if (config.apiKey) {
-        config.apiKey = this.deobfuscateKey(config.apiKey);
+      if (merged.apiKey) {
+        merged.apiKey = this.deobfuscateKey(merged.apiKey);
       }
-      return config;
+      return merged;
     } catch {
       return null;
     }

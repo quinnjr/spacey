@@ -257,10 +257,20 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-          <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors" *ngIf="aiProvider === 'local'">
+          <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors">
+            <div>
+              <span class="font-medium text-[--color-text-bright]">Local Model</span>
+              <p class="text-sm text-[--color-text-faint]">Enable on-device Phi-3 (~4GB RAM). Disable to save resources.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="aiSettings.localEnabled" (change)="onLocalModelToggle()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="flex justify-between items-center py-4 px-4 rounded-lg hover:bg-purple-500/5 transition-colors" *ngIf="aiSettings.localEnabled">
             <div>
               <span class="font-medium text-[--color-text-bright]">Auto-Initialize</span>
-              <p class="text-sm text-[--color-text-faint]">Load local model at launch (~4GB RAM)</p>
+              <p class="text-sm text-[--color-text-faint]">Load local model at launch</p>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" [(ngModel)]="aiSettings.autoLoad" (change)="onToggle('autoLoad', 'ai')">
@@ -277,6 +287,15 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
+        </div>
+      </div>
+      
+      <!-- Local Model Disabled Notice -->
+      <div *ngIf="!aiSettings.localEnabled && aiProvider === 'local'" class="alert alert-warning mb-8">
+        <span class="text-xl">⚠️</span>
+        <div class="text-sm text-[--color-text-dim]">
+          <strong class="text-yellow-400">Local model is disabled.</strong>
+          Select Claude or OpenAI above, or enable the local model to use AI features.
         </div>
       </div>
 

@@ -52,6 +52,7 @@ export class SettingsComponent implements OnInit {
   // AI settings
   aiSettings = {
     enabled: true,
+    localEnabled: true,
     autoLoad: false,
     maxIterations: 10,
     showThoughts: true,
@@ -109,6 +110,9 @@ export class SettingsComponent implements OnInit {
     const aiConfig = this.aiProviderService.getConfig();
     this.aiProvider = aiConfig.provider;
     this.aiModel = aiConfig.model || this.getDefaultModel(aiConfig.provider);
+    this.aiSettings.enabled = aiConfig.enabled;
+    this.aiSettings.localEnabled = aiConfig.localEnabled;
+    
     if (aiConfig.apiKey) {
       this.aiApiKey = aiConfig.apiKey;
       this.aiKeyTestStatus = 'valid'; // Assume stored key is valid
@@ -187,6 +191,8 @@ export class SettingsComponent implements OnInit {
 
   saveAiConfig() {
     const config: AiProviderConfig = {
+      enabled: this.aiSettings.enabled,
+      localEnabled: this.aiSettings.localEnabled,
       provider: this.aiProvider,
       model: this.aiModel,
     };
@@ -196,6 +202,28 @@ export class SettingsComponent implements OnInit {
     }
 
     this.aiProviderService.setConfig(config);
+  }
+  
+  /**
+   * Handle toggling the local model on/off
+   */
+  onLocalModelToggle() {
+    // If disabling local model while it's the active provider
+    if (!this.aiSettings.localEnabled && this.aiProvider === 'local') {
+      // Check if we have cloud providers configured
+      if (this.aiProviderService.hasApiKey('claude')) {
+        this.aiProvider = 'claude';
+        this.aiModel = this.getDefaultModel('claude');
+      } else if (this.aiProviderService.hasApiKey('openai')) {
+        this.aiProvider = 'openai';
+        this.aiModel = this.getDefaultModel('openai');
+      }
+      // Otherwise stay on local (but it won't work until re-enabled)
+    }
+    
+    // Save the configuration
+    this.aiProviderService.setLocalEnabled(this.aiSettings.localEnabled);
+    this.saveAiConfig();
   }
 
   clearApiKey() {
@@ -242,6 +270,7 @@ export class SettingsComponent implements OnInit {
     };
     this.aiSettings = {
       enabled: true,
+      localEnabled: true,
       autoLoad: false,
       maxIterations: 10,
       showThoughts: true,

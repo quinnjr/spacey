@@ -4,6 +4,10 @@ description = "Developer-friendly macros for the Spacey JavaScript engine"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords = ["javascript", "macros", "spacey", "engine"]
+categories = ["development-tools", "rust-patterns"]
 
 [dependencies]
 # No dependencies needed for declarative macros

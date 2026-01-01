@@ -3,6 +3,11 @@ name = "spacey-spidermonkey"
 description = "A JavaScript engine inspired by SpiderMonkey, implemented in Rust"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords = ["javascript", "engine", "spidermonkey", "ecmascript", "interpreter"]
+categories = ["compilers", "web-programming"]
 
 [features]
 default = ["async", "parallel"]

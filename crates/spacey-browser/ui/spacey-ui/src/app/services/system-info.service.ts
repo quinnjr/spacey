@@ -10,6 +10,8 @@ export interface SystemInfo {
 }
 
 export interface AiProviderConfig {
+  enabled: boolean;
+  localEnabled: boolean;
   provider: 'local' | 'claude' | 'openai';
   model?: string;
   apiKey?: string;
@@ -26,6 +28,9 @@ declare global {
       getAiConfig?: () => AiProviderConfig;
       setAiConfig?: (config: AiProviderConfig) => void;
       testApiKey?: (provider: string, apiKey: string) => Promise<{ valid: boolean; error?: string }>;
+      // Local model control
+      setLocalModelEnabled?: (enabled: boolean) => void;
+      unloadLocalModel?: () => void;
     };
   }
 }
