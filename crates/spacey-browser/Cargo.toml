@@ -65,9 +65,18 @@ dirs = "5.0"
 base64 = "0.22"
 png = "0.17"
 
-# Steam integration (optional)
+# Platform integrations (optional)
 steamworks = { version = "0.11", optional = true }
 hostname = "0.4.2"
+whoami = "1.5"
+
+# Windows Store integration (Windows only)
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = [
+    "Foundation",
+    "Services_Store",
+    "System",
+], optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
@@ -77,4 +86,9 @@ tempfile = "3.10"
 default = []
 cuda = ["candle-core/cuda"]
 metal = ["candle-core/metal"]
+# Steam integration
 steam = ["steamworks"]
+# Windows Store integration (requires Windows SDK)
+windows-store = ["windows"]
+# Apple App Store integration (requires macOS)
+apple-store = []

@@ -21,6 +21,7 @@
 //! 4. **Upgrade to HTTPS**: Auto-upgrade insecure requests where possible
 
 pub mod blocklist;
+pub mod disconnect;
 pub mod fingerprint;
 pub mod tracker;
 
@@ -30,6 +31,7 @@ use parking_lot::RwLock;
 use crate::extensions::apis::webrequest::{RequestDetails, ResourceType};
 
 pub use blocklist::{BlockList, BlockReason};
+pub use disconnect::{DisconnectList, DisconnectCategory, TrackerService};
 pub use fingerprint::FingerprintProtection;
 pub use tracker::TrackerIsolation;
 
@@ -54,18 +56,26 @@ pub struct ShieldStats {
     pub trackers_blocked: u64,
     /// Ads blocked
     pub ads_blocked: u64,
+    /// Social widgets blocked
+    pub social_blocked: u64,
     /// Fingerprint attempts blocked
     pub fingerprints_blocked: u64,
+    /// Cryptominers blocked
+    pub cryptominers_blocked: u64,
     /// Requests upgraded to HTTPS
     pub https_upgrades: u64,
+    /// Disconnect list matches
+    pub disconnect_blocked: u64,
 }
 
 /// The main Spacey Shield protection system
 pub struct SpaceyShield {
     /// Protection level
     level: RwLock<ShieldLevel>,
-    /// Domain blocklist
+    /// Domain blocklist (Spacey curated)
     blocklist: BlockList,
+    /// Disconnect tracking protection list
+    disconnect: DisconnectList,
     /// Fingerprint protection
     fingerprint: FingerprintProtection,
     /// Tracker isolation
@@ -74,6 +84,8 @@ pub struct SpaceyShield {
     exceptions: RwLock<HashSet<String>>,
     /// Statistics
     stats: RwLock<ShieldStats>,
+    /// Whether Disconnect list is enabled
+    disconnect_enabled: RwLock<bool>,
 }
 
 impl SpaceyShield {
@@ -82,11 +94,28 @@ impl SpaceyShield {
         Self {
             level: RwLock::new(ShieldLevel::Standard),
             blocklist: BlockList::new(),
+            disconnect: DisconnectList::new(),
             fingerprint: FingerprintProtection::new(),
             tracker_isolation: TrackerIsolation::new(),
             exceptions: RwLock::new(HashSet::new()),
             stats: RwLock::new(ShieldStats::default()),
+            disconnect_enabled: RwLock::new(true), // Enabled by default
         }
+    }
+    
+    /// Enable or disable the Disconnect list
+    pub fn set_disconnect_enabled(&self, enabled: bool) {
+        *self.disconnect_enabled.write() = enabled;
+    }
+    
+    /// Check if Disconnect list is enabled
+    pub fn disconnect_enabled(&self) -> bool {
+        *self.disconnect_enabled.read()
+    }
+    
+    /// Get the Disconnect list for inspection
+    pub fn disconnect_list(&self) -> &DisconnectList {
+        &self.disconnect
     }
 
     /// Set the protection level
@@ -142,7 +171,7 @@ impl SpaceyShield {
             }
         }
 
-        // Check domain blocklist
+        // Check domain blocklist (Spacey curated list)
         if let Some(domain) = extract_domain(&details.url) {
             if let Some(reason) = self.blocklist.check(&domain, level) {
                 let mut stats = self.stats.write();
@@ -150,9 +179,53 @@ impl SpaceyShield {
                 match reason {
                     BlockReason::Advertising => stats.ads_blocked += 1,
                     BlockReason::Tracker => stats.trackers_blocked += 1,
+                    BlockReason::Cryptominer => stats.cryptominers_blocked += 1,
+                    BlockReason::Fingerprinting => stats.fingerprints_blocked += 1,
                     _ => {}
                 }
                 return Some(reason);
+            }
+            
+            // Check Disconnect list if enabled
+            if *self.disconnect_enabled.read() {
+                if let Some(category) = self.disconnect.check(&domain, level) {
+                    let mut stats = self.stats.write();
+                    stats.requests_blocked += 1;
+                    stats.disconnect_blocked += 1;
+                    
+                    // Map Disconnect category to BlockReason
+                    let reason = match category {
+                        DisconnectCategory::Advertising => {
+                            stats.ads_blocked += 1;
+                            BlockReason::Advertising
+                        }
+                        DisconnectCategory::Analytics => {
+                            stats.trackers_blocked += 1;
+                            BlockReason::Tracker
+                        }
+                        DisconnectCategory::Social => {
+                            stats.social_blocked += 1;
+                            BlockReason::Tracker // Social tracking
+                        }
+                        DisconnectCategory::Fingerprinting => {
+                            stats.fingerprints_blocked += 1;
+                            BlockReason::Fingerprinting
+                        }
+                        DisconnectCategory::Cryptomining => {
+                            stats.cryptominers_blocked += 1;
+                            BlockReason::Cryptominer
+                        }
+                        DisconnectCategory::Content => {
+                            stats.trackers_blocked += 1;
+                            BlockReason::Tracker
+                        }
+                        DisconnectCategory::Disconnect => {
+                            stats.trackers_blocked += 1;
+                            BlockReason::Tracker
+                        }
+                    };
+                    return Some(reason);
+                }
             }
         }
 

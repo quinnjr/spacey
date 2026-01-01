@@ -289,6 +289,41 @@ impl SpaceyEntitlement {
     }
 }
 
+/// The platform the app is running on
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Platform {
+    /// Steam (any OS)
+    Steam,
+    /// Microsoft Store (Windows)
+    WindowsStore,
+    /// Apple App Store (macOS/iOS)
+    AppleStore,
+    /// Standalone (direct download, trial mode)
+    Standalone,
+}
+
+impl Platform {
+    /// Get human-readable name
+    pub fn name(&self) -> &'static str {
+        match self {
+            Platform::Steam => "Steam",
+            Platform::WindowsStore => "Microsoft Store",
+            Platform::AppleStore => "App Store",
+            Platform::Standalone => "Standalone",
+        }
+    }
+    
+    /// Get store URL
+    pub fn store_url(&self) -> Option<&'static str> {
+        match self {
+            Platform::Steam => Some("https://store.steampowered.com/app/0"), // Placeholder
+            Platform::WindowsStore => Some("ms-windows-store://pdp/?ProductId=9XXXXXXXXXX"),
+            Platform::AppleStore => Some("macappstore://apps.apple.com/app/spacey-browser"),
+            Platform::Standalone => Some("https://spacey.pegasusheavy.dev"),
+        }
+    }
+}
+
 /// License manager - handles all licensing operations
 pub struct LicenseManager {
     /// Current license status
@@ -299,9 +334,17 @@ pub struct LicenseManager {
     entitlements: Arc<RwLock<Vec<Entitlement>>>,
     /// Trial information
     trial_info: Arc<RwLock<Option<TrialInfo>>>,
+    /// Detected platform
+    platform: Platform,
     /// Steam client (if available)
     #[cfg(feature = "steam")]
     steam: Option<steam::SteamLicense>,
+    /// Windows Store client (if available)
+    #[cfg(all(windows, feature = "windows-store"))]
+    windows_store: Option<windows::WindowsStoreLicense>,
+    /// Apple Store client (if available)
+    #[cfg(all(target_os = "macos", feature = "apple-store"))]
+    apple_store: Option<apple::AppStoreLicense>,
     /// Data directory for license/trial storage
     data_dir: PathBuf,
     /// Offline license cache path
@@ -325,48 +368,124 @@ impl LicenseManager {
             user: Arc::new(RwLock::new(None)),
             entitlements: Arc::new(RwLock::new(Vec::new())),
             trial_info: Arc::new(RwLock::new(None)),
+            platform: Platform::Standalone,
             #[cfg(feature = "steam")]
             steam: None,
+            #[cfg(all(windows, feature = "windows-store"))]
+            windows_store: None,
+            #[cfg(all(target_os = "macos", feature = "apple-store"))]
+            apple_store: None,
             data_dir,
             cache_path,
             trial_path,
         }
     }
+    
+    /// Detect the platform we're running on
+    fn detect_platform() -> Platform {
+        // Check Steam first (cross-platform)
+        #[cfg(feature = "steam")]
+        {
+            if std::env::var("SteamAppId").is_ok() || std::env::var("SteamClientLaunch").is_ok() {
+                return Platform::Steam;
+            }
+        }
+        
+        // Check Windows Store
+        #[cfg(all(windows, feature = "windows-store"))]
+        {
+            if Self::is_windows_store_package() {
+                return Platform::WindowsStore;
+            }
+        }
+        
+        // Check Apple Store
+        #[cfg(all(target_os = "macos", feature = "apple-store"))]
+        {
+            if Self::is_apple_store_app() {
+                return Platform::AppleStore;
+            }
+        }
+        
+        Platform::Standalone
+    }
+    
+    #[cfg(all(windows, feature = "windows-store"))]
+    fn is_windows_store_package() -> bool {
+        std::env::var("MSIX_PACKAGE_NAME").is_ok() 
+            || std::path::Path::new("C:\\Program Files\\WindowsApps").exists()
+                && std::env::current_exe()
+                    .map(|p| p.to_string_lossy().contains("WindowsApps"))
+                    .unwrap_or(false)
+    }
+    
+    #[cfg(not(all(windows, feature = "windows-store")))]
+    fn is_windows_store_package() -> bool {
+        false
+    }
+    
+    #[cfg(all(target_os = "macos", feature = "apple-store"))]
+    fn is_apple_store_app() -> bool {
+        // Check for MAS (Mac App Store) receipt
+        std::env::current_exe()
+            .ok()
+            .and_then(|exe| exe.parent().map(|p| p.to_path_buf()))
+            .map(|app_dir| app_dir.join("../_MASReceipt/receipt").exists())
+            .unwrap_or(false)
+    }
+    
+    #[cfg(not(all(target_os = "macos", feature = "apple-store")))]
+    fn is_apple_store_app() -> bool {
+        false
+    }
+    
+    /// Get the current platform
+    pub fn platform(&self) -> Platform {
+        self.platform
+    }
 
     /// Initialize the license manager
     ///
     /// This will:
-    /// 1. Try to initialize Steam if available
-    /// 2. Verify the license
-    /// 3. Load user information
-    /// 4. Check entitlements
-    /// 5. Fall back to trial mode if no license found
-    #[cfg(feature = "steam")]
+    /// 1. Detect the platform
+    /// 2. Initialize the appropriate store client
+    /// 3. Verify the license
+    /// 4. Load user information
+    /// 5. Check entitlements
+    /// 6. Fall back to trial mode if no license found
     pub fn initialize(&mut self) -> Result<(), LicenseError> {
         log::info!("Initializing license manager...");
-
-        // Try Steam first
+        
+        // Detect platform
+        self.platform = Self::detect_platform();
+        log::info!("Detected platform: {:?}", self.platform);
+        
+        match self.platform {
+            Platform::Steam => self.initialize_steam(),
+            Platform::WindowsStore => self.initialize_windows_store(),
+            Platform::AppleStore => self.initialize_apple_store(),
+            Platform::Standalone => self.initialize_standalone(),
+        }
+    }
+    
+    /// Initialize Steam
+    #[cfg(feature = "steam")]
+    fn initialize_steam(&mut self) -> Result<(), LicenseError> {
         match steam::SteamLicense::new() {
             Ok(steam) => {
                 log::info!("Steam client initialized");
 
-                // Verify ownership
                 if steam.verify_ownership()? {
                     *self.status.write() = LicenseStatus::Valid;
 
-                    // Load user info
                     if let Some(user) = steam.get_user_info() {
                         log::info!("Steam user: {} ({})", user.name, user.id);
                         *self.user.write() = Some(user);
                     }
 
-                    // Check entitlements
                     let owned = steam.get_owned_dlc();
                     *self.entitlements.write() = owned;
-
-                    // Cache license for offline use
                     self.cache_license()?;
-
                     self.steam = Some(steam);
                     return Ok(());
                 } else {
@@ -378,20 +497,86 @@ impl LicenseManager {
             }
         }
 
-        // Try offline cache
-        if let Ok(cached) = self.load_cached_license() {
-            *self.status.write() = cached;
-            return Ok(());
-        }
-
-        // Fall back to trial mode
-        self.initialize_trial()
+        self.fallback_to_cache_or_trial()
     }
-
-    /// Initialize without Steam (standalone mode)
+    
     #[cfg(not(feature = "steam"))]
-    pub fn initialize(&mut self) -> Result<(), LicenseError> {
-        log::info!("Initializing license manager (no Steam)...");
+    fn initialize_steam(&mut self) -> Result<(), LicenseError> {
+        self.initialize_standalone()
+    }
+    
+    /// Initialize Windows Store
+    #[cfg(all(windows, feature = "windows-store"))]
+    fn initialize_windows_store(&mut self) -> Result<(), LicenseError> {
+        match windows::WindowsStoreLicense::new() {
+            Ok(store) => {
+                log::info!("Windows Store client initialized");
+                
+                // Note: Full implementation would use async/await
+                // For now, we'll cache the store and verify lazily
+                self.windows_store = Some(store);
+                *self.status.write() = LicenseStatus::Valid;
+                
+                *self.user.write() = Some(LicenseUser {
+                    id: "windows_store".to_string(),
+                    name: whoami::username(),
+                    platform: "windows_store".to_string(),
+                    avatar_url: None,
+                    country: None,
+                });
+                
+                self.cache_license()?;
+                Ok(())
+            }
+            Err(e) => {
+                log::warn!("Windows Store not available: {}", e);
+                self.fallback_to_cache_or_trial()
+            }
+        }
+    }
+    
+    #[cfg(not(all(windows, feature = "windows-store")))]
+    fn initialize_windows_store(&mut self) -> Result<(), LicenseError> {
+        self.initialize_standalone()
+    }
+    
+    /// Initialize Apple Store
+    #[cfg(all(target_os = "macos", feature = "apple-store"))]
+    fn initialize_apple_store(&mut self) -> Result<(), LicenseError> {
+        match apple::AppStoreLicense::new() {
+            Ok(store) => {
+                log::info!("Apple Store client initialized");
+                
+                self.apple_store = Some(store);
+                // App Store apps are inherently licensed
+                *self.status.write() = LicenseStatus::Valid;
+                
+                *self.user.write() = Some(LicenseUser {
+                    id: "apple_store".to_string(),
+                    name: whoami::username(),
+                    platform: "apple_store".to_string(),
+                    avatar_url: None,
+                    country: None,
+                });
+                
+                self.cache_license()?;
+                Ok(())
+            }
+            Err(e) => {
+                log::warn!("Apple Store not available: {}", e);
+                self.fallback_to_cache_or_trial()
+            }
+        }
+    }
+    
+    #[cfg(not(all(target_os = "macos", feature = "apple-store")))]
+    fn initialize_apple_store(&mut self) -> Result<(), LicenseError> {
+        self.initialize_standalone()
+    }
+    
+    /// Initialize standalone mode (with trial)
+    fn initialize_standalone(&mut self) -> Result<(), LicenseError> {
+        log::info!("Initializing in standalone mode...");
 
         // Try offline cache first
         if let Ok(cached) = self.load_cached_license() {
@@ -401,6 +586,16 @@ impl LicenseManager {
 
         // Fall back to trial mode
         self.initialize_trial()
+    }
+    
+    /// Fallback to cache or trial mode
+    fn fallback_to_cache_or_trial(&mut self) -> Result<(), LicenseError> {
+        if let Ok(cached) = self.load_cached_license() {
+            *self.status.write() = cached;
+            Ok(())
+        } else {
+            self.initialize_trial()
+        }
     }
     
     /// Initialize or continue trial mode
