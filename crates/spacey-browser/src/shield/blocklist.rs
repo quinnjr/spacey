@@ -41,7 +41,7 @@ impl BlockReason {
             BlockReason::Disconnect => "Disconnect list match",
         }
     }
-    
+
     /// Get icon for this block reason
     pub fn icon(&self) -> &'static str {
         match self {
@@ -55,7 +55,7 @@ impl BlockReason {
             BlockReason::Disconnect => "🔌",
         }
     }
-    
+
     /// Get short name for UI display
     pub fn short_name(&self) -> &'static str {
         match self {

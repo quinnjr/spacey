@@ -9,8 +9,15 @@ export type AiProviderType = 'local' | 'claude' | 'openai';
  * AI Provider configuration
  */
 export interface AiProviderConfig {
+  /** Whether AI features are enabled at all */
+  enabled: boolean;
+  /** Whether the local model is enabled (if false, saves resources) */
+  localEnabled: boolean;
+  /** Active provider */
   provider: AiProviderType;
+  /** Model to use */
   model?: string;
+  /** API key for cloud providers */
   apiKey?: string;
 }
 

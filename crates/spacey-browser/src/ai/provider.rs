@@ -70,7 +70,7 @@ impl AiProviderConfig {
     pub fn is_disabled(&self) -> bool {
         !self.enabled
     }
-    
+
     /// Check if local model is available
     pub fn local_available(&self) -> bool {
         self.enabled && self.local_enabled
@@ -82,22 +82,22 @@ impl AiProviderConfig {
 pub enum ProviderError {
     #[error("API key required for {0}")]
     ApiKeyRequired(AiProviderType),
-    
+
     #[error("Invalid API key format")]
     InvalidApiKeyFormat,
-    
+
     #[error("API request failed: {0}")]
     ApiRequestFailed(String),
-    
+
     #[error("Model not loaded")]
     ModelNotLoaded,
-    
+
     #[error("Provider not supported: {0}")]
     NotSupported(String),
-    
+
     #[error("Network error: {0}")]
     NetworkError(String),
-    
+
     #[error("JSON parse error: {0}")]
     JsonError(String),
 }
@@ -121,10 +121,10 @@ pub enum MessageRole {
 pub trait AiProvider: Send + Sync {
     /// Generate a response to the given messages
     fn generate(&self, messages: &[ChatMessage], max_tokens: usize) -> Result<String, ProviderError>;
-    
+
     /// Check if the provider is ready to use
     fn is_ready(&self) -> bool;
-    
+
     /// Get the provider type
     fn provider_type(&self) -> AiProviderType;
 }
@@ -141,7 +141,7 @@ impl ClaudeProvider {
         if !api_key.starts_with("sk-ant-") {
             return Err(ProviderError::InvalidApiKeyFormat);
         }
-        
+
         Ok(Self {
             api_key,
             model: model.unwrap_or_else(|| "claude-sonnet-4-20250514".to_string()),
@@ -167,23 +167,23 @@ impl AiProvider for ClaudeProvider {
                 })
             })
             .collect();
-        
+
         // Extract system message if present
         let system_message = messages
             .iter()
             .find(|m| matches!(m.role, MessageRole::System))
             .map(|m| m.content.clone());
-        
+
         let mut body = serde_json::json!({
             "model": self.model,
             "max_tokens": max_tokens,
             "messages": claude_messages
         });
-        
+
         if let Some(system) = system_message {
             body["system"] = serde_json::Value::String(system);
         }
-        
+
         // Make the API request
         let client = reqwest::blocking::Client::new();
         let response = client
@@ -194,27 +194,27 @@ impl AiProvider for ClaudeProvider {
             .json(&body)
             .send()
             .map_err(|e| ProviderError::NetworkError(e.to_string()))?;
-        
+
         if !response.status().is_success() {
             let error_text = response.text().unwrap_or_default();
             return Err(ProviderError::ApiRequestFailed(error_text));
         }
-        
+
         let json: serde_json::Value = response
             .json()
             .map_err(|e| ProviderError::JsonError(e.to_string()))?;
-        
+
         // Extract content from Claude response
         json["content"][0]["text"]
             .as_str()
             .map(|s| s.to_string())
             .ok_or_else(|| ProviderError::JsonError("Missing content in response".to_string()))
     }
-    
+
     fn is_ready(&self) -> bool {
         !self.api_key.is_empty()
     }
-    
+
     fn provider_type(&self) -> AiProviderType {
         AiProviderType::Claude
     }
@@ -232,7 +232,7 @@ impl OpenAiProvider {
         if !api_key.starts_with("sk-") {
             return Err(ProviderError::InvalidApiKeyFormat);
         }
-        
+
         Ok(Self {
             api_key,
             model: model.unwrap_or_else(|| "gpt-4o".to_string()),
@@ -257,13 +257,13 @@ impl AiProvider for OpenAiProvider {
                 })
             })
             .collect();
-        
+
         let body = serde_json::json!({
             "model": self.model,
             "max_tokens": max_tokens,
             "messages": openai_messages
         });
-        
+
         // Make the API request
         let client = reqwest::blocking::Client::new();
         let response = client
@@ -273,27 +273,27 @@ impl AiProvider for OpenAiProvider {
             .json(&body)
             .send()
             .map_err(|e| ProviderError::NetworkError(e.to_string()))?;
-        
+
         if !response.status().is_success() {
             let error_text = response.text().unwrap_or_default();
             return Err(ProviderError::ApiRequestFailed(error_text));
         }
-        
+
         let json: serde_json::Value = response
             .json()
             .map_err(|e| ProviderError::JsonError(e.to_string()))?;
-        
+
         // Extract content from OpenAI response
         json["choices"][0]["message"]["content"]
             .as_str()
             .map(|s| s.to_string())
             .ok_or_else(|| ProviderError::JsonError("Missing content in response".to_string()))
     }
-    
+
     fn is_ready(&self) -> bool {
         !self.api_key.is_empty()
     }
-    
+
     fn provider_type(&self) -> AiProviderType {
         AiProviderType::OpenAI
     }
@@ -308,14 +308,14 @@ impl LocalProvider {
     pub fn new() -> Self {
         Self { model: parking_lot::RwLock::new(None) }
     }
-    
+
     pub fn load_model(&self, config: super::model::ModelConfig) -> Result<(), ProviderError> {
         let model = super::model::Phi3Model::new(config)
             .map_err(|e| ProviderError::ApiRequestFailed(format!("{:?}", e)))?;
         *self.model.write() = Some(model);
         Ok(())
     }
-    
+
     /// Check if model is loaded
     pub fn is_loaded(&self) -> bool {
         self.model.read().is_some()
@@ -332,7 +332,7 @@ impl AiProvider for LocalProvider {
     fn generate(&self, messages: &[ChatMessage], max_tokens: usize) -> Result<String, ProviderError> {
         let mut guard = self.model.write();
         let model = guard.as_mut().ok_or(ProviderError::ModelNotLoaded)?;
-        
+
         // Convert messages to a single prompt for Phi-3
         let prompt = messages
             .iter()
@@ -345,18 +345,18 @@ impl AiProvider for LocalProvider {
             })
             .collect::<Vec<_>>()
             .join("\n");
-        
+
         let full_prompt = format!("{}\n<|assistant|>\n", prompt);
-        
+
         model
             .generate(&full_prompt, max_tokens)
             .map_err(|e| ProviderError::ApiRequestFailed(format!("{:?}", e)))
     }
-    
+
     fn is_ready(&self) -> bool {
         self.is_loaded()
     }
-    
+
     fn provider_type(&self) -> AiProviderType {
         AiProviderType::Local
     }
@@ -379,32 +379,32 @@ impl ProviderManager {
             openai: Arc::new(RwLock::new(None)),
         }
     }
-    
+
     /// Get the current configuration
     pub fn config(&self) -> AiProviderConfig {
         self.config.read().clone()
     }
-    
+
     /// Check if AI is enabled
     pub fn is_enabled(&self) -> bool {
         self.config.read().enabled
     }
-    
+
     /// Enable or disable AI features entirely
     pub fn set_enabled(&self, enabled: bool) {
         self.config.write().enabled = enabled;
     }
-    
+
     /// Check if local model is enabled
     pub fn local_enabled(&self) -> bool {
         self.config.read().local_enabled
     }
-    
+
     /// Enable or disable the local model
     pub fn set_local_enabled(&self, enabled: bool) {
         let mut config = self.config.write();
         config.local_enabled = enabled;
-        
+
         // If disabling local and it's the current provider, switch to a fallback
         if !enabled && config.provider == AiProviderType::Local {
             // If Claude is configured, use it; otherwise OpenAI; otherwise stay on Local (disabled)
@@ -416,12 +416,12 @@ impl ProviderManager {
             // If no other provider is available, the local will just not work
         }
     }
-    
+
     /// Unload the local model to free memory
     pub fn unload_local_model(&self) {
         *self.local.write() = LocalProvider::new();
     }
-    
+
     /// Set the configuration
     pub fn set_config(&self, config: AiProviderConfig) -> Result<(), ProviderError> {
         // Check if AI is disabled
@@ -429,7 +429,7 @@ impl ProviderManager {
             *self.config.write() = config;
             return Ok(());
         }
-        
+
         // Validate and set up the provider
         match config.provider {
             AiProviderType::Local => {
@@ -453,20 +453,20 @@ impl ProviderManager {
                 *self.openai.write() = Some(provider);
             }
         }
-        
+
         *self.config.write() = config;
         Ok(())
     }
-    
+
     /// Generate a response using the current provider
     pub fn generate(&self, messages: &[ChatMessage], max_tokens: usize) -> Result<String, ProviderError> {
         let config = self.config.read();
-        
+
         // Check if AI is enabled
         if !config.enabled {
             return Err(ProviderError::NotSupported("AI features are disabled".to_string()));
         }
-        
+
         match config.provider {
             AiProviderType::Local => {
                 if !config.local_enabled {
@@ -490,30 +490,30 @@ impl ProviderManager {
             }
         }
     }
-    
+
     /// Load the local Phi-3 model
     pub fn load_local_model(&self, config: super::model::ModelConfig) -> Result<(), ProviderError> {
         let ai_config = self.config.read();
-        
+
         if !ai_config.local_enabled {
             return Err(ProviderError::NotSupported(
                 "Local model is disabled in settings".to_string()
             ));
         }
-        
+
         drop(ai_config); // Release lock before loading
         self.local.write().load_model(config)
     }
-    
+
     /// Check if the current provider is ready
     pub fn is_ready(&self) -> bool {
         let config = self.config.read();
-        
+
         // Not ready if disabled
         if !config.enabled {
             return false;
         }
-        
+
         match config.provider {
             AiProviderType::Local => {
                 config.local_enabled && self.local.read().is_ready()
@@ -526,29 +526,29 @@ impl ProviderManager {
             }
         }
     }
-    
+
     /// Get the current provider type
     pub fn current_provider(&self) -> AiProviderType {
         self.config.read().provider
     }
-    
+
     /// Get available providers (those that can be used)
     pub fn available_providers(&self) -> Vec<AiProviderType> {
         let config = self.config.read();
         let mut providers = Vec::new();
-        
+
         if config.local_enabled {
             providers.push(AiProviderType::Local);
         }
-        
+
         if self.claude.read().is_some() {
             providers.push(AiProviderType::Claude);
         }
-        
+
         if self.openai.read().is_some() {
             providers.push(AiProviderType::OpenAI);
         }
-        
+
         providers
     }
 }
@@ -562,36 +562,36 @@ impl Default for ProviderManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_provider_config_default() {
         let config = AiProviderConfig::default();
         assert_eq!(config.provider, AiProviderType::Local);
         assert!(config.api_key.is_none());
     }
-    
+
     #[test]
     fn test_claude_api_key_validation() {
         // Invalid key
         let result = ClaudeProvider::new("invalid-key".to_string(), None);
         assert!(result.is_err());
-        
+
         // Valid key format
         let result = ClaudeProvider::new("sk-ant-api03-test".to_string(), None);
         assert!(result.is_ok());
     }
-    
+
     #[test]
     fn test_openai_api_key_validation() {
         // Invalid key
         let result = OpenAiProvider::new("invalid-key".to_string(), None);
         assert!(result.is_err());
-        
+
         // Valid key format
         let result = OpenAiProvider::new("sk-test12345".to_string(), None);
         assert!(result.is_ok());
     }
-    
+
     #[test]
     fn test_provider_manager() {
         let manager = ProviderManager::new();

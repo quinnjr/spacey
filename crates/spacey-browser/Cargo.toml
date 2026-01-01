@@ -6,6 +6,7 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 description = "Minimal browser using Spacey JavaScript engine with Servo rendering"
+publish = false
 
 [lib]
 name = "spacey_browser"

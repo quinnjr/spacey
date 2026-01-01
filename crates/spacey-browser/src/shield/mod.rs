@@ -102,17 +102,17 @@ impl SpaceyShield {
             disconnect_enabled: RwLock::new(true), // Enabled by default
         }
     }
-    
+
     /// Enable or disable the Disconnect list
     pub fn set_disconnect_enabled(&self, enabled: bool) {
         *self.disconnect_enabled.write() = enabled;
     }
-    
+
     /// Check if Disconnect list is enabled
     pub fn disconnect_enabled(&self) -> bool {
         *self.disconnect_enabled.read()
     }
-    
+
     /// Get the Disconnect list for inspection
     pub fn disconnect_list(&self) -> &DisconnectList {
         &self.disconnect
@@ -185,14 +185,14 @@ impl SpaceyShield {
                 }
                 return Some(reason);
             }
-            
+
             // Check Disconnect list if enabled
             if *self.disconnect_enabled.read() {
                 if let Some(category) = self.disconnect.check(&domain, level) {
                     let mut stats = self.stats.write();
                     stats.requests_blocked += 1;
                     stats.disconnect_blocked += 1;
-                    
+
                     // Map Disconnect category to BlockReason
                     let reason = match category {
                         DisconnectCategory::Advertising => {
@@ -296,17 +296,17 @@ impl SpaceyShield {
     pub fn blocked_domain_count(&self) -> usize {
         self.blocklist.domain_count()
     }
-    
+
     /// Get Disconnect list domain count
     pub fn disconnect_domain_count(&self) -> usize {
         self.disconnect.domain_count()
     }
-    
+
     /// Get total blocked domain count (Spacey + Disconnect)
     pub fn total_domain_count(&self) -> usize {
         self.blocklist.domain_count() + self.disconnect.domain_count()
     }
-    
+
     /// Get Disconnect category statistics
     pub fn disconnect_category_stats(&self) -> Vec<(DisconnectCategory, usize)> {
         vec![
