@@ -3,9 +3,10 @@
 use std::fmt;
 
 /// A JavaScript value.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum Value {
     /// undefined
+    #[default]
     Undefined,
     /// null
     Null,
@@ -65,12 +66,6 @@ impl Value {
     }
 }
 
-impl Default for Value {
-    fn default() -> Self {
-        Value::Undefined
-    }
-}
-
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -85,5 +80,3 @@ impl fmt::Display for Value {
         }
     }
 }
-
-

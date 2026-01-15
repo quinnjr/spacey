@@ -1,7 +1,7 @@
 //! Lexical environments for variable binding.
 
-use rustc_hash::FxHashMap;
 use super::value::Value;
+use rustc_hash::FxHashMap;
 
 /// A lexical environment for variable bindings.
 #[derive(Debug, Clone, Default)]
@@ -51,10 +51,10 @@ impl Environment {
 
     /// Gets a variable's value.
     pub fn get(&self, name: &str) -> Option<&Value> {
-        if let Some(binding) = self.bindings.get(name) {
-            if binding.initialized {
-                return Some(&binding.value);
-            }
+        if let Some(binding) = self.bindings.get(name)
+            && binding.initialized
+        {
+            return Some(&binding.value);
         }
         if let Some(outer) = &self.outer {
             return outer.get(name);
@@ -64,11 +64,12 @@ impl Environment {
 
     /// Sets a variable's value.
     pub fn set(&mut self, name: &str, value: Value) -> bool {
-        if let Some(binding) = self.bindings.get_mut(name) {
-            if binding.mutable && binding.initialized {
-                binding.value = value;
-                return true;
-            }
+        if let Some(binding) = self.bindings.get_mut(name)
+            && binding.mutable
+            && binding.initialized
+        {
+            binding.value = value;
+            return true;
         }
         if let Some(outer) = &mut self.outer {
             return outer.set(name, value);
@@ -87,5 +88,3 @@ struct Binding {
     /// Whether the binding has been initialized
     initialized: bool,
 }
-
-

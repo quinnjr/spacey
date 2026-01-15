@@ -52,10 +52,21 @@ pub enum TokenKind {
     BigInt(String),
     /// String literal
     String(String),
-    /// Template literal part
-    Template(String),
+    /// Template literal with no substitutions: `string`
+    NoSubstitutionTemplate(String),
+    /// Template head: `string${  (content before first substitution)
+    TemplateHead(String),
+    /// Template middle: }string${  (content between substitutions)
+    TemplateMiddle(String),
+    /// Template tail: }string`  (content after last substitution)
+    TemplateTail(String),
     /// Regular expression literal
-    RegExp { pattern: String, flags: String },
+    RegExp {
+        /// The regex pattern
+        pattern: String,
+        /// The regex flags
+        flags: String,
+    },
     /// Boolean true
     True,
     /// Boolean false
@@ -70,43 +81,81 @@ pub enum TokenKind {
     PrivateIdentifier(String),
 
     // Keywords
+    /// await keyword
     Await,
+    /// break keyword
     Break,
+    /// case keyword
     Case,
+    /// catch keyword
     Catch,
+    /// class keyword
     Class,
+    /// const keyword
     Const,
+    /// continue keyword
     Continue,
+    /// debugger keyword
     Debugger,
+    /// default keyword
     Default,
+    /// delete keyword
     Delete,
+    /// do keyword
     Do,
+    /// else keyword
     Else,
+    /// enum keyword (reserved)
     Enum,
+    /// export keyword
     Export,
+    /// extends keyword
     Extends,
+    /// finally keyword
     Finally,
+    /// for keyword
     For,
+    /// function keyword
     Function,
+    /// if keyword
     If,
+    /// import keyword
     Import,
+    /// in keyword
     In,
+    /// instanceof keyword
     Instanceof,
+    /// let keyword
     Let,
+    /// new keyword
     New,
+    /// return keyword
     Return,
+    /// static keyword
     Static,
+    /// super keyword
     Super,
+    /// switch keyword
     Switch,
+    /// this keyword
     This,
+    /// throw keyword
     Throw,
+    /// try keyword
     Try,
+    /// typeof keyword
     Typeof,
+    /// var keyword
     Var,
+    /// void keyword
     Void,
+    /// while keyword
     While,
+    /// with keyword
     With,
+    /// yield keyword
     Yield,
+    /// async keyword
     Async,
 
     // Punctuation
@@ -285,7 +334,10 @@ impl TokenKind {
             TokenKind::Number(_)
                 | TokenKind::BigInt(_)
                 | TokenKind::String(_)
-                | TokenKind::Template(_)
+                | TokenKind::NoSubstitutionTemplate(_)
+                | TokenKind::TemplateHead(_)
+                | TokenKind::TemplateMiddle(_)
+                | TokenKind::TemplateTail(_)
                 | TokenKind::RegExp { .. }
                 | TokenKind::True
                 | TokenKind::False
@@ -293,5 +345,3 @@ impl TokenKind {
         )
     }
 }
-
-

@@ -1,12 +1,12 @@
 //! The scanner that produces tokens from source text.
 
-use super::{Token, TokenKind, Span};
+use super::{Span, Token, TokenKind};
 
 /// A scanner that tokenizes JavaScript source code.
 pub struct Scanner<'a> {
     source: &'a str,
-    chars: std::iter::Peekable<std::str::CharIndices<'a>>,
-    current_pos: usize,
+    /// Current position in the source string (public for parser lookahead)
+    pub current_pos: usize,
 }
 
 impl<'a> Scanner<'a> {
@@ -14,7 +14,6 @@ impl<'a> Scanner<'a> {
     pub fn new(source: &'a str) -> Self {
         Self {
             source,
-            chars: source.char_indices().peekable(),
             current_pos: 0,
         }
     }
@@ -25,7 +24,7 @@ impl<'a> Scanner<'a> {
 
         let start = self.current_pos;
 
-        let Some((_pos, ch)) = self.advance() else {
+        let Some(ch) = self.advance() else {
             return Token::new(TokenKind::Eof, Span::new(start, start));
         };
 
@@ -79,16 +78,78 @@ impl<'a> Scanner<'a> {
         Token::new(kind, Span::new(start, self.current_pos))
     }
 
-    fn advance(&mut self) -> Option<(usize, char)> {
-        let result = self.chars.next();
-        if let Some((pos, ch)) = result {
-            self.current_pos = pos + ch.len_utf8();
+    /// Scans a regex literal. This should be called by the parser when it knows
+    /// a regex is expected (after certain tokens like `=`, `(`, etc.)
+    pub fn scan_regexp(&mut self) -> Token {
+        let start = self.current_pos;
+
+        // The opening '/' has already been consumed as a Slash token
+        // We need to back up and rescan
+        // Actually, for ES5 compatibility, the parser will call this when it sees a Slash
+        // and knows it should be a regex
+
+        let mut pattern = String::new();
+        let mut in_class = false; // inside [...]
+
+        loop {
+            match self.advance() {
+                None => return Token::new(TokenKind::Invalid, Span::new(start, self.current_pos)),
+                Some('/') if !in_class => break,
+                Some('[') => {
+                    in_class = true;
+                    pattern.push('[');
+                }
+                Some(']') if in_class => {
+                    in_class = false;
+                    pattern.push(']');
+                }
+                Some('\\') => {
+                    pattern.push('\\');
+                    if let Some(ch) = self.advance() {
+                        pattern.push(ch);
+                    }
+                }
+                Some('\n') | Some('\r') => {
+                    return Token::new(TokenKind::Invalid, Span::new(start, self.current_pos));
+                }
+                Some(ch) => pattern.push(ch),
+            }
         }
-        result
+
+        // Scan flags
+        let mut flags = String::new();
+        while let Some(ch) = self.peek() {
+            if is_id_continue(ch) {
+                flags.push(ch);
+                self.advance();
+            } else {
+                break;
+            }
+        }
+
+        Token::new(
+            TokenKind::RegExp { pattern, flags },
+            Span::new(start, self.current_pos),
+        )
     }
 
-    fn peek(&mut self) -> Option<char> {
-        self.chars.peek().map(|(_, ch)| *ch)
+    fn advance(&mut self) -> Option<char> {
+        if self.current_pos >= self.source.len() {
+            return None;
+        }
+        let ch = self.source[self.current_pos..].chars().next()?;
+        self.current_pos += ch.len_utf8();
+        Some(ch)
+    }
+
+    fn peek(&self) -> Option<char> {
+        self.source[self.current_pos..].chars().next()
+    }
+
+    fn peek_next(&self) -> Option<char> {
+        let mut chars = self.source[self.current_pos..].chars();
+        chars.next()?;
+        chars.next()
     }
 
     fn skip_whitespace_and_comments(&mut self) {
@@ -98,9 +159,38 @@ impl<'a> Scanner<'a> {
                     self.advance();
                 }
                 Some('/') => {
-                    // Peek ahead for comment
-                    // TODO: Proper comment handling
-                    break;
+                    match self.peek_next() {
+                        Some('/') => {
+                            // Single-line comment
+                            self.advance(); // consume '/'
+                            self.advance(); // consume second '/'
+                            while let Some(ch) = self.peek() {
+                                if ch == '\n' || ch == '\r' {
+                                    break;
+                                }
+                                self.advance();
+                            }
+                        }
+                        Some('*') => {
+                            // Multi-line comment
+                            self.advance(); // consume '/'
+                            self.advance(); // consume '*'
+                            loop {
+                                match self.advance() {
+                                    None => break, // Unterminated comment
+                                    Some('*') if self.peek() == Some('/') => {
+                                        self.advance(); // consume '/'
+                                        break;
+                                    }
+                                    _ => continue,
+                                }
+                            }
+                        }
+                        _ => {
+                            // Division operator or regex - let the tokenizer handle it
+                            break;
+                        }
+                    }
                 }
                 _ => break,
             }
@@ -342,24 +432,153 @@ impl<'a> Scanner<'a> {
         loop {
             match self.advance() {
                 None => return TokenKind::Invalid, // Unterminated string
-                Some((_, ch)) if ch == quote => break,
-                Some((_, '\\')) => {
+                Some(ch) if ch == quote => break,
+                Some('\\') => {
                     // Handle escape sequences
-                    if let Some((_, escaped)) = self.advance() {
+                    if let Some(escaped) = self.advance() {
                         match escaped {
                             'n' => value.push('\n'),
                             'r' => value.push('\r'),
                             't' => value.push('\t'),
+                            'b' => value.push('\x08'), // backspace
+                            'f' => value.push('\x0C'), // form feed
+                            'v' => value.push('\x0B'), // vertical tab
                             '\\' => value.push('\\'),
                             '\'' => value.push('\''),
                             '"' => value.push('"'),
-                            '0' => value.push('\0'),
-                            // TODO: Unicode escapes, hex escapes
+                            '0' => {
+                                // Check if it's a legacy octal or just \0
+                                if let Some(next) = self.peek() {
+                                    if next.is_ascii_digit() && next != '8' && next != '9' {
+                                        // Legacy octal escape \0nn
+                                        let mut octal = String::from("0");
+                                        while let Some(ch) = self.peek() {
+                                            if ch.is_digit(8) && octal.len() < 3 {
+                                                octal.push(ch);
+                                                self.advance();
+                                            } else {
+                                                break;
+                                            }
+                                        }
+                                        if let Ok(code) = u32::from_str_radix(&octal, 8)
+                                            && let Some(c) = char::from_u32(code)
+                                        {
+                                            value.push(c);
+                                        }
+                                    } else {
+                                        value.push('\0');
+                                    }
+                                } else {
+                                    value.push('\0');
+                                }
+                            }
+                            '1'..='7' => {
+                                // Legacy octal escape \nnn
+                                let mut octal = String::from(escaped);
+                                while let Some(ch) = self.peek() {
+                                    if ch.is_digit(8) && octal.len() < 3 {
+                                        octal.push(ch);
+                                        self.advance();
+                                    } else {
+                                        break;
+                                    }
+                                }
+                                if let Ok(code) = u32::from_str_radix(&octal, 8)
+                                    && let Some(c) = char::from_u32(code)
+                                {
+                                    value.push(c);
+                                }
+                            }
+                            'x' => {
+                                // Hex escape \xHH
+                                let mut hex = String::new();
+                                for _ in 0..2 {
+                                    if let Some(ch) = self.peek() {
+                                        if ch.is_ascii_hexdigit() {
+                                            hex.push(ch);
+                                            self.advance();
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                }
+                                if hex.len() == 2
+                                    && let Ok(code) = u32::from_str_radix(&hex, 16)
+                                    && let Some(c) = char::from_u32(code)
+                                {
+                                    value.push(c);
+                                } else if hex.len() != 2 {
+                                    // Invalid hex escape, push literal
+                                    value.push('x');
+                                    value.push_str(&hex);
+                                }
+                            }
+                            'u' => {
+                                // Unicode escape \uHHHH or \u{HHHH}
+                                if self.peek() == Some('{') {
+                                    // ES6 Unicode code point escape \u{HHHH}
+                                    self.advance(); // consume '{'
+                                    let mut hex = String::new();
+                                    while let Some(ch) = self.peek() {
+                                        if ch == '}' {
+                                            self.advance();
+                                            break;
+                                        }
+                                        if ch.is_ascii_hexdigit() {
+                                            hex.push(ch);
+                                            self.advance();
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                    if let Ok(code) = u32::from_str_radix(&hex, 16)
+                                        && let Some(c) = char::from_u32(code)
+                                    {
+                                        value.push(c);
+                                    }
+                                } else {
+                                    // ES5 Unicode escape \uHHHH
+                                    let mut hex = String::new();
+                                    for _ in 0..4 {
+                                        if let Some(ch) = self.peek() {
+                                            if ch.is_ascii_hexdigit() {
+                                                hex.push(ch);
+                                                self.advance();
+                                            } else {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if hex.len() == 4
+                                        && let Ok(code) = u32::from_str_radix(&hex, 16)
+                                        && let Some(c) = char::from_u32(code)
+                                    {
+                                        value.push(c);
+                                    } else if hex.len() != 4 {
+                                        // Invalid unicode escape, push literal
+                                        value.push('u');
+                                        value.push_str(&hex);
+                                    }
+                                }
+                            }
+                            '\n' => {
+                                // Line continuation - skip the newline
+                                // Also skip \r if present (Windows line ending)
+                                if self.peek() == Some('\r') {
+                                    self.advance();
+                                }
+                            }
+                            '\r' => {
+                                // Line continuation
+                                if self.peek() == Some('\n') {
+                                    self.advance();
+                                }
+                            }
                             _ => value.push(escaped),
                         }
                     }
                 }
-                Some((_, ch)) => value.push(ch),
+                Some(ch) => value.push(ch),
             }
         }
 
@@ -372,14 +591,14 @@ impl<'a> Scanner<'a> {
         loop {
             match self.advance() {
                 None => return TokenKind::Invalid, // Unterminated template
-                Some((_, '`')) => break,
-                Some((_, '$')) if self.peek() == Some('{') => {
-                    // TODO: Handle template expressions
-                    self.advance();
-                    return TokenKind::Template(value);
+                Some('`') => break,
+                Some('$') if self.peek() == Some('{') => {
+                    // Template with substitution - return head part
+                    self.advance(); // consume '{'
+                    return TokenKind::TemplateHead(value);
                 }
-                Some((_, '\\')) => {
-                    if let Some((_, escaped)) = self.advance() {
+                Some('\\') => {
+                    if let Some(escaped) = self.advance() {
                         match escaped {
                             'n' => value.push('\n'),
                             'r' => value.push('\r'),
@@ -391,11 +610,54 @@ impl<'a> Scanner<'a> {
                         }
                     }
                 }
-                Some((_, ch)) => value.push(ch),
+                Some(ch) => value.push(ch),
             }
         }
 
-        TokenKind::Template(value)
+        TokenKind::NoSubstitutionTemplate(value)
+    }
+
+    /// Scan the continuation of a template literal after a `}` (closing a substitution).
+    /// This should be called by the parser when it has finished parsing an expression
+    /// inside a template substitution.
+    pub fn scan_template_continuation(&mut self) -> Token {
+        let start = self.current_pos;
+        let mut value = String::new();
+
+        loop {
+            match self.advance() {
+                None => return Token::new(TokenKind::Invalid, Span::new(start, self.current_pos)),
+                Some('`') => {
+                    // End of template
+                    return Token::new(
+                        TokenKind::TemplateTail(value),
+                        Span::new(start, self.current_pos),
+                    );
+                }
+                Some('$') if self.peek() == Some('{') => {
+                    // Another substitution
+                    self.advance(); // consume '{'
+                    return Token::new(
+                        TokenKind::TemplateMiddle(value),
+                        Span::new(start, self.current_pos),
+                    );
+                }
+                Some('\\') => {
+                    if let Some(escaped) = self.advance() {
+                        match escaped {
+                            'n' => value.push('\n'),
+                            'r' => value.push('\r'),
+                            't' => value.push('\t'),
+                            '\\' => value.push('\\'),
+                            '`' => value.push('`'),
+                            '$' => value.push('$'),
+                            _ => value.push(escaped),
+                        }
+                    }
+                }
+                Some(ch) => value.push(ch),
+            }
+        }
     }
 
     fn scan_number(&mut self, first: char) -> TokenKind {
@@ -407,6 +669,10 @@ impl<'a> Scanner<'a> {
                 Some('x' | 'X') => return self.scan_hex_number(),
                 Some('o' | 'O') => return self.scan_octal_number(),
                 Some('b' | 'B') => return self.scan_binary_number(),
+                Some('0'..='7') => {
+                    // Legacy octal literal (ES5 and earlier)
+                    return self.scan_legacy_octal_number();
+                }
                 _ => {}
             }
         }
@@ -423,18 +689,22 @@ impl<'a> Scanner<'a> {
             }
         }
 
-        // Fractional part
+        // Fractional part - but only if followed by a digit
         if self.peek() == Some('.') {
-            value.push('.');
-            self.advance();
-            while let Some(ch) = self.peek() {
-                if ch.is_ascii_digit() || ch == '_' {
-                    if ch != '_' {
-                        value.push(ch);
+            // Check if next char after dot is a digit (to avoid confusion with member access)
+            let has_fraction = self.peek_next().is_some_and(|c| c.is_ascii_digit());
+            if has_fraction {
+                value.push('.');
+                self.advance();
+                while let Some(ch) = self.peek() {
+                    if ch.is_ascii_digit() || ch == '_' {
+                        if ch != '_' {
+                            value.push(ch);
+                        }
+                        self.advance();
+                    } else {
+                        break;
                     }
-                    self.advance();
-                } else {
-                    break;
                 }
             }
         }
@@ -444,7 +714,7 @@ impl<'a> Scanner<'a> {
             value.push('e');
             self.advance();
             if matches!(self.peek(), Some('+' | '-')) {
-                value.push(self.advance().unwrap().1);
+                value.push(self.advance().unwrap());
             }
             while let Some(ch) = self.peek() {
                 if ch.is_ascii_digit() {
@@ -465,6 +735,46 @@ impl<'a> Scanner<'a> {
         match value.parse::<f64>() {
             Ok(n) => TokenKind::Number(n),
             Err(_) => TokenKind::Invalid,
+        }
+    }
+
+    fn scan_legacy_octal_number(&mut self) -> TokenKind {
+        // First digit already seen as '0', we're at the start of digits like 0777
+        let mut value = String::new();
+        let mut is_decimal = false;
+
+        while let Some(ch) = self.peek() {
+            if ch.is_digit(8) {
+                value.push(ch);
+                self.advance();
+            } else if ch == '8' || ch == '9' {
+                // This is actually a decimal number (invalid octal digit)
+                is_decimal = true;
+                value.push(ch);
+                self.advance();
+            } else if ch.is_ascii_digit() || ch == '_' {
+                if ch != '_' {
+                    value.push(ch);
+                }
+                self.advance();
+            } else {
+                break;
+            }
+        }
+
+        if is_decimal {
+            // Treat as decimal
+            let full_value = format!("0{}", value);
+            match full_value.parse::<f64>() {
+                Ok(n) => TokenKind::Number(n),
+                Err(_) => TokenKind::Invalid,
+            }
+        } else {
+            // Parse as octal
+            match u64::from_str_radix(&value, 8) {
+                Ok(n) => TokenKind::Number(n as f64),
+                Err(_) => TokenKind::Invalid,
+            }
         }
     }
 
@@ -671,10 +981,35 @@ mod tests {
     }
 
     #[test]
+    fn test_legacy_octal() {
+        let mut scanner = Scanner::new("0777 0644");
+        assert!(matches!(scanner.next_token().kind, TokenKind::Number(n) if n == 511.0)); // 0777 octal = 511 decimal
+        assert!(matches!(scanner.next_token().kind, TokenKind::Number(n) if n == 420.0)); // 0644 octal = 420 decimal
+    }
+
+    #[test]
     fn test_strings() {
         let mut scanner = Scanner::new(r#""hello" 'world'"#);
         assert!(matches!(scanner.next_token().kind, TokenKind::String(s) if s == "hello"));
         assert!(matches!(scanner.next_token().kind, TokenKind::String(s) if s == "world"));
+    }
+
+    #[test]
+    fn test_string_escapes() {
+        let mut scanner = Scanner::new(r#""\n\t\r""#);
+        assert!(matches!(scanner.next_token().kind, TokenKind::String(s) if s == "\n\t\r"));
+    }
+
+    #[test]
+    fn test_unicode_escape() {
+        let mut scanner = Scanner::new(r#""\u0041\u0042""#);
+        assert!(matches!(scanner.next_token().kind, TokenKind::String(s) if s == "AB"));
+    }
+
+    #[test]
+    fn test_hex_escape() {
+        let mut scanner = Scanner::new(r#""\x41\x42""#);
+        assert!(matches!(scanner.next_token().kind, TokenKind::String(s) if s == "AB"));
     }
 
     #[test]
@@ -693,6 +1028,39 @@ mod tests {
         assert!(matches!(scanner.next_token().kind, TokenKind::Identifier(s) if s == "_bar"));
         assert!(matches!(scanner.next_token().kind, TokenKind::Identifier(s) if s == "$baz"));
     }
+
+    #[test]
+    fn test_single_line_comment() {
+        let mut scanner = Scanner::new("foo // this is a comment\nbar");
+        assert!(matches!(scanner.next_token().kind, TokenKind::Identifier(s) if s == "foo"));
+        assert!(matches!(scanner.next_token().kind, TokenKind::Identifier(s) if s == "bar"));
+    }
+
+    #[test]
+    fn test_multi_line_comment() {
+        let mut scanner = Scanner::new("foo /* this is\na comment */ bar");
+        assert!(matches!(scanner.next_token().kind, TokenKind::Identifier(s) if s == "foo"));
+        assert!(matches!(scanner.next_token().kind, TokenKind::Identifier(s) if s == "bar"));
+    }
+
+    #[test]
+    fn test_division_not_comment() {
+        let mut scanner = Scanner::new("a / b");
+        assert!(matches!(scanner.next_token().kind, TokenKind::Identifier(s) if s == "a"));
+        assert!(matches!(scanner.next_token().kind, TokenKind::Slash));
+        assert!(matches!(scanner.next_token().kind, TokenKind::Identifier(s) if s == "b"));
+    }
+
+    #[test]
+    fn test_regex_literal() {
+        let mut scanner = Scanner::new("/");
+        scanner.next_token(); // consume initial slash
+        scanner.current_pos = 0; // reset to test scan_regexp
+
+        let mut scanner = Scanner::new("abc/gi");
+        let token = scanner.scan_regexp();
+        assert!(
+            matches!(token.kind, TokenKind::RegExp { ref pattern, ref flags } if pattern == "abc" && flags == "gi")
+        );
+    }
 }
-
-

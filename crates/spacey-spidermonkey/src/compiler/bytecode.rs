@@ -177,6 +177,8 @@ pub enum OpCode {
     JumpIfFalse,
     /// Jump if true
     JumpIfTrue,
+    /// Jump if not undefined (for default parameter/destructuring)
+    JumpIfNotUndefined,
 
     // Function operations
     /// Call a function
@@ -208,5 +210,3 @@ pub enum OpCode {
     /// Halt execution
     Halt,
 }
-
-

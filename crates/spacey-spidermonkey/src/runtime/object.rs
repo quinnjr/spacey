@@ -1,7 +1,7 @@
 //! JavaScript object representation.
 
-use rustc_hash::FxHashMap;
 use super::value::Value;
+use rustc_hash::FxHashMap;
 
 /// A JavaScript object.
 #[derive(Debug, Clone)]
@@ -44,11 +44,11 @@ impl Object {
 
     /// Deletes a property.
     pub fn delete(&mut self, key: &str) -> bool {
-        if let Some(prop) = self.properties.get(key) {
-            if prop.configurable {
-                self.properties.remove(key);
-                return true;
-            }
+        if let Some(prop) = self.properties.get(key)
+            && prop.configurable
+        {
+            self.properties.remove(key);
+            return true;
         }
         false
     }
@@ -77,5 +77,3 @@ pub struct Property {
     /// Whether the property is configurable
     pub configurable: bool,
 }
-
-
