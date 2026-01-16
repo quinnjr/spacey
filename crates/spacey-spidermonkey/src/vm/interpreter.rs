@@ -1,7 +1,7 @@
 //! The bytecode interpreter.
 
 use crate::Error;
-use crate::builtins::{BuiltinId, call_builtin};
+use crate::builtins::{BuiltinId, call_builtin, json_parse};
 use crate::compiler::bytecode::CompiledFunction;
 use crate::compiler::{Bytecode, OpCode, Operand};
 use crate::runtime::object::Object;
@@ -257,6 +257,21 @@ impl VM {
         self.objects.push(object_obj);
         self.globals
             .insert("Object".to_string(), Value::Object(object_idx));
+
+        // Create JSON object
+        let mut json_obj = Object::new();
+        json_obj.set(
+            "parse".to_string(),
+            Value::NativeFunction(BuiltinId::JsonParse as u16),
+        );
+        json_obj.set(
+            "stringify".to_string(),
+            Value::NativeFunction(BuiltinId::JsonStringify as u16),
+        );
+        let json_idx = self.objects.len();
+        self.objects.push(json_obj);
+        self.globals
+            .insert("JSON".to_string(), Value::Object(json_idx));
     }
 
     /// Executes bytecode and returns the result.
@@ -586,6 +601,8 @@ impl VM {
                                         self.call_array_method(id, &this, &args)?
                                     } else if self.is_object_static_method(id) {
                                         self.call_object_static_method(id, &args)?
+                                    } else if self.is_json_method(id) {
+                                        self.call_json_method(id, &args)?
                                     } else {
                                         call_builtin(id, &this, &args)?
                                     };
@@ -990,6 +1007,8 @@ impl VM {
                                         self.call_array_method(id, &this, &args)?
                                     } else if self.is_object_static_method(id) {
                                         self.call_object_static_method(id, &args)?
+                                    } else if self.is_json_method(id) {
+                                        self.call_json_method(id, &args)?
                                     } else {
                                         call_builtin(id, &this, &args)?
                                     };
@@ -2187,6 +2206,260 @@ impl VM {
         let idx = self.objects.len();
         self.objects.push(arr);
         idx
+    }
+
+    /// Check if a builtin ID is a JSON method.
+    fn is_json_method(&self, id: BuiltinId) -> bool {
+        matches!(id, BuiltinId::JsonParse | BuiltinId::JsonStringify)
+    }
+
+    /// Call a JSON method with access to the object heap.
+    fn call_json_method(&mut self, id: BuiltinId, args: &[Value]) -> Result<Value, Error> {
+        match id {
+            BuiltinId::JsonParse => {
+                // Parse the JSON string
+                let parsed = json_parse(args)?;
+                // Convert Value::Array/ParsedObject to heap objects
+                self.json_to_value(parsed)
+            }
+            BuiltinId::JsonStringify => {
+                let value = args.first().cloned().unwrap_or(Value::Undefined);
+                let mut seen = Vec::new();
+                self.value_to_json(&value, &mut seen)
+            }
+            _ => Ok(Value::Undefined),
+        }
+    }
+
+    /// Convert a parsed JSON value (with Value::Array/ParsedObject) to heap objects.
+    fn json_to_value(&mut self, parsed: Value) -> Result<Value, Error> {
+        match parsed {
+            Value::Array(elements) => {
+                // Create a new array object on the heap
+                let mut obj = Object::new();
+                for (i, elem) in elements.into_iter().enumerate() {
+                    let converted = self.json_to_value(elem)?;
+                    obj.set(i.to_string(), converted);
+                }
+                obj.set(
+                    "length".to_string(),
+                    Value::Number(obj.properties.len() as f64 - 1.0),
+                );
+                // Fix length calculation - count numeric indices
+                let len = obj
+                    .properties
+                    .keys()
+                    .filter(|k| k.parse::<usize>().is_ok())
+                    .count();
+                obj.set("length".to_string(), Value::Number(len as f64));
+                let idx = self.objects.len();
+                self.objects.push(obj);
+                Ok(Value::Object(idx))
+            }
+            Value::ParsedObject(pairs) => {
+                // Create a new object on the heap
+                let mut obj = Object::new();
+                for (key, val) in pairs {
+                    let converted = self.json_to_value(val)?;
+                    obj.set(key, converted);
+                }
+                let idx = self.objects.len();
+                self.objects.push(obj);
+                Ok(Value::Object(idx))
+            }
+            // Primitives pass through unchanged
+            other => Ok(other),
+        }
+    }
+
+    /// Convert a value to its JSON string representation with cycle detection.
+    fn value_to_json(&self, value: &Value, seen: &mut Vec<usize>) -> Result<Value, Error> {
+        match value {
+            Value::Null => Ok(Value::String("null".into())),
+            Value::Boolean(b) => Ok(Value::String(if *b { "true" } else { "false" }.into())),
+            Value::Number(n) => {
+                if n.is_nan() || n.is_infinite() {
+                    Ok(Value::String("null".into()))
+                } else if n.fract() == 0.0 && n.abs() < 1e15 {
+                    Ok(Value::String(format!("{}", *n as i64)))
+                } else {
+                    Ok(Value::String(format!("{}", n)))
+                }
+            }
+            Value::String(s) => Ok(Value::String(self.escape_json_string(s))),
+            Value::Undefined => Ok(Value::Undefined),
+            Value::Object(idx) => {
+                // Check for cycles
+                if seen.contains(idx) {
+                    return Err(Error::TypeError(
+                        "Converting circular structure to JSON".into(),
+                    ));
+                }
+                seen.push(*idx);
+
+                let obj = self
+                    .objects
+                    .get(*idx)
+                    .ok_or_else(|| Error::TypeError("Invalid object".into()))?;
+
+                // Check if it's an array (has numeric length property)
+                let is_array = obj
+                    .get("length")
+                    .map(|v| matches!(v, Value::Number(_)))
+                    .unwrap_or(false);
+
+                let result = if is_array {
+                    self.array_to_json(*idx, seen)?
+                } else {
+                    self.object_to_json(*idx, seen)?
+                };
+
+                seen.pop();
+                Ok(Value::String(result))
+            }
+            Value::Function(_) | Value::NativeFunction(_) => Ok(Value::Undefined),
+            Value::Array(arr) => {
+                // Handle inline arrays (from parsed JSON before heap conversion)
+                let mut result = String::from("[");
+                for (i, item) in arr.iter().enumerate() {
+                    if i > 0 {
+                        result.push(',');
+                    }
+                    match self.value_to_json(item, seen)? {
+                        Value::Undefined => result.push_str("null"),
+                        Value::String(s) => result.push_str(&s),
+                        _ => result.push_str("null"),
+                    }
+                }
+                result.push(']');
+                Ok(Value::String(result))
+            }
+            Value::ParsedObject(pairs) => {
+                // Handle inline objects (from parsed JSON before heap conversion)
+                let mut result = String::from("{");
+                let mut first = true;
+                for (key, val) in pairs {
+                    if matches!(val, Value::Undefined) {
+                        continue;
+                    }
+                    if !first {
+                        result.push(',');
+                    }
+                    first = false;
+                    result.push_str(&self.escape_json_string(key));
+                    result.push(':');
+                    match self.value_to_json(val, seen)? {
+                        Value::Undefined => result.push_str("null"),
+                        Value::String(s) => result.push_str(&s),
+                        _ => result.push_str("null"),
+                    }
+                }
+                result.push('}');
+                Ok(Value::String(result))
+            }
+            _ => Ok(Value::String("null".into())),
+        }
+    }
+
+    /// Stringify an array object to JSON.
+    fn array_to_json(&self, idx: usize, seen: &mut Vec<usize>) -> Result<String, Error> {
+        let obj = self
+            .objects
+            .get(idx)
+            .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+
+        let len = obj
+            .get("length")
+            .and_then(|v| match v {
+                Value::Number(n) => Some(*n as usize),
+                _ => None,
+            })
+            .unwrap_or(0);
+
+        let mut result = String::from("[");
+        for i in 0..len {
+            if i > 0 {
+                result.push(',');
+            }
+            let elem = obj.get(&i.to_string()).cloned().unwrap_or(Value::Null);
+            match self.value_to_json(&elem, seen)? {
+                Value::Undefined => result.push_str("null"),
+                Value::String(s) => result.push_str(&s),
+                _ => result.push_str("null"),
+            }
+        }
+        result.push(']');
+        Ok(result)
+    }
+
+    /// Stringify an object to JSON.
+    fn object_to_json(&self, idx: usize, seen: &mut Vec<usize>) -> Result<String, Error> {
+        let obj = self
+            .objects
+            .get(idx)
+            .ok_or_else(|| Error::TypeError("Invalid object".into()))?;
+
+        let mut result = String::from("{");
+        let mut first = true;
+
+        for (key, prop) in &obj.properties {
+            // Skip length property for arrays and undefined values
+            if key == "length" {
+                continue;
+            }
+            let val = &prop.value;
+            if matches!(
+                val,
+                Value::Undefined | Value::Function(_) | Value::NativeFunction(_)
+            ) {
+                continue;
+            }
+
+            if !first {
+                result.push(',');
+            }
+            first = false;
+
+            result.push_str(&self.escape_json_string(key));
+            result.push(':');
+
+            match self.value_to_json(val, seen)? {
+                Value::Undefined => {
+                    // Skip undefined - but we already filtered above, so this shouldn't happen
+                    // Remove the key we just added
+                    continue;
+                }
+                Value::String(s) => result.push_str(&s),
+                _ => result.push_str("null"),
+            }
+        }
+        result.push('}');
+        Ok(result)
+    }
+
+    /// Escape a string for JSON output.
+    fn escape_json_string(&self, s: &str) -> String {
+        let mut result = String::with_capacity(s.len() + 2);
+        result.push('"');
+
+        for c in s.chars() {
+            match c {
+                '"' => result.push_str("\\\""),
+                '\\' => result.push_str("\\\\"),
+                '\n' => result.push_str("\\n"),
+                '\r' => result.push_str("\\r"),
+                '\t' => result.push_str("\\t"),
+                '\u{08}' => result.push_str("\\b"),
+                '\u{0C}' => result.push_str("\\f"),
+                c if c.is_control() => {
+                    result.push_str(&format!("\\u{:04x}", c as u32));
+                }
+                c => result.push(c),
+            }
+        }
+
+        result.push('"');
+        result
     }
 }
 
