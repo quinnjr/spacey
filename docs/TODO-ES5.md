@@ -74,37 +74,37 @@ Cannot be used as identifiers in strict mode:
 ## 2. JSON Support
 
 ### 2.1 JSON Object
-- [ ] `JSON` global object
+- [x] `JSON` global object
 
 ### 2.2 JSON.parse
-- [ ] `JSON.parse(text)`
+- [x] `JSON.parse(text)`
 - [ ] `JSON.parse(text, reviver)`
 - [ ] Reviver function receives (key, value), returns transformed value
 - [ ] Reviver called bottom-up (leaves first)
-- [ ] Throw `SyntaxError` on invalid JSON
+- [x] Throw `SyntaxError` on invalid JSON
 
 ### 2.3 JSON.stringify
-- [ ] `JSON.stringify(value)`
+- [x] `JSON.stringify(value)`
 - [ ] `JSON.stringify(value, replacer)`
 - [ ] `JSON.stringify(value, replacer, space)`
 - [ ] Replacer as array (whitelist of keys)
 - [ ] Replacer as function (key, value) → transformed value
 - [ ] Space parameter for indentation (number or string)
 - [ ] Handle `toJSON()` method on objects
-- [ ] Return `undefined` for functions, symbols, undefined
-- [ ] Throw `TypeError` on circular references
-- [ ] `NaN` and `Infinity` become `null`
+- [x] Return `undefined` for functions, symbols, undefined
+- [x] Throw `TypeError` on circular references
+- [x] `NaN` and `Infinity` become `null`
 
 ### 2.4 JSON Grammar Support
-- [ ] Objects `{ "key": value }`
-- [ ] Arrays `[ value, ... ]`
-- [ ] Strings (with limited escapes)
-- [ ] Numbers (no hex, no leading zeros except `0.x`, no `+` prefix)
-- [ ] `true`, `false`, `null`
-- [ ] Unicode `\uXXXX` escapes in strings
-- [ ] No trailing commas
-- [ ] No single quotes
-- [ ] No unquoted keys
+- [x] Objects `{ "key": value }`
+- [x] Arrays `[ value, ... ]`
+- [x] Strings (with limited escapes)
+- [x] Numbers (no hex, no leading zeros except `0.x`, no `+` prefix)
+- [x] `true`, `false`, `null`
+- [x] Unicode `\uXXXX` escapes in strings
+- [x] No trailing commas
+- [x] No single quotes
+- [x] No unquoted keys
 
 ---
 
