@@ -11,3 +11,8 @@
 
 pub mod array;
 pub mod collections;
+pub mod json;
+pub mod native;
+
+pub use json::{json_parse, json_stringify_simple};
+pub use native::{BuiltinId, call_builtin};
