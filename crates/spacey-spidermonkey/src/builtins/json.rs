@@ -116,7 +116,7 @@ pub fn json_stringify_simple(value: &Value) -> Result<Value, Error> {
                 first = false;
                 result.push_str(&escape_json_string(key));
                 result.push(':');
-                match json_stringify_simple(&val)? {
+                match json_stringify_simple(val)? {
                     Value::Undefined => result.push_str("null"),
                     Value::String(s) => result.push_str(&s),
                     _ => result.push_str("null"),
@@ -203,28 +203,17 @@ struct JsonParser<'a> {
     input: &'a str,
     /// Current position in the input
     pos: usize,
-    /// The input as bytes for efficient access
-    bytes: &'a [u8],
 }
 
 impl<'a> JsonParser<'a> {
     /// Creates a new JSON parser for the given input.
     fn new(input: &'a str) -> Self {
-        Self {
-            input,
-            pos: 0,
-            bytes: input.as_bytes(),
-        }
+        Self { input, pos: 0 }
     }
 
     /// Returns the current character without advancing.
     fn peek(&self) -> Option<char> {
         self.input[self.pos..].chars().next()
-    }
-
-    /// Returns the current byte without advancing.
-    fn peek_byte(&self) -> Option<u8> {
-        self.bytes.get(self.pos).copied()
     }
 
     /// Advances the position by one character.
@@ -404,23 +393,22 @@ impl<'a> JsonParser<'a> {
                             }
                         }
                     }
-                    if low_hex.len() == 4 {
-                        if let Ok(low_point) = u32::from_str_radix(&low_hex, 16) {
-                            if (0xDC00..=0xDFFF).contains(&low_point) {
-                                // Valid surrogate pair
-                                let combined =
-                                    0x10000 + ((code_point - 0xD800) << 10) + (low_point - 0xDC00);
-                                return char::from_u32(combined).ok_or_else(|| {
-                                    Error::SyntaxError(format!(
-                                        "Invalid unicode code point at position {}",
-                                        low_start
-                                    ))
-                                });
-                            }
-                        }
-                        // Not a valid low surrogate, restore position
-                        self.pos = saved_pos;
+                    if low_hex.len() == 4
+                        && let Ok(low_point) = u32::from_str_radix(&low_hex, 16)
+                        && (0xDC00..=0xDFFF).contains(&low_point)
+                    {
+                        // Valid surrogate pair
+                        let combined =
+                            0x10000 + ((code_point - 0xD800) << 10) + (low_point - 0xDC00);
+                        return char::from_u32(combined).ok_or_else(|| {
+                            Error::SyntaxError(format!(
+                                "Invalid unicode code point at position {}",
+                                low_start
+                            ))
+                        });
                     }
+                    // Not a valid low surrogate, restore position
+                    self.pos = saved_pos;
                 } else {
                     self.pos = saved_pos;
                 }
@@ -453,13 +441,13 @@ impl<'a> JsonParser<'a> {
             Some('0') => {
                 self.advance();
                 // After leading 0, must not have another digit (unless decimal)
-                if let Some(c) = self.peek() {
-                    if c.is_ascii_digit() {
-                        return Err(Error::SyntaxError(format!(
-                            "Leading zeros not allowed at position {}",
-                            start
-                        )));
-                    }
+                if let Some(c) = self.peek()
+                    && c.is_ascii_digit()
+                {
+                    return Err(Error::SyntaxError(format!(
+                        "Leading zeros not allowed at position {}",
+                        start
+                    )));
                 }
             }
             Some(c) if c.is_ascii_digit() => {
@@ -797,15 +785,13 @@ mod tests {
     #[test]
     fn test_parse_string_with_unicode() {
         let result = json_parse(&[Value::String(r#""caf\u00e9""#.into())]).unwrap();
-        assert_eq!(
-            result,
-            Value::String("cafe\u{0301}".into()).type_of(),
-            "string"
-        );
+        // Verify we get a string type
+        assert_eq!(result.type_of(), "string");
         // The actual test - \u00e9 is 'e' with acute accent
-        let result = json_parse(&[Value::String(r#""caf\u00e9""#.into())]).unwrap();
         if let Value::String(s) = result {
             assert!(s.contains('e') || s.contains('\u{00e9}'));
+        } else {
+            panic!("Expected string value");
         }
     }
 

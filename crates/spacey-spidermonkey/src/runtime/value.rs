@@ -22,6 +22,14 @@ pub enum Value {
     BigInt(String),
     /// Object reference (placeholder - would be GC handle)
     Object(usize),
+    /// Function reference (index into VM's function table)
+    Function(usize),
+    /// Native function (builtin ID)
+    NativeFunction(u16),
+    /// An array of values (used during JSON parsing before VM conversion)
+    Array(Vec<Value>),
+    /// A parsed object (used during JSON parsing before VM conversion)
+    ParsedObject(Vec<(String, Value)>),
 }
 
 impl Value {
@@ -47,7 +55,13 @@ impl Value {
             Value::Boolean(b) => *b,
             Value::Number(n) => !n.is_nan() && *n != 0.0,
             Value::String(s) => !s.is_empty(),
-            Value::Symbol(_) | Value::BigInt(_) | Value::Object(_) => true,
+            Value::Symbol(_)
+            | Value::BigInt(_)
+            | Value::Object(_)
+            | Value::Function(_)
+            | Value::NativeFunction(_)
+            | Value::Array(_)
+            | Value::ParsedObject(_) => true,
         }
     }
 
@@ -61,7 +75,8 @@ impl Value {
             Value::String(_) => "string",
             Value::Symbol(_) => "symbol",
             Value::BigInt(_) => "bigint",
-            Value::Object(_) => "object",
+            Value::Object(_) | Value::Array(_) | Value::ParsedObject(_) => "object",
+            Value::Function(_) | Value::NativeFunction(_) => "function",
         }
     }
 }
@@ -76,7 +91,18 @@ impl fmt::Display for Value {
             Value::String(s) => write!(f, "{}", s),
             Value::Symbol(id) => write!(f, "Symbol({})", id),
             Value::BigInt(n) => write!(f, "{}n", n),
-            Value::Object(_) => write!(f, "[object Object]"),
+            Value::Object(_) | Value::ParsedObject(_) => write!(f, "[object Object]"),
+            Value::Function(_) | Value::NativeFunction(_) => write!(f, "[Function]"),
+            Value::Array(arr) => {
+                write!(f, "[")?;
+                for (i, v) in arr.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ",")?;
+                    }
+                    write!(f, "{}", v)?;
+                }
+                write!(f, "]")
+            }
         }
     }
 }

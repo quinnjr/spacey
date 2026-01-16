@@ -1,6 +1,8 @@
 //! The bytecode interpreter.
 
 use crate::Error;
+use crate::builtins::{BuiltinId, call_builtin};
+use crate::compiler::bytecode::CompiledFunction;
 use crate::compiler::{Bytecode, OpCode, Operand};
 use crate::runtime::object::Object;
 use crate::runtime::value::Value;
@@ -15,6 +17,14 @@ struct CallFrame {
     stack_base: usize,
     /// Local variables for this frame
     locals: Vec<Value>,
+    /// Index of the function being executed (for nested calls)
+    #[allow(dead_code)]
+    func_idx: Option<usize>,
+    /// The bytecode being executed in this frame
+    #[allow(dead_code)]
+    bytecode_idx: usize,
+    /// The 'this' value for this frame
+    this_value: Value,
 }
 
 /// The virtual machine that executes bytecode.
@@ -31,19 +41,222 @@ pub struct VM {
     objects: Vec<Object>,
     /// The 'this' value for the current context
     this_value: Value,
+    /// Compiled functions from bytecode
+    functions: Vec<CompiledFunction>,
+    /// Last property access receiver (for method calls)
+    last_receiver: Option<Value>,
 }
 
 impl VM {
-    /// Creates a new VM.
+    /// Creates a new VM with built-in objects initialized.
     pub fn new() -> Self {
-        Self {
+        let mut vm = Self {
             stack: Vec::with_capacity(256),
             ip: 0,
             globals: FxHashMap::default(),
             call_stack: Vec::new(),
             objects: Vec::new(),
             this_value: Value::Undefined,
-        }
+            functions: Vec::new(),
+            last_receiver: None,
+        };
+        vm.init_builtins();
+        vm
+    }
+
+    /// Initialize built-in objects and global functions.
+    fn init_builtins(&mut self) {
+        // Global functions
+        self.globals.insert(
+            "parseInt".to_string(),
+            Value::NativeFunction(BuiltinId::ParseInt as u16),
+        );
+        self.globals.insert(
+            "parseFloat".to_string(),
+            Value::NativeFunction(BuiltinId::ParseFloat as u16),
+        );
+        self.globals.insert(
+            "isNaN".to_string(),
+            Value::NativeFunction(BuiltinId::IsNaN as u16),
+        );
+        self.globals.insert(
+            "isFinite".to_string(),
+            Value::NativeFunction(BuiltinId::IsFinite as u16),
+        );
+        self.globals.insert(
+            "encodeURI".to_string(),
+            Value::NativeFunction(BuiltinId::EncodeURI as u16),
+        );
+        self.globals.insert(
+            "decodeURI".to_string(),
+            Value::NativeFunction(BuiltinId::DecodeURI as u16),
+        );
+        self.globals.insert(
+            "encodeURIComponent".to_string(),
+            Value::NativeFunction(BuiltinId::EncodeURIComponent as u16),
+        );
+        self.globals.insert(
+            "decodeURIComponent".to_string(),
+            Value::NativeFunction(BuiltinId::DecodeURIComponent as u16),
+        );
+
+        // Create Math object
+        let mut math_obj = Object::new();
+        // Math constants
+        math_obj.set("E".to_string(), Value::Number(std::f64::consts::E));
+        math_obj.set("PI".to_string(), Value::Number(std::f64::consts::PI));
+        math_obj.set("LN2".to_string(), Value::Number(std::f64::consts::LN_2));
+        math_obj.set("LN10".to_string(), Value::Number(std::f64::consts::LN_10));
+        math_obj.set("LOG2E".to_string(), Value::Number(std::f64::consts::LOG2_E));
+        math_obj.set(
+            "LOG10E".to_string(),
+            Value::Number(std::f64::consts::LOG10_E),
+        );
+        math_obj.set("SQRT2".to_string(), Value::Number(std::f64::consts::SQRT_2));
+        math_obj.set(
+            "SQRT1_2".to_string(),
+            Value::Number(std::f64::consts::FRAC_1_SQRT_2),
+        );
+        // Math methods
+        math_obj.set(
+            "abs".to_string(),
+            Value::NativeFunction(BuiltinId::MathAbs as u16),
+        );
+        math_obj.set(
+            "ceil".to_string(),
+            Value::NativeFunction(BuiltinId::MathCeil as u16),
+        );
+        math_obj.set(
+            "floor".to_string(),
+            Value::NativeFunction(BuiltinId::MathFloor as u16),
+        );
+        math_obj.set(
+            "round".to_string(),
+            Value::NativeFunction(BuiltinId::MathRound as u16),
+        );
+        math_obj.set(
+            "max".to_string(),
+            Value::NativeFunction(BuiltinId::MathMax as u16),
+        );
+        math_obj.set(
+            "min".to_string(),
+            Value::NativeFunction(BuiltinId::MathMin as u16),
+        );
+        math_obj.set(
+            "pow".to_string(),
+            Value::NativeFunction(BuiltinId::MathPow as u16),
+        );
+        math_obj.set(
+            "sqrt".to_string(),
+            Value::NativeFunction(BuiltinId::MathSqrt as u16),
+        );
+        math_obj.set(
+            "exp".to_string(),
+            Value::NativeFunction(BuiltinId::MathExp as u16),
+        );
+        math_obj.set(
+            "log".to_string(),
+            Value::NativeFunction(BuiltinId::MathLog as u16),
+        );
+        math_obj.set(
+            "sin".to_string(),
+            Value::NativeFunction(BuiltinId::MathSin as u16),
+        );
+        math_obj.set(
+            "cos".to_string(),
+            Value::NativeFunction(BuiltinId::MathCos as u16),
+        );
+        math_obj.set(
+            "tan".to_string(),
+            Value::NativeFunction(BuiltinId::MathTan as u16),
+        );
+        math_obj.set(
+            "asin".to_string(),
+            Value::NativeFunction(BuiltinId::MathAsin as u16),
+        );
+        math_obj.set(
+            "acos".to_string(),
+            Value::NativeFunction(BuiltinId::MathAcos as u16),
+        );
+        math_obj.set(
+            "atan".to_string(),
+            Value::NativeFunction(BuiltinId::MathAtan as u16),
+        );
+        math_obj.set(
+            "atan2".to_string(),
+            Value::NativeFunction(BuiltinId::MathAtan2 as u16),
+        );
+        math_obj.set(
+            "random".to_string(),
+            Value::NativeFunction(BuiltinId::MathRandom as u16),
+        );
+        math_obj.set(
+            "sign".to_string(),
+            Value::NativeFunction(BuiltinId::MathSign as u16),
+        );
+        math_obj.set(
+            "trunc".to_string(),
+            Value::NativeFunction(BuiltinId::MathTrunc as u16),
+        );
+
+        let math_idx = self.objects.len();
+        self.objects.push(math_obj);
+        self.globals
+            .insert("Math".to_string(), Value::Object(math_idx));
+
+        // Number constants
+        self.globals
+            .insert("NaN".to_string(), Value::Number(f64::NAN));
+        self.globals
+            .insert("Infinity".to_string(), Value::Number(f64::INFINITY));
+        self.globals
+            .insert("undefined".to_string(), Value::Undefined);
+
+        // Create Array constructor object
+        let mut array_obj = Object::new();
+        array_obj.set(
+            "isArray".to_string(),
+            Value::NativeFunction(BuiltinId::ArrayIsArray as u16),
+        );
+        let array_idx = self.objects.len();
+        self.objects.push(array_obj);
+        self.globals
+            .insert("Array".to_string(), Value::Object(array_idx));
+
+        // Create Object constructor
+        let mut object_obj = Object::new();
+        object_obj.set(
+            "keys".to_string(),
+            Value::NativeFunction(BuiltinId::ObjectKeys as u16),
+        );
+        object_obj.set(
+            "values".to_string(),
+            Value::NativeFunction(BuiltinId::ObjectValues as u16),
+        );
+        object_obj.set(
+            "entries".to_string(),
+            Value::NativeFunction(BuiltinId::ObjectEntries as u16),
+        );
+        object_obj.set(
+            "create".to_string(),
+            Value::NativeFunction(BuiltinId::ObjectCreate as u16),
+        );
+        object_obj.set(
+            "defineProperty".to_string(),
+            Value::NativeFunction(BuiltinId::ObjectDefineProperty as u16),
+        );
+        object_obj.set(
+            "getOwnPropertyDescriptor".to_string(),
+            Value::NativeFunction(BuiltinId::ObjectGetOwnPropertyDescriptor as u16),
+        );
+        object_obj.set(
+            "getPrototypeOf".to_string(),
+            Value::NativeFunction(BuiltinId::ObjectGetPrototypeOf as u16),
+        );
+        let object_idx = self.objects.len();
+        self.objects.push(object_obj);
+        self.globals
+            .insert("Object".to_string(), Value::Object(object_idx));
     }
 
     /// Executes bytecode and returns the result.
@@ -51,6 +264,15 @@ impl VM {
         self.ip = 0;
         self.stack.clear();
 
+        // Store functions from the bytecode
+        self.functions = bytecode.functions.clone();
+
+        // Execute with the main bytecode
+        self.execute_bytecode(bytecode)
+    }
+
+    /// Internal method to execute a bytecode chunk.
+    fn execute_bytecode(&mut self, bytecode: &Bytecode) -> Result<Value, Error> {
         loop {
             if self.ip >= bytecode.instructions.len() {
                 break;
@@ -229,6 +451,8 @@ impl VM {
                     let key = self.pop()?;
                     let obj = self.pop()?;
                     let value = self.get_property(&obj, &key);
+                    // Store receiver for potential method call
+                    self.last_receiver = Some(obj);
                     self.stack.push(value);
                 }
 
@@ -292,10 +516,91 @@ impl VM {
 
                 // Function operations
                 OpCode::Call => {
-                    if let Some(Operand::ArgCount(_argc)) = &instruction.operand {
-                        // Simplified: just pop the function and args, push undefined
-                        // A real implementation would handle function calls properly
-                        self.stack.push(Value::Undefined);
+                    if let Some(Operand::ArgCount(argc)) = &instruction.operand {
+                        let argc = *argc as usize;
+
+                        // Pop arguments in reverse order
+                        let mut args = Vec::with_capacity(argc);
+                        for _ in 0..argc {
+                            args.push(self.pop().unwrap_or(Value::Undefined));
+                        }
+                        args.reverse();
+
+                        // Pop the function
+                        let callee = self.pop()?;
+
+                        match callee {
+                            Value::Function(func_idx) => {
+                                // Get the function
+                                if func_idx >= self.functions.len() {
+                                    return Err(Error::TypeError("Invalid function index".into()));
+                                }
+
+                                // Clone the function to avoid borrow issues
+                                let func = self.functions[func_idx].clone();
+
+                                // Set up locals with arguments
+                                let mut locals =
+                                    vec![Value::Undefined; func.local_count.max(func.params.len())];
+                                for (i, arg) in args.into_iter().enumerate() {
+                                    if i < locals.len() {
+                                        locals[i] = arg;
+                                    }
+                                }
+
+                                // Save current state and create call frame
+                                let frame = CallFrame {
+                                    return_ip: self.ip,
+                                    stack_base: self.stack.len(),
+                                    locals,
+                                    func_idx: Some(func_idx),
+                                    bytecode_idx: 0, // Main bytecode
+                                    this_value: if func.is_arrow {
+                                        self.this_value.clone()
+                                    } else {
+                                        Value::Undefined
+                                    },
+                                };
+                                self.call_stack.push(frame);
+
+                                // Save the current IP and execute the function
+                                let saved_ip = self.ip;
+                                let result = self.execute_function(&func)?;
+                                self.ip = saved_ip; // Restore IP to continue main bytecode
+
+                                // Pop the call frame we pushed
+                                self.call_stack.pop();
+
+                                // Push result
+                                self.stack.push(result);
+                            }
+                            Value::NativeFunction(builtin_id) => {
+                                // Call native function with receiver as this
+                                if let Some(id) = BuiltinId::from_u16(builtin_id) {
+                                    let this = self
+                                        .last_receiver
+                                        .take()
+                                        .unwrap_or(self.this_value.clone());
+                                    // Handle array methods specially (they need object heap access)
+                                    let result = if self.is_array_method(id) {
+                                        self.call_array_method(id, &this, &args)?
+                                    } else if self.is_object_static_method(id) {
+                                        self.call_object_static_method(id, &args)?
+                                    } else {
+                                        call_builtin(id, &this, &args)?
+                                    };
+                                    self.stack.push(result);
+                                } else {
+                                    return Err(Error::TypeError("Invalid native function".into()));
+                                }
+                            }
+                            _ => {
+                                return Err(Error::TypeError(format!(
+                                    "{} is not a function",
+                                    callee.type_of()
+                                )));
+                            }
+                        }
                     }
                 }
 
@@ -306,7 +611,8 @@ impl VM {
                         // Restore state
                         self.ip = frame.return_ip;
                         self.stack.truncate(frame.stack_base);
-                        self.stack.push(return_value);
+                        self.this_value = frame.this_value;
+                        return Ok(return_value);
                     } else {
                         // Return from top-level
                         return Ok(return_value);
@@ -314,8 +620,11 @@ impl VM {
                 }
 
                 OpCode::Closure => {
-                    // Simplified: push undefined
-                    self.stack.push(Value::Undefined);
+                    if let Some(Operand::Function(func_idx)) = &instruction.operand {
+                        self.stack.push(Value::Function(*func_idx as usize));
+                    } else {
+                        self.stack.push(Value::Undefined);
+                    }
                 }
 
                 // Object operations
@@ -388,6 +697,388 @@ impl VM {
         self.stack
             .pop()
             .ok_or(Error::InternalError("No result".into()))
+    }
+
+    /// Execute a function's bytecode.
+    fn execute_function(&mut self, func: &CompiledFunction) -> Result<Value, Error> {
+        let bytecode = &func.bytecode;
+
+        // Register nested functions and track their base index
+        let nested_func_base = self.functions.len();
+        for nested_func in &bytecode.functions {
+            self.functions.push(nested_func.clone());
+        }
+
+        self.ip = 0;
+
+        let result = self.execute_function_inner(bytecode, nested_func_base);
+
+        // Clean up nested functions (restore to original state)
+        self.functions.truncate(nested_func_base);
+
+        result
+    }
+
+    /// Inner function execution loop.
+    fn execute_function_inner(
+        &mut self,
+        bytecode: &Bytecode,
+        nested_func_base: usize,
+    ) -> Result<Value, Error> {
+        loop {
+            if self.ip >= bytecode.instructions.len() {
+                break;
+            }
+
+            let instruction = &bytecode.instructions[self.ip];
+            self.ip += 1;
+
+            match instruction.opcode {
+                OpCode::Halt => break,
+                OpCode::Nop => {}
+                OpCode::Return => {
+                    return self.pop().or(Ok(Value::Undefined));
+                }
+
+                // Stack operations
+                OpCode::LoadConst => {
+                    if let Some(Operand::Constant(idx)) = &instruction.operand {
+                        let value = bytecode.constants[*idx as usize].clone();
+                        self.stack.push(value);
+                    }
+                }
+
+                OpCode::LoadUndefined => self.stack.push(Value::Undefined),
+                OpCode::LoadNull => self.stack.push(Value::Null),
+                OpCode::LoadTrue => self.stack.push(Value::Boolean(true)),
+                OpCode::LoadFalse => self.stack.push(Value::Boolean(false)),
+                OpCode::Pop => {
+                    self.stack.pop();
+                }
+                OpCode::Dup => {
+                    if let Some(value) = self.stack.last().cloned() {
+                        self.stack.push(value);
+                    }
+                }
+
+                // Arithmetic
+                OpCode::Add => self.op_add()?,
+                OpCode::Sub => self.binary_num_op(|a, b| a - b)?,
+                OpCode::Mul => self.binary_num_op(|a, b| a * b)?,
+                OpCode::Div => self.binary_num_op(|a, b| a / b)?,
+                OpCode::Mod => self.binary_num_op(|a, b| a % b)?,
+                OpCode::Pow => self.binary_num_op(|a, b| a.powf(b))?,
+                OpCode::Neg => {
+                    let val = self.pop()?;
+                    let num = self.to_number(&val);
+                    self.stack.push(Value::Number(-num));
+                }
+
+                // Comparisons
+                OpCode::Lt => self.compare_op(|a, b| a < b)?,
+                OpCode::Le => self.compare_op(|a, b| a <= b)?,
+                OpCode::Gt => self.compare_op(|a, b| a > b)?,
+                OpCode::Ge => self.compare_op(|a, b| a >= b)?,
+                OpCode::Eq => {
+                    let b = self.pop()?;
+                    let a = self.pop()?;
+                    self.stack
+                        .push(Value::Boolean(self.abstract_equality(&a, &b)));
+                }
+                OpCode::Ne => {
+                    let b = self.pop()?;
+                    let a = self.pop()?;
+                    self.stack
+                        .push(Value::Boolean(!self.abstract_equality(&a, &b)));
+                }
+                OpCode::StrictEq => {
+                    let b = self.pop()?;
+                    let a = self.pop()?;
+                    self.stack
+                        .push(Value::Boolean(self.strict_equality(&a, &b)));
+                }
+                OpCode::StrictNe => {
+                    let b = self.pop()?;
+                    let a = self.pop()?;
+                    self.stack
+                        .push(Value::Boolean(!self.strict_equality(&a, &b)));
+                }
+
+                // Logical & Bitwise
+                OpCode::Not => {
+                    let val = self.pop()?;
+                    self.stack.push(Value::Boolean(!val.to_boolean()));
+                }
+                OpCode::BitAnd => self.bitwise_op(|a, b| a & b)?,
+                OpCode::BitOr => self.bitwise_op(|a, b| a | b)?,
+                OpCode::BitXor => self.bitwise_op(|a, b| a ^ b)?,
+                OpCode::BitNot => {
+                    let val = self.pop()?;
+                    let num = self.to_int32(&val);
+                    self.stack.push(Value::Number((!num) as f64));
+                }
+                OpCode::Shl => self.shift_op(|a, b| a << (b & 0x1f))?,
+                OpCode::Shr => self.shift_op(|a, b| a >> (b & 0x1f))?,
+                OpCode::Ushr => {
+                    let b = self.pop()?;
+                    let a = self.pop()?;
+                    let a_u32 = self.to_uint32(&a);
+                    let b_u32 = self.to_uint32(&b);
+                    self.stack
+                        .push(Value::Number((a_u32 >> (b_u32 & 0x1f)) as f64));
+                }
+
+                // Local variables (within function scope)
+                OpCode::LoadLocal => {
+                    if let Some(Operand::Local(idx)) = &instruction.operand {
+                        if let Some(frame) = self.call_stack.last() {
+                            let value = frame
+                                .locals
+                                .get(*idx as usize)
+                                .cloned()
+                                .unwrap_or(Value::Undefined);
+                            self.stack.push(value);
+                        } else {
+                            self.stack.push(Value::Undefined);
+                        }
+                    }
+                }
+                OpCode::StoreLocal => {
+                    if let Some(Operand::Local(idx)) = &instruction.operand {
+                        let value = self.pop()?;
+                        if let Some(frame) = self.call_stack.last_mut() {
+                            let idx = *idx as usize;
+                            if idx >= frame.locals.len() {
+                                frame.locals.resize(idx + 1, Value::Undefined);
+                            }
+                            frame.locals[idx] = value;
+                        }
+                    }
+                }
+
+                // Global variables
+                OpCode::LoadGlobal => {
+                    if let Some(Operand::Constant(idx)) = &instruction.operand
+                        && let Value::String(name) = &bytecode.constants[*idx as usize]
+                    {
+                        let value = self.globals.get(name).cloned().unwrap_or(Value::Undefined);
+                        self.stack.push(value);
+                    }
+                }
+                OpCode::StoreGlobal => {
+                    if let Some(Operand::Constant(idx)) = &instruction.operand {
+                        let value = self.pop()?;
+                        if let Value::String(name) = &bytecode.constants[*idx as usize] {
+                            self.globals.insert(name.clone(), value);
+                        }
+                    }
+                }
+
+                OpCode::LoadUpvalue | OpCode::StoreUpvalue => {
+                    // Closures not fully implemented yet
+                    self.stack.push(Value::Undefined);
+                }
+
+                // Property operations
+                OpCode::GetProperty => {
+                    let key = self.pop()?;
+                    let obj = self.pop()?;
+                    let value = self.get_property(&obj, &key);
+                    // Store receiver for potential method call
+                    self.last_receiver = Some(obj);
+                    self.stack.push(value);
+                }
+                OpCode::SetProperty => {
+                    let value = self.pop()?;
+                    let key = self.pop()?;
+                    let obj = self.pop()?;
+                    self.set_property(obj, &key, value.clone());
+                    self.stack.push(value);
+                }
+                OpCode::DeleteProperty => {
+                    let _key = self.pop()?;
+                    let _obj = self.pop()?;
+                    self.stack.push(Value::Boolean(true));
+                }
+
+                // Control flow
+                OpCode::Jump => {
+                    if let Some(Operand::Jump(offset)) = &instruction.operand {
+                        self.ip = (self.ip as i32 + offset) as usize;
+                    }
+                }
+                OpCode::JumpIfFalse => {
+                    if let Some(Operand::Jump(offset)) = &instruction.operand
+                        && let Some(value) = self.stack.last()
+                        && !value.to_boolean()
+                    {
+                        self.ip = (self.ip as i32 + offset) as usize;
+                    }
+                }
+                OpCode::JumpIfTrue => {
+                    if let Some(Operand::Jump(offset)) = &instruction.operand
+                        && let Some(value) = self.stack.last()
+                        && value.to_boolean()
+                    {
+                        self.ip = (self.ip as i32 + offset) as usize;
+                    }
+                }
+                OpCode::JumpIfNotUndefined => {
+                    if let Some(Operand::Jump(offset)) = &instruction.operand
+                        && let Some(value) = self.stack.last()
+                        && !matches!(value, Value::Undefined)
+                    {
+                        self.ip = (self.ip as i32 + offset) as usize;
+                    }
+                }
+
+                // Nested function calls
+                OpCode::Call => {
+                    if let Some(Operand::ArgCount(argc)) = &instruction.operand {
+                        let argc = *argc as usize;
+                        let mut args = Vec::with_capacity(argc);
+                        for _ in 0..argc {
+                            args.push(self.pop().unwrap_or(Value::Undefined));
+                        }
+                        args.reverse();
+                        let callee = self.pop()?;
+
+                        match callee {
+                            Value::Function(func_idx) => {
+                                if func_idx >= self.functions.len() {
+                                    return Err(Error::TypeError("Invalid function index".into()));
+                                }
+                                let nested_func = self.functions[func_idx].clone();
+                                let mut locals =
+                                    vec![
+                                        Value::Undefined;
+                                        nested_func.local_count.max(nested_func.params.len())
+                                    ];
+                                for (i, arg) in args.into_iter().enumerate() {
+                                    if i < locals.len() {
+                                        locals[i] = arg;
+                                    }
+                                }
+                                let frame = CallFrame {
+                                    return_ip: self.ip,
+                                    stack_base: self.stack.len(),
+                                    locals,
+                                    func_idx: Some(func_idx),
+                                    bytecode_idx: 0,
+                                    this_value: if nested_func.is_arrow {
+                                        self.this_value.clone()
+                                    } else {
+                                        Value::Undefined
+                                    },
+                                };
+                                self.call_stack.push(frame);
+                                let saved_ip = self.ip;
+                                let result = self.execute_function(&nested_func)?;
+                                self.ip = saved_ip;
+                                self.call_stack.pop();
+                                self.stack.push(result);
+                            }
+                            Value::NativeFunction(builtin_id) => {
+                                // Call native function with receiver as this
+                                if let Some(id) = BuiltinId::from_u16(builtin_id) {
+                                    let this = self
+                                        .last_receiver
+                                        .take()
+                                        .unwrap_or(self.this_value.clone());
+                                    // Handle array methods specially (they need object heap access)
+                                    let result = if self.is_array_method(id) {
+                                        self.call_array_method(id, &this, &args)?
+                                    } else if self.is_object_static_method(id) {
+                                        self.call_object_static_method(id, &args)?
+                                    } else {
+                                        call_builtin(id, &this, &args)?
+                                    };
+                                    self.stack.push(result);
+                                } else {
+                                    return Err(Error::TypeError("Invalid native function".into()));
+                                }
+                            }
+                            _ => {
+                                return Err(Error::TypeError(format!(
+                                    "{} is not a function",
+                                    callee.type_of()
+                                )));
+                            }
+                        }
+                    }
+                }
+
+                OpCode::Closure => {
+                    if let Some(Operand::Function(func_idx)) = &instruction.operand {
+                        // Nested functions use offset from nested_func_base
+                        let actual_idx = nested_func_base + *func_idx as usize;
+                        self.stack.push(Value::Function(actual_idx));
+                    } else {
+                        self.stack.push(Value::Undefined);
+                    }
+                }
+
+                // Object operations
+                OpCode::NewObject => {
+                    let obj = Object::new();
+                    let idx = self.objects.len();
+                    self.objects.push(obj);
+                    self.stack.push(Value::Object(idx));
+                }
+                OpCode::NewArray => {
+                    if let Some(Operand::ArgCount(count)) = &instruction.operand {
+                        let count = *count as usize;
+                        let mut elements = Vec::with_capacity(count);
+                        for _ in 0..count {
+                            elements.push(self.pop().unwrap_or(Value::Undefined));
+                        }
+                        elements.reverse();
+                        let mut obj = Object::new();
+                        for (i, elem) in elements.into_iter().enumerate() {
+                            obj.set(i.to_string(), elem);
+                        }
+                        obj.set("length".to_string(), Value::Number(count as f64));
+                        let idx = self.objects.len();
+                        self.objects.push(obj);
+                        self.stack.push(Value::Object(idx));
+                    }
+                }
+                OpCode::TypeOf => {
+                    let val = self.pop()?;
+                    self.stack.push(Value::String(val.type_of().to_string()));
+                }
+                OpCode::InstanceOf => {
+                    let _constructor = self.pop()?;
+                    let _obj = self.pop()?;
+                    self.stack.push(Value::Boolean(false));
+                }
+                OpCode::In => {
+                    let obj = self.pop()?;
+                    let key = self.pop()?;
+                    self.stack
+                        .push(Value::Boolean(self.has_property(&obj, &key)));
+                }
+
+                OpCode::LoadThis => {
+                    if let Some(frame) = self.call_stack.last() {
+                        self.stack.push(frame.this_value.clone());
+                    } else {
+                        self.stack.push(self.this_value.clone());
+                    }
+                }
+
+                OpCode::Throw => {
+                    let value = self.pop()?;
+                    return Err(Error::InternalError(format!(
+                        "Uncaught exception: {:?}",
+                        value
+                    )));
+                }
+            }
+        }
+
+        // If we reach here without a return, return undefined
+        Ok(self.stack.pop().unwrap_or(Value::Undefined))
     }
 
     // ==================== Helper Methods ====================
@@ -493,7 +1184,13 @@ impl VM {
             Value::Null => 0.0,
             Value::Undefined => f64::NAN,
             Value::String(s) => s.parse().unwrap_or(f64::NAN),
-            Value::Symbol(_) | Value::BigInt(_) | Value::Object(_) => f64::NAN,
+            Value::Symbol(_)
+            | Value::BigInt(_)
+            | Value::Object(_)
+            | Value::Function(_)
+            | Value::NativeFunction(_)
+            | Value::Array(_)
+            | Value::ParsedObject(_) => f64::NAN,
         }
     }
 
@@ -532,7 +1229,13 @@ impl VM {
             Value::Undefined => "undefined".to_string(),
             Value::Symbol(id) => format!("Symbol({})", id),
             Value::BigInt(s) => s.clone(),
-            Value::Object(_) => "[object Object]".to_string(),
+            Value::Object(_) | Value::ParsedObject(_) => "[object Object]".to_string(),
+            Value::Function(_) | Value::NativeFunction(_) => "[Function]".to_string(),
+            Value::Array(arr) => arr
+                .iter()
+                .map(|v| self.to_string(v))
+                .collect::<Vec<_>>()
+                .join(","),
         }
     }
 
@@ -595,25 +1298,729 @@ impl VM {
         match obj {
             Value::Object(idx) => {
                 if let Some(object) = self.objects.get(*idx) {
+                    // Check for array methods first
+                    if object.has("length")
+                        && let Some(method) = self.get_array_method(&key_str)
+                    {
+                        return method;
+                    }
                     object.get(&key_str).cloned().unwrap_or(Value::Undefined)
                 } else {
                     Value::Undefined
                 }
             }
             Value::String(s) => {
-                // String indexing
+                // String properties and methods
                 if key_str == "length" {
-                    Value::Number(s.len() as f64)
+                    Value::Number(s.chars().count() as f64)
                 } else if let Ok(idx) = key_str.parse::<usize>() {
                     s.chars()
                         .nth(idx)
                         .map(|c| Value::String(c.to_string()))
                         .unwrap_or(Value::Undefined)
+                } else if let Some(method) = self.get_string_method(&key_str) {
+                    method
+                } else {
+                    Value::Undefined
+                }
+            }
+            Value::Number(_) => {
+                // Number prototype methods
+                if let Some(method) = self.get_number_method(&key_str) {
+                    method
                 } else {
                     Value::Undefined
                 }
             }
             _ => Value::Undefined,
+        }
+    }
+
+    /// Get a String prototype method by name.
+    fn get_string_method(&self, name: &str) -> Option<Value> {
+        let id = match name {
+            "charAt" => BuiltinId::StringCharAt,
+            "charCodeAt" => BuiltinId::StringCharCodeAt,
+            "concat" => BuiltinId::StringConcat,
+            "indexOf" => BuiltinId::StringIndexOf,
+            "lastIndexOf" => BuiltinId::StringLastIndexOf,
+            "slice" => BuiltinId::StringSlice,
+            "substring" => BuiltinId::StringSubstring,
+            "substr" => BuiltinId::StringSubstr,
+            "toLowerCase" => BuiltinId::StringToLowerCase,
+            "toUpperCase" => BuiltinId::StringToUpperCase,
+            "trim" => BuiltinId::StringTrim,
+            "split" => BuiltinId::StringSplit,
+            "replace" => BuiltinId::StringReplace,
+            "match" => BuiltinId::StringMatch,
+            "search" => BuiltinId::StringSearch,
+            "repeat" => BuiltinId::StringRepeat,
+            "startsWith" => BuiltinId::StringStartsWith,
+            "endsWith" => BuiltinId::StringEndsWith,
+            "includes" => BuiltinId::StringIncludes,
+            "padStart" => BuiltinId::StringPadStart,
+            "padEnd" => BuiltinId::StringPadEnd,
+            _ => return None,
+        };
+        Some(Value::NativeFunction(id as u16))
+    }
+
+    /// Get a Number prototype method by name.
+    fn get_number_method(&self, name: &str) -> Option<Value> {
+        let id = match name {
+            "toString" => BuiltinId::NumberToString,
+            "toFixed" => BuiltinId::NumberToFixed,
+            "toExponential" => BuiltinId::NumberToExponential,
+            "toPrecision" => BuiltinId::NumberToPrecision,
+            "valueOf" => BuiltinId::NumberValueOf,
+            _ => return None,
+        };
+        Some(Value::NativeFunction(id as u16))
+    }
+
+    /// Get an Array prototype method by name.
+    fn get_array_method(&self, name: &str) -> Option<Value> {
+        let id = match name {
+            "push" => BuiltinId::ArrayPush,
+            "pop" => BuiltinId::ArrayPop,
+            "shift" => BuiltinId::ArrayShift,
+            "unshift" => BuiltinId::ArrayUnshift,
+            "slice" => BuiltinId::ArraySlice,
+            "splice" => BuiltinId::ArraySplice,
+            "concat" => BuiltinId::ArrayConcat,
+            "join" => BuiltinId::ArrayJoin,
+            "reverse" => BuiltinId::ArrayReverse,
+            "sort" => BuiltinId::ArraySort,
+            "indexOf" => BuiltinId::ArrayIndexOf,
+            "lastIndexOf" => BuiltinId::ArrayLastIndexOf,
+            "forEach" => BuiltinId::ArrayForEach,
+            "map" => BuiltinId::ArrayMap,
+            "filter" => BuiltinId::ArrayFilter,
+            "every" => BuiltinId::ArrayEvery,
+            "some" => BuiltinId::ArraySome,
+            "reduce" => BuiltinId::ArrayReduce,
+            "reduceRight" => BuiltinId::ArrayReduceRight,
+            _ => return None,
+        };
+        Some(Value::NativeFunction(id as u16))
+    }
+
+    /// Check if a builtin ID is an array method.
+    fn is_array_method(&self, id: BuiltinId) -> bool {
+        matches!(
+            id,
+            BuiltinId::ArrayPush
+                | BuiltinId::ArrayPop
+                | BuiltinId::ArrayShift
+                | BuiltinId::ArrayUnshift
+                | BuiltinId::ArraySlice
+                | BuiltinId::ArraySplice
+                | BuiltinId::ArrayConcat
+                | BuiltinId::ArrayJoin
+                | BuiltinId::ArrayReverse
+                | BuiltinId::ArraySort
+                | BuiltinId::ArrayIndexOf
+                | BuiltinId::ArrayLastIndexOf
+                | BuiltinId::ArrayForEach
+                | BuiltinId::ArrayMap
+                | BuiltinId::ArrayFilter
+                | BuiltinId::ArrayEvery
+                | BuiltinId::ArraySome
+                | BuiltinId::ArrayReduce
+                | BuiltinId::ArrayReduceRight
+        )
+    }
+
+    /// Call an array method with access to the object heap.
+    fn call_array_method(
+        &mut self,
+        id: BuiltinId,
+        this: &Value,
+        args: &[Value],
+    ) -> Result<Value, Error> {
+        let idx = match this {
+            Value::Object(idx) => *idx,
+            _ => return Err(Error::TypeError("Array method called on non-object".into())),
+        };
+
+        match id {
+            BuiltinId::ArrayPush => {
+                let obj = self
+                    .objects
+                    .get_mut(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                for (i, arg) in args.iter().enumerate() {
+                    obj.set((len + i).to_string(), arg.clone());
+                }
+                let new_len = len + args.len();
+                obj.set("length".to_string(), Value::Number(new_len as f64));
+                Ok(Value::Number(new_len as f64))
+            }
+            BuiltinId::ArrayPop => {
+                let obj = self
+                    .objects
+                    .get_mut(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                if len == 0 {
+                    return Ok(Value::Undefined);
+                }
+
+                let last_idx = (len - 1).to_string();
+                let value = obj.get(&last_idx).cloned().unwrap_or(Value::Undefined);
+                obj.delete(&last_idx);
+                obj.set("length".to_string(), Value::Number((len - 1) as f64));
+                Ok(value)
+            }
+            BuiltinId::ArrayShift => {
+                let obj = self
+                    .objects
+                    .get_mut(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                if len == 0 {
+                    return Ok(Value::Undefined);
+                }
+
+                let first = obj.get("0").cloned().unwrap_or(Value::Undefined);
+                // Shift all elements down
+                for i in 1..len {
+                    if let Some(v) = obj.get(&i.to_string()).cloned() {
+                        obj.set((i - 1).to_string(), v);
+                    } else {
+                        obj.delete(&(i - 1).to_string());
+                    }
+                }
+                obj.delete(&(len - 1).to_string());
+                obj.set("length".to_string(), Value::Number((len - 1) as f64));
+                Ok(first)
+            }
+            BuiltinId::ArrayUnshift => {
+                let obj = self
+                    .objects
+                    .get_mut(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                let shift = args.len();
+                // Shift existing elements up
+                for i in (0..len).rev() {
+                    if let Some(v) = obj.get(&i.to_string()).cloned() {
+                        obj.set((i + shift).to_string(), v);
+                    }
+                }
+                // Insert new elements at the beginning
+                for (i, arg) in args.iter().enumerate() {
+                    obj.set(i.to_string(), arg.clone());
+                }
+                let new_len = len + shift;
+                obj.set("length".to_string(), Value::Number(new_len as f64));
+                Ok(Value::Number(new_len as f64))
+            }
+            BuiltinId::ArrayJoin => {
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                let separator = args
+                    .first()
+                    .map(|v| self.to_string(v))
+                    .unwrap_or_else(|| ",".to_string());
+
+                let mut parts = Vec::with_capacity(len);
+                for i in 0..len {
+                    let v = obj.get(&i.to_string()).cloned().unwrap_or(Value::Undefined);
+                    parts.push(match v {
+                        Value::Null | Value::Undefined => String::new(),
+                        _ => self.to_string(&v),
+                    });
+                }
+                Ok(Value::String(parts.join(&separator)))
+            }
+            BuiltinId::ArrayIndexOf => {
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                let search = args.first().cloned().unwrap_or(Value::Undefined);
+                let start = args.get(1).map(|v| self.to_number(v) as usize).unwrap_or(0);
+
+                for i in start..len {
+                    if let Some(v) = obj.get(&i.to_string())
+                        && self.strict_equality(&search, v)
+                    {
+                        return Ok(Value::Number(i as f64));
+                    }
+                }
+                Ok(Value::Number(-1.0))
+            }
+            BuiltinId::ArrayLastIndexOf => {
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                if len == 0 {
+                    return Ok(Value::Number(-1.0));
+                }
+
+                let search = args.first().cloned().unwrap_or(Value::Undefined);
+                let start = args
+                    .get(1)
+                    .map(|v| (self.to_number(v) as usize).min(len - 1))
+                    .unwrap_or(len - 1);
+
+                for i in (0..=start).rev() {
+                    if let Some(v) = obj.get(&i.to_string())
+                        && self.strict_equality(&search, v)
+                    {
+                        return Ok(Value::Number(i as f64));
+                    }
+                }
+                Ok(Value::Number(-1.0))
+            }
+            BuiltinId::ArraySlice => {
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as i64),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                let start = args.first().map(|v| self.to_number(v) as i64).unwrap_or(0);
+                let end = args.get(1).map(|v| self.to_number(v) as i64).unwrap_or(len);
+
+                let start = if start < 0 {
+                    (len + start).max(0)
+                } else {
+                    start.min(len)
+                } as usize;
+                let end = if end < 0 {
+                    (len + end).max(0)
+                } else {
+                    end.min(len)
+                } as usize;
+
+                // Create new array
+                let mut new_obj = Object::new();
+                let mut new_len = 0;
+                for i in start..end {
+                    if let Some(v) = obj.get(&i.to_string()).cloned() {
+                        new_obj.set(new_len.to_string(), v);
+                    }
+                    new_len += 1;
+                }
+                new_obj.set("length".to_string(), Value::Number(new_len as f64));
+
+                let new_idx = self.objects.len();
+                self.objects.push(new_obj);
+                Ok(Value::Object(new_idx))
+            }
+            BuiltinId::ArrayReverse => {
+                let obj = self
+                    .objects
+                    .get_mut(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                let mut i = 0;
+                let mut j = len.saturating_sub(1);
+                while i < j {
+                    let a = obj.get(&i.to_string()).cloned();
+                    let b = obj.get(&j.to_string()).cloned();
+                    if let Some(v) = b {
+                        obj.set(i.to_string(), v);
+                    } else {
+                        obj.delete(&i.to_string());
+                    }
+                    if let Some(v) = a {
+                        obj.set(j.to_string(), v);
+                    } else {
+                        obj.delete(&j.to_string());
+                    }
+                    i += 1;
+                    j = j.saturating_sub(1);
+                }
+                Ok(this.clone())
+            }
+            BuiltinId::ArrayForEach => {
+                let callback = args.first().cloned().unwrap_or(Value::Undefined);
+                let this_arg = args.get(1).cloned().unwrap_or(Value::Undefined);
+
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                // Collect elements first to avoid borrow issues
+                let elements: Vec<(usize, Value)> = (0..len)
+                    .filter_map(|i| obj.get(&i.to_string()).cloned().map(|v| (i, v)))
+                    .collect();
+
+                for (i, elem) in elements {
+                    self.call_function_value(
+                        &callback,
+                        &this_arg,
+                        &[elem, Value::Number(i as f64), this.clone()],
+                    )?;
+                }
+                Ok(Value::Undefined)
+            }
+            BuiltinId::ArrayMap => {
+                let callback = args.first().cloned().unwrap_or(Value::Undefined);
+                let this_arg = args.get(1).cloned().unwrap_or(Value::Undefined);
+
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                // Collect elements first
+                let elements: Vec<(usize, Value)> = (0..len)
+                    .map(|i| {
+                        (
+                            i,
+                            obj.get(&i.to_string()).cloned().unwrap_or(Value::Undefined),
+                        )
+                    })
+                    .collect();
+
+                // Create result array
+                let mut result_obj = Object::new();
+                for (i, elem) in elements {
+                    let mapped = self.call_function_value(
+                        &callback,
+                        &this_arg,
+                        &[elem, Value::Number(i as f64), this.clone()],
+                    )?;
+                    result_obj.set(i.to_string(), mapped);
+                }
+                result_obj.set("length".to_string(), Value::Number(len as f64));
+
+                let result_idx = self.objects.len();
+                self.objects.push(result_obj);
+                Ok(Value::Object(result_idx))
+            }
+            BuiltinId::ArrayFilter => {
+                let callback = args.first().cloned().unwrap_or(Value::Undefined);
+                let this_arg = args.get(1).cloned().unwrap_or(Value::Undefined);
+
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                // Collect elements first
+                let elements: Vec<(usize, Value)> = (0..len)
+                    .filter_map(|i| obj.get(&i.to_string()).cloned().map(|v| (i, v)))
+                    .collect();
+
+                // Create result array
+                let mut result_obj = Object::new();
+                let mut result_len = 0;
+                for (i, elem) in elements {
+                    let result = self.call_function_value(
+                        &callback,
+                        &this_arg,
+                        &[elem.clone(), Value::Number(i as f64), this.clone()],
+                    )?;
+                    if result.to_boolean() {
+                        result_obj.set(result_len.to_string(), elem);
+                        result_len += 1;
+                    }
+                }
+                result_obj.set("length".to_string(), Value::Number(result_len as f64));
+
+                let result_idx = self.objects.len();
+                self.objects.push(result_obj);
+                Ok(Value::Object(result_idx))
+            }
+            BuiltinId::ArrayEvery => {
+                let callback = args.first().cloned().unwrap_or(Value::Undefined);
+                let this_arg = args.get(1).cloned().unwrap_or(Value::Undefined);
+
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                let elements: Vec<(usize, Value)> = (0..len)
+                    .filter_map(|i| obj.get(&i.to_string()).cloned().map(|v| (i, v)))
+                    .collect();
+
+                for (i, elem) in elements {
+                    let result = self.call_function_value(
+                        &callback,
+                        &this_arg,
+                        &[elem, Value::Number(i as f64), this.clone()],
+                    )?;
+                    if !result.to_boolean() {
+                        return Ok(Value::Boolean(false));
+                    }
+                }
+                Ok(Value::Boolean(true))
+            }
+            BuiltinId::ArraySome => {
+                let callback = args.first().cloned().unwrap_or(Value::Undefined);
+                let this_arg = args.get(1).cloned().unwrap_or(Value::Undefined);
+
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                let elements: Vec<(usize, Value)> = (0..len)
+                    .filter_map(|i| obj.get(&i.to_string()).cloned().map(|v| (i, v)))
+                    .collect();
+
+                for (i, elem) in elements {
+                    let result = self.call_function_value(
+                        &callback,
+                        &this_arg,
+                        &[elem, Value::Number(i as f64), this.clone()],
+                    )?;
+                    if result.to_boolean() {
+                        return Ok(Value::Boolean(true));
+                    }
+                }
+                Ok(Value::Boolean(false))
+            }
+            BuiltinId::ArrayReduce => {
+                let callback = args.first().cloned().unwrap_or(Value::Undefined);
+                let initial_value = args.get(1).cloned();
+
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                let elements: Vec<(usize, Value)> = (0..len)
+                    .filter_map(|i| obj.get(&i.to_string()).cloned().map(|v| (i, v)))
+                    .collect();
+
+                if elements.is_empty() && initial_value.is_none() {
+                    return Err(Error::TypeError(
+                        "Reduce of empty array with no initial value".into(),
+                    ));
+                }
+
+                let mut iter = elements.into_iter();
+                let mut accumulator = if let Some(init) = initial_value {
+                    init
+                } else {
+                    iter.next().map(|(_, v)| v).unwrap_or(Value::Undefined)
+                };
+
+                for (i, elem) in iter {
+                    accumulator = self.call_function_value(
+                        &callback,
+                        &Value::Undefined,
+                        &[accumulator, elem, Value::Number(i as f64), this.clone()],
+                    )?;
+                }
+                Ok(accumulator)
+            }
+            BuiltinId::ArrayReduceRight => {
+                let callback = args.first().cloned().unwrap_or(Value::Undefined);
+                let initial_value = args.get(1).cloned();
+
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+                let len = obj
+                    .get("length")
+                    .and_then(|v| match v {
+                        Value::Number(n) => Some(*n as usize),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+
+                let elements: Vec<(usize, Value)> = (0..len)
+                    .rev()
+                    .filter_map(|i| obj.get(&i.to_string()).cloned().map(|v| (i, v)))
+                    .collect();
+
+                if elements.is_empty() && initial_value.is_none() {
+                    return Err(Error::TypeError(
+                        "Reduce of empty array with no initial value".into(),
+                    ));
+                }
+
+                let mut iter = elements.into_iter();
+                let mut accumulator = if let Some(init) = initial_value {
+                    init
+                } else {
+                    iter.next().map(|(_, v)| v).unwrap_or(Value::Undefined)
+                };
+
+                for (i, elem) in iter {
+                    accumulator = self.call_function_value(
+                        &callback,
+                        &Value::Undefined,
+                        &[accumulator, elem, Value::Number(i as f64), this.clone()],
+                    )?;
+                }
+                Ok(accumulator)
+            }
+            // For methods we haven't implemented yet, return undefined
+            _ => Ok(Value::Undefined),
+        }
+    }
+
+    /// Call a function value with given this and arguments.
+    fn call_function_value(
+        &mut self,
+        func: &Value,
+        this_value: &Value,
+        args: &[Value],
+    ) -> Result<Value, Error> {
+        match func {
+            Value::Function(func_idx) => {
+                if *func_idx >= self.functions.len() {
+                    return Err(Error::TypeError("Invalid function index".into()));
+                }
+                let func = self.functions[*func_idx].clone();
+                let mut locals = vec![Value::Undefined; func.local_count.max(func.params.len())];
+                for (i, arg) in args.iter().enumerate() {
+                    if i < locals.len() {
+                        locals[i] = arg.clone();
+                    }
+                }
+                let frame = CallFrame {
+                    return_ip: self.ip,
+                    stack_base: self.stack.len(),
+                    locals,
+                    func_idx: Some(*func_idx),
+                    bytecode_idx: 0,
+                    this_value: if func.is_arrow {
+                        self.this_value.clone()
+                    } else {
+                        this_value.clone()
+                    },
+                };
+                self.call_stack.push(frame);
+                let saved_ip = self.ip;
+                let result = self.execute_function(&func)?;
+                self.ip = saved_ip;
+                self.call_stack.pop();
+                Ok(result)
+            }
+            Value::NativeFunction(builtin_id) => {
+                if let Some(id) = BuiltinId::from_u16(*builtin_id) {
+                    call_builtin(id, this_value, args)
+                } else {
+                    Err(Error::TypeError("Invalid native function".into()))
+                }
+            }
+            _ => Err(Error::TypeError(format!(
+                "{} is not a function",
+                func.type_of()
+            ))),
         }
     }
 
@@ -648,6 +2055,139 @@ impl VM {
             _ => false,
         }
     }
+
+    /// Check if a builtin ID is an Object static method.
+    fn is_object_static_method(&self, id: BuiltinId) -> bool {
+        matches!(
+            id,
+            BuiltinId::ObjectKeys
+                | BuiltinId::ObjectValues
+                | BuiltinId::ObjectEntries
+                | BuiltinId::ObjectCreate
+                | BuiltinId::ObjectGetPrototypeOf
+        )
+    }
+
+    /// Call an Object static method with access to the object heap.
+    fn call_object_static_method(&mut self, id: BuiltinId, args: &[Value]) -> Result<Value, Error> {
+        match id {
+            BuiltinId::ObjectKeys => {
+                let obj_arg = args.first().cloned().unwrap_or(Value::Undefined);
+                let idx = match obj_arg {
+                    Value::Object(idx) => idx,
+                    _ => return Ok(Value::Object(self.create_empty_array())),
+                };
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid object".into()))?;
+
+                // Get all enumerable own property keys
+                let keys: Vec<String> = obj.properties.keys().cloned().collect();
+
+                // Create result array
+                let mut result_obj = Object::new();
+                for (i, key) in keys.iter().enumerate() {
+                    result_obj.set(i.to_string(), Value::String(key.clone()));
+                }
+                result_obj.set("length".to_string(), Value::Number(keys.len() as f64));
+
+                let result_idx = self.objects.len();
+                self.objects.push(result_obj);
+                Ok(Value::Object(result_idx))
+            }
+            BuiltinId::ObjectValues => {
+                let obj_arg = args.first().cloned().unwrap_or(Value::Undefined);
+                let idx = match obj_arg {
+                    Value::Object(idx) => idx,
+                    _ => return Ok(Value::Object(self.create_empty_array())),
+                };
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid object".into()))?;
+
+                let values: Vec<Value> = obj.properties.values().map(|p| p.value.clone()).collect();
+
+                let mut result_obj = Object::new();
+                for (i, value) in values.iter().enumerate() {
+                    result_obj.set(i.to_string(), value.clone());
+                }
+                result_obj.set("length".to_string(), Value::Number(values.len() as f64));
+
+                let result_idx = self.objects.len();
+                self.objects.push(result_obj);
+                Ok(Value::Object(result_idx))
+            }
+            BuiltinId::ObjectEntries => {
+                let obj_arg = args.first().cloned().unwrap_or(Value::Undefined);
+                let idx = match obj_arg {
+                    Value::Object(idx) => idx,
+                    _ => return Ok(Value::Object(self.create_empty_array())),
+                };
+                let obj = self
+                    .objects
+                    .get(idx)
+                    .ok_or_else(|| Error::TypeError("Invalid object".into()))?;
+
+                let entries: Vec<(String, Value)> = obj
+                    .properties
+                    .iter()
+                    .map(|(k, p)| (k.clone(), p.value.clone()))
+                    .collect();
+
+                // Create result array of [key, value] pairs
+                let mut result_obj = Object::new();
+                let mut entry_objects = Vec::new();
+                for (key, value) in entries.iter() {
+                    let mut pair_obj = Object::new();
+                    pair_obj.set("0".to_string(), Value::String(key.clone()));
+                    pair_obj.set("1".to_string(), value.clone());
+                    pair_obj.set("length".to_string(), Value::Number(2.0));
+                    entry_objects.push(pair_obj);
+                }
+
+                // Store entry pairs in objects heap
+                let start_idx = self.objects.len();
+                for pair in entry_objects {
+                    self.objects.push(pair);
+                }
+
+                // Build result array referencing the pairs
+                for i in 0..entries.len() {
+                    result_obj.set(i.to_string(), Value::Object(start_idx + i));
+                }
+                result_obj.set("length".to_string(), Value::Number(entries.len() as f64));
+
+                let result_idx = self.objects.len();
+                self.objects.push(result_obj);
+                Ok(Value::Object(result_idx))
+            }
+            BuiltinId::ObjectCreate => {
+                let proto = args.first().cloned().unwrap_or(Value::Null);
+                // Simplified: just create an empty object (proper prototype chain not implemented)
+                let _ = proto; // Prototype support would go here
+                let obj = Object::new();
+                let idx = self.objects.len();
+                self.objects.push(obj);
+                Ok(Value::Object(idx))
+            }
+            BuiltinId::ObjectGetPrototypeOf => {
+                // Simplified: return null (proper prototype chain not implemented)
+                Ok(Value::Null)
+            }
+            _ => Ok(Value::Undefined),
+        }
+    }
+
+    /// Create an empty array and return its index.
+    fn create_empty_array(&mut self) -> usize {
+        let mut arr = Object::new();
+        arr.set("length".to_string(), Value::Number(0.0));
+        let idx = self.objects.len();
+        self.objects.push(arr);
+        idx
+    }
 }
 
 impl Default for VM {
@@ -665,6 +2205,7 @@ mod tests {
         Bytecode {
             instructions,
             constants,
+            functions: Vec::new(),
         }
     }
 
