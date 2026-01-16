@@ -2224,10 +2224,32 @@ impl VM {
             }
             BuiltinId::JsonStringify => {
                 let value = args.first().cloned().unwrap_or(Value::Undefined);
+                // args[1] is replacer (ignored for now), args[2] is space
+                let space = self.parse_stringify_space(args.get(2));
                 let mut seen = Vec::new();
-                self.value_to_json(&value, &mut seen)
+                if space.is_empty() {
+                    self.value_to_json(&value, &mut seen)
+                } else {
+                    self.value_to_json_formatted(&value, &mut seen, &space, 0)
+                }
             }
             _ => Ok(Value::Undefined),
+        }
+    }
+
+    /// Parse the space parameter for JSON.stringify.
+    /// Returns the indent string: empty for no formatting, or spaces/string up to 10 chars.
+    fn parse_stringify_space(&self, space_arg: Option<&Value>) -> String {
+        match space_arg {
+            Some(Value::Number(n)) => {
+                let spaces = (*n as i32).clamp(0, 10) as usize;
+                " ".repeat(spaces)
+            }
+            Some(Value::String(s)) => {
+                // Truncate to max 10 characters
+                s.chars().take(10).collect()
+            }
+            _ => String::new(),
         }
     }
 
@@ -2460,6 +2482,225 @@ impl VM {
 
         result.push('"');
         result
+    }
+
+    /// Convert a value to its formatted JSON string representation with cycle detection.
+    fn value_to_json_formatted(
+        &self,
+        value: &Value,
+        seen: &mut Vec<usize>,
+        indent: &str,
+        depth: usize,
+    ) -> Result<Value, Error> {
+        match value {
+            Value::Null => Ok(Value::String("null".into())),
+            Value::Boolean(b) => Ok(Value::String(if *b { "true" } else { "false" }.into())),
+            Value::Number(n) => {
+                if n.is_nan() || n.is_infinite() {
+                    Ok(Value::String("null".into()))
+                } else if n.fract() == 0.0 && n.abs() < 1e15 {
+                    Ok(Value::String(format!("{}", *n as i64)))
+                } else {
+                    Ok(Value::String(format!("{}", n)))
+                }
+            }
+            Value::String(s) => Ok(Value::String(self.escape_json_string(s))),
+            Value::Undefined => Ok(Value::Undefined),
+            Value::Object(idx) => {
+                // Check for cycles
+                if seen.contains(idx) {
+                    return Err(Error::TypeError(
+                        "Converting circular structure to JSON".into(),
+                    ));
+                }
+                seen.push(*idx);
+
+                let obj = self
+                    .objects
+                    .get(*idx)
+                    .ok_or_else(|| Error::TypeError("Invalid object".into()))?;
+
+                // Check if it's an array (has numeric length property)
+                let is_array = obj
+                    .get("length")
+                    .map(|v| matches!(v, Value::Number(_)))
+                    .unwrap_or(false);
+
+                let result = if is_array {
+                    self.array_to_json_formatted(*idx, seen, indent, depth)?
+                } else {
+                    self.object_to_json_formatted(*idx, seen, indent, depth)?
+                };
+
+                seen.pop();
+                Ok(Value::String(result))
+            }
+            Value::Function(_) | Value::NativeFunction(_) => Ok(Value::Undefined),
+            Value::Array(arr) => {
+                // Handle inline arrays (from parsed JSON before heap conversion)
+                if arr.is_empty() {
+                    return Ok(Value::String("[]".into()));
+                }
+                let current_indent = indent.repeat(depth + 1);
+                let closing_indent = indent.repeat(depth);
+                let mut result = String::from("[\n");
+                for (i, item) in arr.iter().enumerate() {
+                    if i > 0 {
+                        result.push_str(",\n");
+                    }
+                    result.push_str(&current_indent);
+                    match self.value_to_json_formatted(item, seen, indent, depth + 1)? {
+                        Value::Undefined => result.push_str("null"),
+                        Value::String(s) => result.push_str(&s),
+                        _ => result.push_str("null"),
+                    }
+                }
+                result.push('\n');
+                result.push_str(&closing_indent);
+                result.push(']');
+                Ok(Value::String(result))
+            }
+            Value::ParsedObject(pairs) => {
+                // Handle inline objects (from parsed JSON before heap conversion)
+                let non_undefined: Vec<_> = pairs
+                    .iter()
+                    .filter(|(_, v)| !matches!(v, Value::Undefined))
+                    .collect();
+                if non_undefined.is_empty() {
+                    return Ok(Value::String("{}".into()));
+                }
+                let current_indent = indent.repeat(depth + 1);
+                let closing_indent = indent.repeat(depth);
+                let mut result = String::from("{\n");
+                let mut first = true;
+                for (key, val) in &non_undefined {
+                    if !first {
+                        result.push_str(",\n");
+                    }
+                    first = false;
+                    result.push_str(&current_indent);
+                    result.push_str(&self.escape_json_string(key));
+                    result.push_str(": ");
+                    match self.value_to_json_formatted(val, seen, indent, depth + 1)? {
+                        Value::Undefined => result.push_str("null"),
+                        Value::String(s) => result.push_str(&s),
+                        _ => result.push_str("null"),
+                    }
+                }
+                result.push('\n');
+                result.push_str(&closing_indent);
+                result.push('}');
+                Ok(Value::String(result))
+            }
+            _ => Ok(Value::String("null".into())),
+        }
+    }
+
+    /// Stringify an array object to formatted JSON.
+    fn array_to_json_formatted(
+        &self,
+        idx: usize,
+        seen: &mut Vec<usize>,
+        indent: &str,
+        depth: usize,
+    ) -> Result<String, Error> {
+        let obj = self
+            .objects
+            .get(idx)
+            .ok_or_else(|| Error::TypeError("Invalid array".into()))?;
+
+        let len = obj
+            .get("length")
+            .and_then(|v| match v {
+                Value::Number(n) => Some(*n as usize),
+                _ => None,
+            })
+            .unwrap_or(0);
+
+        if len == 0 {
+            return Ok("[]".into());
+        }
+
+        let current_indent = indent.repeat(depth + 1);
+        let closing_indent = indent.repeat(depth);
+        let mut result = String::from("[\n");
+
+        for i in 0..len {
+            if i > 0 {
+                result.push_str(",\n");
+            }
+            result.push_str(&current_indent);
+            let elem = obj.get(&i.to_string()).cloned().unwrap_or(Value::Null);
+            match self.value_to_json_formatted(&elem, seen, indent, depth + 1)? {
+                Value::Undefined => result.push_str("null"),
+                Value::String(s) => result.push_str(&s),
+                _ => result.push_str("null"),
+            }
+        }
+        result.push('\n');
+        result.push_str(&closing_indent);
+        result.push(']');
+        Ok(result)
+    }
+
+    /// Stringify an object to formatted JSON.
+    fn object_to_json_formatted(
+        &self,
+        idx: usize,
+        seen: &mut Vec<usize>,
+        indent: &str,
+        depth: usize,
+    ) -> Result<String, Error> {
+        let obj = self
+            .objects
+            .get(idx)
+            .ok_or_else(|| Error::TypeError("Invalid object".into()))?;
+
+        // Filter out non-serializable properties
+        let serializable: Vec<_> = obj
+            .properties
+            .iter()
+            .filter(|(key, prop)| {
+                *key != "length"
+                    && !matches!(
+                        &prop.value,
+                        Value::Undefined | Value::Function(_) | Value::NativeFunction(_)
+                    )
+            })
+            .collect();
+
+        if serializable.is_empty() {
+            return Ok("{}".into());
+        }
+
+        let current_indent = indent.repeat(depth + 1);
+        let closing_indent = indent.repeat(depth);
+        let mut result = String::from("{\n");
+        let mut first = true;
+
+        for (key, prop) in &serializable {
+            let val = &prop.value;
+            if !first {
+                result.push_str(",\n");
+            }
+            first = false;
+
+            result.push_str(&current_indent);
+            result.push_str(&self.escape_json_string(key));
+            result.push_str(": ");
+
+            match self.value_to_json_formatted(val, seen, indent, depth + 1)? {
+                Value::Undefined => {
+                    continue;
+                }
+                Value::String(s) => result.push_str(&s),
+                _ => result.push_str("null"),
+            }
+        }
+        result.push('\n');
+        result.push_str(&closing_indent);
+        result.push('}');
+        Ok(result)
     }
 }
 

@@ -800,4 +800,30 @@ mod tests {
             .unwrap();
         assert_eq!(result, Value::Number(2.0));
     }
+
+    // JSON.stringify space parameter tests
+    #[test]
+    fn test_json_stringify_space_number() {
+        let mut engine = Engine::new();
+        let result = engine
+            .eval(r#"JSON.stringify({a: 1, b: 2}, null, 2)"#)
+            .unwrap();
+        assert!(result.to_string().contains("\n"));
+    }
+
+    #[test]
+    fn test_json_stringify_space_string() {
+        let mut engine = Engine::new();
+        let result = engine
+            .eval(r#"JSON.stringify({a: 1}, null, "\t")"#)
+            .unwrap();
+        assert!(result.to_string().contains("\t"));
+    }
+
+    #[test]
+    fn test_json_stringify_space_zero() {
+        let mut engine = Engine::new();
+        let result = engine.eval(r#"JSON.stringify({a: 1}, null, 0)"#).unwrap();
+        assert!(!result.to_string().contains("\n"));
+    }
 }
