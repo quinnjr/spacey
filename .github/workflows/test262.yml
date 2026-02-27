@@ -61,7 +61,7 @@ jobs:
           echo "See [TODO.md](TODO.md) for implementation roadmap." >> test262-report.md
 
       - name: Upload compliance report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: test262-report
           path: test262-report.md
