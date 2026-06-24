@@ -33,7 +33,7 @@ jobs:
             ${{ runner.os }}-cargo-bench-
 
       - name: Run benchmarks
-        run: cargo bench --all-features -- --noplot
+        run: cargo bench --all-features
 
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
