@@ -8,5 +8,3 @@
 //! - Finalization
 
 // TODO: Implement garbage collector
-
-

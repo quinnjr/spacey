@@ -99,4 +99,3 @@ pub fn version() -> String {
 pub fn engine_name() -> String {
     "spacey-spidermonkey".to_string()
 }
-

@@ -22,5 +22,3 @@ impl Default for Context {
         Self::new()
     }
 }
-
-

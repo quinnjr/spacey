@@ -9,6 +9,21 @@ pub struct Bytecode {
     pub instructions: Vec<Instruction>,
     /// The constant pool
     pub constants: Vec<Value>,
+    /// Nested compiled functions referenced by this chunk
+    pub functions: Vec<CompiledFunction>,
+}
+
+/// A compiled function together with its metadata.
+#[derive(Debug, Clone, Default)]
+pub struct CompiledFunction {
+    /// The names of the function's declared parameters
+    pub params: Vec<String>,
+    /// The number of local variable slots the function requires
+    pub local_count: usize,
+    /// Whether the function is an arrow function (captures lexical `this`)
+    pub is_arrow: bool,
+    /// The compiled body of the function
+    pub bytecode: Bytecode,
 }
 
 impl Bytecode {
@@ -72,6 +87,8 @@ pub enum Operand {
     ArgCount(u8),
     /// Property name index in constant pool
     Property(u16),
+    /// Nested function index in the bytecode's function table
+    Function(u16),
 }
 
 /// Operation codes for the VM.

@@ -3,10 +3,8 @@
 //! The lexer transforms JavaScript source text into a stream of tokens
 //! that can be consumed by the parser.
 
-mod token;
 mod scanner;
+mod token;
 
-pub use token::{Token, TokenKind, Span};
 pub use scanner::Scanner;
-
-
+pub use token::{Span, Token, TokenKind};
