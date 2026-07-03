@@ -9,7 +9,7 @@ edition.workspace = true
 unicode-xid = "0.2"
 
 # Arbitrary precision integers for BigInt
-num-bigint = "0.4"
+num-bigint = "0.5"
 num-traits = "0.2"
 
 # Fast hash maps
