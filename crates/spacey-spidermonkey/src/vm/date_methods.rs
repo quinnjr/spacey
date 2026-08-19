@@ -38,7 +38,13 @@ pub fn call_date_method(timestamp: f64, method: &str, _args: &[Value]) -> Value 
         "getMilliseconds" => Value::Number(millis),
         "toString" => Value::String(format!(
             "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
-            year, month + 1, day, hours, minutes, seconds, millis as i64
+            year,
+            month + 1,
+            day,
+            hours,
+            minutes,
+            seconds,
+            millis as i64
         )),
         "toDateString" => Value::String(format!("{:04}-{:02}-{:02}", year, month + 1, day)),
         "toTimeString" => Value::String(format!("{:02}:{:02}:{:02}", hours, minutes, seconds)),
@@ -53,7 +59,11 @@ pub fn days_to_ymd(days: i64) -> (i32, i32, i32, i32) {
     let remaining_days = days + 719468; // Days from year 0 to 1970
 
     // Calculate year
-    let era = if remaining_days >= 0 { remaining_days } else { remaining_days - 146096 } / 146097;
+    let era = if remaining_days >= 0 {
+        remaining_days
+    } else {
+        remaining_days - 146096
+    } / 146097;
     let doe = (remaining_days - era * 146097) as i32; // Day of era
     let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365; // Year of era
     let year = yoe + (era as i32) * 400;
@@ -95,6 +105,3 @@ mod tests {
         assert!(matches!(result, Value::Number(n) if n.is_nan()));
     }
 }
-
-
-

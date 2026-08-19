@@ -112,8 +112,8 @@
 
 #[cfg(test)]
 mod tests {
+    use crate::ast::{Program, Statement};
     use crate::parser::Parser;
-    use crate::ast::{Statement, Program};
 
     fn parse_ts(src: &str) -> Program {
         let mut parser = Parser::new_typescript(src);
@@ -235,7 +235,8 @@ mod tests {
 
     #[test]
     fn test_parse_ts_mixed_with_js() {
-        let program = parse_ts(r#"
+        let program = parse_ts(
+            r#"
             type ID = number;
             interface User { name: string; }
 
@@ -244,7 +245,8 @@ mod tests {
             }
 
             greet('World');
-        "#);
+        "#,
+        );
         // Should have: Empty (type), Empty (interface), FunctionDecl, Expression
         assert!(program.body.len() >= 2);
     }
@@ -283,4 +285,3 @@ mod tests {
         assert_eq!(program.body.len(), 1);
     }
 }
-

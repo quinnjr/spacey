@@ -1,7 +1,7 @@
 //! List command implementation.
 
-use std::path::PathBuf;
 use owo_colors::OwoColorize;
+use std::path::PathBuf;
 
 use crate::cli::{Cli, ListArgs};
 use crate::error::Result;
@@ -67,7 +67,10 @@ pub async fn run(args: &ListArgs, cli: &Cli) -> Result<()> {
                 let scoped_entry = scoped_entry?;
                 let scoped_path = scoped_entry.path();
                 if scoped_path.is_dir() {
-                    let scoped_name = scoped_path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+                    let scoped_name = scoped_path
+                        .file_name()
+                        .and_then(|n| n.to_str())
+                        .unwrap_or("");
                     let full_name = format!("{}/{}", name, scoped_name);
                     print_package(&scoped_path, &full_name, 0, depth, args.long)?;
                 }
@@ -90,7 +93,11 @@ fn print_package(
     let pkg_json_path = path.join("package.json");
 
     let indent = "  ".repeat(current_depth);
-    let prefix = if current_depth == 0 { "├── " } else { "├── " };
+    let prefix = if current_depth == 0 {
+        "├── "
+    } else {
+        "├── "
+    };
 
     if let Ok(content) = std::fs::read_to_string(&pkg_json_path) {
         if let Ok(pkg) = serde_json::from_str::<PackageJson>(&content) {
@@ -112,4 +119,3 @@ fn print_package(
 
     Ok(())
 }
-

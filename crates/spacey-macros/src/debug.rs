@@ -107,7 +107,9 @@ macro_rules! dbg_named {
         #[cfg(debug_assertions)]
         eprintln!("{} = {:?}", stringify!($val), $val);
         #[cfg(not(debug_assertions))]
-        { let _ = &$val; }
+        {
+            let _ = &$val;
+        }
     };
 }
 
@@ -315,10 +317,7 @@ mod tests {
 
     #[test]
     fn test_bench() {
-        let result = bench!("test_sum", 10, {
-            (0..100).sum::<i32>()
-        });
+        let result = bench!("test_sum", 10, { (0..100).sum::<i32>() });
         assert_eq!(result, 4950);
     }
 }
-

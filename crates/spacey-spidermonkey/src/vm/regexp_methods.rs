@@ -20,9 +20,7 @@ pub fn call_regexp_method(regex_str: &str, method: &str, args: &[Value]) -> Valu
                 None => Value::Null,
             }
         }
-        "toString" => {
-            Value::String(regex_str.to_string())
-        }
+        "toString" => Value::String(regex_str.to_string()),
         _ => Value::Undefined,
     }
 }
@@ -32,11 +30,12 @@ pub fn parse_regexp_string(s: &str) -> (String, String) {
     if s.starts_with('/') {
         // Find the last '/' to separate pattern from flags
         if let Some(last_slash) = s.rfind('/')
-            && last_slash > 0 {
-                let pattern = s[1..last_slash].to_string();
-                let flags = s[last_slash + 1..].to_string();
-                return (pattern, flags);
-            }
+            && last_slash > 0
+        {
+            let pattern = s[1..last_slash].to_string();
+            let flags = s[last_slash + 1..].to_string();
+            return (pattern, flags);
+        }
     }
     // Not in /pattern/flags format, treat entire string as pattern
     (s.to_string(), String::new())
@@ -118,7 +117,12 @@ pub fn simple_regex_replace(pattern: &str, input: &str, replacement: &str, flags
 }
 
 /// Replace all matches in a string
-pub fn simple_regex_replace_all(pattern: &str, input: &str, replacement: &str, flags: &str) -> String {
+pub fn simple_regex_replace_all(
+    pattern: &str,
+    input: &str,
+    replacement: &str,
+    flags: &str,
+) -> String {
     let ignore_case = flags.contains('i');
 
     if pattern.is_empty() {
@@ -228,6 +232,3 @@ mod tests {
         assert!(matches!(result, Value::Null));
     }
 }
-
-
-

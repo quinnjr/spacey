@@ -1,8 +1,8 @@
 //! Async multithreaded package downloader.
 
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 
 use futures::stream::{self, StreamExt};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
@@ -81,7 +81,10 @@ impl DownloadStats {
         let bytes = self.bytes_downloaded.load(Ordering::Relaxed);
         format!(
             "Downloaded: {}, From cache: {}, Failed: {}, Total bytes: {}",
-            downloaded, from_cache, failed, format_bytes(bytes)
+            downloaded,
+            from_cache,
+            failed,
+            format_bytes(bytes)
         )
     }
 }
@@ -139,7 +142,9 @@ impl PackageDownloader {
         );
 
         let progress = if self.show_progress {
-            let pb = self.multi_progress.add(ProgressBar::new(tasks.len() as u64));
+            let pb = self
+                .multi_progress
+                .add(ProgressBar::new(tasks.len() as u64));
             pb.set_style(
                 ProgressStyle::default_bar()
                     .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta}) {msg}")
@@ -270,7 +275,9 @@ async fn download_single_package(
         warn!("No integrity hash for {}, skipping verification", task.name);
     }
 
-    let tarball_path = cache.store_tarball(&task.name, &task.version, &bytes).await?;
+    let tarball_path = cache
+        .store_tarball(&task.name, &task.version, &bytes)
+        .await?;
 
     stats.inc_downloaded();
     stats.add_bytes(bytes_len);
@@ -384,4 +391,3 @@ fn extract_tarball(tarball_path: &Path, dest_path: &Path) -> Result<()> {
 
     Ok(())
 }
-

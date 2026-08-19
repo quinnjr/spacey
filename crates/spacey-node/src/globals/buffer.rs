@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `Buffer` class implementation
 //!
@@ -45,7 +45,9 @@ impl Buffer {
         let data = match encoding {
             "utf8" | "utf-8" => s.as_bytes().to_vec(),
             "ascii" => s.bytes().map(|b| b & 0x7f).collect(),
-            "base64" => base64::Engine::decode(&base64::prelude::BASE64_STANDARD, s).unwrap_or_default(),
+            "base64" => {
+                base64::Engine::decode(&base64::prelude::BASE64_STANDARD, s).unwrap_or_default()
+            }
             "hex" => hex::decode(s).unwrap_or_default(),
             "latin1" | "binary" => s.bytes().collect(),
             _ => s.as_bytes().to_vec(),
@@ -100,7 +102,13 @@ impl Buffer {
     }
 
     /// Copy data from another buffer
-    pub fn copy_from(&mut self, source: &Buffer, target_start: usize, source_start: usize, source_end: usize) -> usize {
+    pub fn copy_from(
+        &mut self,
+        source: &Buffer,
+        target_start: usize,
+        source_start: usize,
+        source_end: usize,
+    ) -> usize {
         let source_start = source_start.min(source.data.len());
         let source_end = source_end.min(source.data.len());
         let target_start = target_start.min(self.data.len());
@@ -154,7 +162,9 @@ impl Buffer {
         let bytes = match encoding {
             "utf8" | "utf-8" => s.as_bytes().to_vec(),
             "ascii" => s.bytes().map(|b| b & 0x7f).collect(),
-            "base64" => base64::Engine::decode(&base64::prelude::BASE64_STANDARD, s).unwrap_or_default(),
+            "base64" => {
+                base64::Engine::decode(&base64::prelude::BASE64_STANDARD, s).unwrap_or_default()
+            }
             "hex" => hex::decode(s).unwrap_or_default(),
             _ => s.as_bytes().to_vec(),
         };
@@ -179,7 +189,10 @@ impl Buffer {
     /// Read a big-endian 16-bit unsigned integer
     pub fn read_uint16_be(&self, offset: usize) -> Option<u16> {
         if offset + 2 <= self.data.len() {
-            Some(u16::from_be_bytes([self.data[offset], self.data[offset + 1]]))
+            Some(u16::from_be_bytes([
+                self.data[offset],
+                self.data[offset + 1],
+            ]))
         } else {
             None
         }
@@ -188,7 +201,10 @@ impl Buffer {
     /// Read a little-endian 16-bit unsigned integer
     pub fn read_uint16_le(&self, offset: usize) -> Option<u16> {
         if offset + 2 <= self.data.len() {
-            Some(u16::from_le_bytes([self.data[offset], self.data[offset + 1]]))
+            Some(u16::from_le_bytes([
+                self.data[offset],
+                self.data[offset + 1],
+            ]))
         } else {
             None
         }
@@ -290,6 +306,3 @@ mod tests {
         assert_eq!(buf.to_string("hex"), "deadbeef");
     }
 }
-
-
-

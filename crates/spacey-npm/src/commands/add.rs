@@ -17,4 +17,3 @@ pub async fn run(args: &AddArgs, cli: &Cli) -> Result<()> {
 
     super::install::run(&install_args, cli).await
 }
-

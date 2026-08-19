@@ -227,4 +227,3 @@ mod tests {
         assert_eq!(list.len(), 3);
     }
 }
-

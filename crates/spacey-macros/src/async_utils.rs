@@ -279,13 +279,10 @@ macro_rules! par_filter {
 macro_rules! par_reduce {
     ($collection:expr, $init:expr, |$acc:ident, $item:ident| $combine:expr) => {{
         use ::rayon::prelude::*;
-        $collection.par_iter().fold(
-            || $init,
-            |$acc, $item| $combine
-        ).reduce(
-            || $init,
-            |$acc, $item| $combine
-        )
+        $collection
+            .par_iter()
+            .fold(|| $init, |$acc, $item| $combine)
+            .reduce(|| $init, |$acc, $item| $combine)
     }};
 }
 
@@ -307,9 +304,7 @@ macro_rules! par_reduce {
 #[macro_export]
 macro_rules! block_on {
     ($future:expr) => {
-        ::tokio::runtime::Runtime::new()
-            .unwrap()
-            .block_on($future)
+        ::tokio::runtime::Runtime::new().unwrap().block_on($future)
     };
 }
 
@@ -325,4 +320,3 @@ mod tests {
         let _results: Vec<i32> = items.iter().map(|item| item * 2).collect();
     }
 }
-

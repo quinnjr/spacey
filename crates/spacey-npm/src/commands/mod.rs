@@ -57,10 +57,8 @@ impl CommandContext {
             config.registry = String::new(); // Disable registry
         }
 
-        let registry = RegistryClient::new(
-            Some(&config.registry),
-            cli.insecure || !config.strict_ssl,
-        )?;
+        let registry =
+            RegistryClient::new(Some(&config.registry), cli.insecure || !config.strict_ssl)?;
 
         let cache = PackageCache::new(config.cache.clone())?;
 
@@ -101,4 +99,3 @@ impl CommandContext {
         )
     }
 }
-

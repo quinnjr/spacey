@@ -108,7 +108,6 @@ macro_rules! simple_builder {
     };
 }
 
-
 /// Create a builder method that sets a field.
 ///
 /// # Example
@@ -374,4 +373,3 @@ mod tests {
         assert_eq!(c.items, vec![1, 2, 3]);
     }
 }
-

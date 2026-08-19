@@ -10,7 +10,7 @@
 - **Target**: Servo web browser
 - **License**: MPL-2.0
 - **Status**: Experimental, ES3 compatible
-- **Repository**: https://github.com/pegasusheavy/spacey
+- **Repository**: https://github.com/quinnjr/spacey
 
 ## Why Spacey for Servo?
 
@@ -70,7 +70,7 @@ All crates are available on crates.io: https://crates.io/crates/spacey
 ## Getting Started
 
 ```bash
-git clone https://github.com/pegasusheavy/spacey.git
+git clone https://github.com/quinnjr/spacey.git
 cd spacey
 cargo build --release
 cargo run
@@ -78,12 +78,12 @@ cargo run
 
 ## Contact
 
-- Email: pegasusheavyindustries@gmail.com
-- GitHub: https://github.com/pegasusheavy/spacey
-- Organization: Pegasus Heavy Industries
+- Email: quinn.josephr@protonmail.com
+- GitHub: https://github.com/quinnjr/spacey
+- Organization: Joseph R. Quinn
 
 ## For More Information
 
-- Full documentation: https://pegasusheavy.github.io/spacey/
-- Extended AI context: https://pegasusheavy.github.io/spacey/llms-full.txt
+- Full documentation: https://quinnjr.github.io/spacey/
+- Extended AI context: https://quinnjr.github.io/spacey/llms-full.txt
 

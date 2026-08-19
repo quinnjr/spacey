@@ -1,9 +1,9 @@
 //! Config command implementation.
 
-use owo_colors::OwoColorize;
-use crate::cli::{Cli, ConfigArgs, ConfigAction};
+use crate::cli::{Cli, ConfigAction, ConfigArgs};
 use crate::config::Config;
 use crate::error::Result;
+use owo_colors::OwoColorize;
 
 pub async fn run(args: &ConfigArgs, _cli: &Cli) -> Result<()> {
     let mut config = Config::load()?;

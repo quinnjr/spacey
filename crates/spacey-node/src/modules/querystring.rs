@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `querystring` module implementation
 
@@ -38,7 +38,11 @@ pub fn parse(qs: &str, sep: Option<&str>, eq: Option<&str>) -> HashMap<String, V
 }
 
 /// Stringify an object into a query string
-pub fn stringify(obj: &HashMap<String, Vec<String>>, sep: Option<&str>, eq: Option<&str>) -> String {
+pub fn stringify(
+    obj: &HashMap<String, Vec<String>>,
+    sep: Option<&str>,
+    eq: Option<&str>,
+) -> String {
     let sep = sep.unwrap_or("&");
     let eq = eq.unwrap_or("=");
 
@@ -88,10 +92,9 @@ pub fn decode(s: &str) -> String {
 
     while i < bytes.len() {
         if bytes[i] == b'%' && i + 2 < bytes.len() {
-            if let Ok(byte) = u8::from_str_radix(
-                std::str::from_utf8(&bytes[i + 1..i + 3]).unwrap_or(""),
-                16,
-            ) {
+            if let Ok(byte) =
+                u8::from_str_radix(std::str::from_utf8(&bytes[i + 1..i + 3]).unwrap_or(""), 16)
+            {
                 result.push(byte);
                 i += 3;
                 continue;
@@ -128,7 +131,10 @@ mod tests {
     #[test]
     fn test_parse_multiple_values() {
         let result = parse("foo=bar&foo=baz", None, None);
-        assert_eq!(result.get("foo"), Some(&vec!["bar".to_string(), "baz".to_string()]));
+        assert_eq!(
+            result.get("foo"),
+            Some(&vec!["bar".to_string(), "baz".to_string()])
+        );
     }
 
     #[test]
@@ -156,6 +162,3 @@ mod tests {
         assert_eq!(encoded, "hello%20world");
     }
 }
-
-
-

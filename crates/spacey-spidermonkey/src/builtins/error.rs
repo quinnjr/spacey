@@ -142,7 +142,10 @@ fn create_error(kind: ErrorKind, args: &[Value]) -> Result<Value, String> {
     error_obj.insert("name".to_string(), Value::String(kind.name().to_string()));
     error_obj.insert("message".to_string(), Value::String(message.clone()));
     error_obj.insert("__type__".to_string(), Value::String("Error".to_string()));
-    error_obj.insert("__error_kind__".to_string(), Value::Number(kind as i32 as f64));
+    error_obj.insert(
+        "__error_kind__".to_string(),
+        Value::Number(kind as i32 as f64),
+    );
 
     // toString for error objects
     let to_string_result = if message.is_empty() {

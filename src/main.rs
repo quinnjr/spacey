@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Spacey - A JavaScript engine inspired by SpiderMonkey, written in Rust
 //!
@@ -158,10 +158,7 @@ fn print_help() {
     println!();
 
     println!("{}", "OPTIONS:".white().bold());
-    println!(
-        "    {:20} Print this help message",
-        "-h, --help".cyan()
-    );
+    println!("    {:20} Print this help message", "-h, --help".cyan());
     println!(
         "    {:20} Print version information",
         "-v, --version".cyan()
@@ -173,10 +170,7 @@ fn print_help() {
     println!();
 
     println!("{}", "ARGUMENTS:".white().bold());
-    println!(
-        "    {:20} JavaScript file to execute",
-        "[FILE]".cyan()
-    );
+    println!("    {:20} JavaScript file to execute", "[FILE]".cyan());
     println!();
 
     println!("{}", "EXAMPLES:".white().bold());

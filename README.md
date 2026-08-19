@@ -166,7 +166,7 @@ Please see the [TODO.md](./TODO.md) for specific tasks and milestones.
 
 This project is licensed under the [Mozilla Public License 2.0](./LICENSE).
 
-Copyright © 2025 Pegasus Heavy Industries, LLC
+Copyright © 2025 Joseph R. Quinn
 
 ---
 

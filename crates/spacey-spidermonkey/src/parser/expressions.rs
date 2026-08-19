@@ -59,8 +59,8 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::Parser;
     use crate::ast::Expression;
+    use crate::parser::Parser;
 
     fn parse_expr(src: &str) -> Expression {
         let source = format!("{};", src);
@@ -327,4 +327,3 @@ mod tests {
         assert!(matches!(expr, Expression::Unary(_)));
     }
 }
-

@@ -174,4 +174,3 @@ mod tests {
         assert!(matches!(scan_single("%="), TokenKind::PercentEqual));
     }
 }
-

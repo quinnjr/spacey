@@ -1,8 +1,8 @@
 //! Exec command implementation.
 
-use std::process::Command;
 use crate::cli::{Cli, ExecArgs};
 use crate::error::{Result, SnpmError};
+use std::process::Command;
 
 pub async fn run(args: &ExecArgs, _cli: &Cli) -> Result<()> {
     let bin_path = std::path::PathBuf::from("node_modules/.bin");

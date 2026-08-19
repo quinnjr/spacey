@@ -54,16 +54,17 @@ impl Default for JsArray {
 pub fn array_constructor(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, String> {
     // Single numeric argument = array with that length
     if args.len() == 1
-        && let Value::Number(n) = &args[0] {
-            let len = n.to_bits();
-            if *n >= 0.0 && n.fract() == 0.0 && *n <= u32::MAX as f64 {
-                // Create array with specified length
-                // In real impl, would allocate in heap
-                return Ok(Value::Object(len as usize));
-            } else {
-                return Err("RangeError: Invalid array length".to_string());
-            }
+        && let Value::Number(n) = &args[0]
+    {
+        let len = n.to_bits();
+        if *n >= 0.0 && n.fract() == 0.0 && *n <= u32::MAX as f64 {
+            // Create array with specified length
+            // In real impl, would allocate in heap
+            return Ok(Value::Object(len as usize));
+        } else {
+            return Err("RangeError: Invalid array length".to_string());
         }
+    }
 
     // Multiple arguments or non-numeric single argument = array with those elements
     // In real impl, would create array in heap and return reference

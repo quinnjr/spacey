@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `child_process` module implementation
 
@@ -43,7 +43,8 @@ pub fn exec_sync(command: &str, options: Option<ExecOptions>) -> Result<Vec<u8>>
         cmd.stderr(Stdio::piped());
     }
 
-    let output = cmd.output()
+    let output = cmd
+        .output()
         .map_err(|e| NodeError::Process(format!("Failed to execute command: {}", e)))?;
 
     if !output.status.success() && !options.ignore_errors {
@@ -76,7 +77,8 @@ pub fn exec_file_sync(file: &str, args: &[&str], options: Option<ExecOptions>) -
         cmd.stderr(Stdio::piped());
     }
 
-    let output = cmd.output()
+    let output = cmd
+        .output()
         .map_err(|e| NodeError::Process(format!("Failed to execute file: {}", e)))?;
 
     if !output.status.success() && !options.ignore_errors {
@@ -90,7 +92,11 @@ pub fn exec_file_sync(file: &str, args: &[&str], options: Option<ExecOptions>) -
 }
 
 /// Spawn a child process synchronously
-pub fn spawn_sync(command: &str, args: &[&str], options: Option<SpawnOptions>) -> Result<SpawnResult> {
+pub fn spawn_sync(
+    command: &str,
+    args: &[&str],
+    options: Option<SpawnOptions>,
+) -> Result<SpawnResult> {
     let options = options.unwrap_or_default();
 
     let mut cmd = Command::new(command);
@@ -107,7 +113,8 @@ pub fn spawn_sync(command: &str, args: &[&str], options: Option<SpawnOptions>) -
     cmd.stdout(Stdio::piped());
     cmd.stderr(Stdio::piped());
 
-    let output = cmd.output()
+    let output = cmd
+        .output()
         .map_err(|e| NodeError::Process(format!("Failed to spawn process: {}", e)))?;
 
     Ok(SpawnResult {
@@ -187,29 +194,42 @@ impl SpawnResult {
     pub fn to_value(&self) -> Value {
         let mut obj = HashMap::new();
         // stdout as array-like object
-        let mut stdout_obj: HashMap<String, Value> = self.stdout
+        let mut stdout_obj: HashMap<String, Value> = self
+            .stdout
             .iter()
             .enumerate()
             .map(|(i, &b)| (i.to_string(), Value::Number(b as f64)))
             .collect();
-        stdout_obj.insert("length".to_string(), Value::Number(self.stdout.len() as f64));
+        stdout_obj.insert(
+            "length".to_string(),
+            Value::Number(self.stdout.len() as f64),
+        );
         obj.insert("stdout".to_string(), Value::NativeObject(stdout_obj));
 
         // stderr as array-like object
-        let mut stderr_obj: HashMap<String, Value> = self.stderr
+        let mut stderr_obj: HashMap<String, Value> = self
+            .stderr
             .iter()
             .enumerate()
             .map(|(i, &b)| (i.to_string(), Value::Number(b as f64)))
             .collect();
-        stderr_obj.insert("length".to_string(), Value::Number(self.stderr.len() as f64));
+        stderr_obj.insert(
+            "length".to_string(),
+            Value::Number(self.stderr.len() as f64),
+        );
         obj.insert("stderr".to_string(), Value::NativeObject(stderr_obj));
         obj.insert(
             "status".to_string(),
-            self.status.map(|s| Value::Number(s as f64)).unwrap_or(Value::Null),
+            self.status
+                .map(|s| Value::Number(s as f64))
+                .unwrap_or(Value::Null),
         );
         obj.insert(
             "signal".to_string(),
-            self.signal.clone().map(Value::String).unwrap_or(Value::Null),
+            self.signal
+                .clone()
+                .map(Value::String)
+                .unwrap_or(Value::Null),
         );
         if let Some(err) = &self.error {
             obj.insert("error".to_string(), Value::String(err.clone()));
@@ -238,4 +258,3 @@ mod tests {
         assert!(String::from_utf8_lossy(&spawn_result.stdout).contains("hello"));
     }
 }
-

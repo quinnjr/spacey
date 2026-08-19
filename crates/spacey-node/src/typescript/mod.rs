@@ -89,9 +89,7 @@ pub fn is_jsx_file(path: &Path) -> bool {
 pub const TS_EXTENSIONS: &[&str] = &[".ts", ".tsx", ".mts", ".cts"];
 
 /// All supported extensions including JavaScript.
-pub const ALL_EXTENSIONS: &[&str] = &[
-    ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs",
-];
+pub const ALL_EXTENSIONS: &[&str] = &[".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"];
 
 #[cfg(test)]
 mod tests {

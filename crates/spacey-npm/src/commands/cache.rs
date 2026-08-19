@@ -1,9 +1,9 @@
 //! Cache command implementation.
 
-use owo_colors::OwoColorize;
-use crate::cli::{Cli, CacheArgs, CacheAction};
+use crate::cli::{CacheAction, CacheArgs, Cli};
 use crate::commands::CommandContext;
 use crate::error::Result;
+use owo_colors::OwoColorize;
 
 pub async fn run(args: &CacheArgs, cli: &Cli) -> Result<()> {
     let ctx = CommandContext::new(cli)?;
@@ -16,7 +16,12 @@ pub async fn run(args: &CacheArgs, cli: &Cli) -> Result<()> {
         CacheAction::List => {
             let packages = ctx.cache.list()?;
             for pkg in packages {
-                println!("{} {} ({})", pkg.name.cyan(), pkg.version.dimmed(), format_bytes(pkg.size));
+                println!(
+                    "{} {} ({})",
+                    pkg.name.cyan(),
+                    pkg.version.dimmed(),
+                    format_bytes(pkg.size)
+                );
             }
         }
         CacheAction::Path => {
@@ -24,7 +29,10 @@ pub async fn run(args: &CacheArgs, cli: &Cli) -> Result<()> {
         }
         CacheAction::Verify => {
             let result = ctx.cache.verify().await?;
-            println!("Valid: {}, Invalid: {}, Missing: {}", result.valid, result.invalid, result.missing);
+            println!(
+                "Valid: {}, Invalid: {}, Missing: {}",
+                result.valid, result.invalid, result.missing
+            );
         }
         CacheAction::Add { packages } => {
             println!("{}", "Cache add not yet implemented".yellow());

@@ -161,7 +161,11 @@ impl PackageCache {
         let tarballs_dir = self.cache_dir.join("tarballs");
 
         if !tarballs_dir.exists() {
-            return Ok(VerifyResult { valid, invalid, missing });
+            return Ok(VerifyResult {
+                valid,
+                invalid,
+                missing,
+            });
         }
 
         for entry in std::fs::read_dir(&tarballs_dir)? {
@@ -181,7 +185,11 @@ impl PackageCache {
             }
         }
 
-        Ok(VerifyResult { valid, invalid, missing })
+        Ok(VerifyResult {
+            valid,
+            invalid,
+            missing,
+        })
     }
 }
 
@@ -215,4 +223,3 @@ pub struct VerifyResult {
     /// Number of missing entries
     pub missing: usize,
 }
-

@@ -101,10 +101,16 @@ impl Installer {
 
         // Log peer dependency info
         if !peer_analysis.missing.is_empty() {
-            info!("Auto-installing {} missing peer dependencies", peer_analysis.missing.len());
+            info!(
+                "Auto-installing {} missing peer dependencies",
+                peer_analysis.missing.len()
+            );
         }
         if !peer_analysis.conflicts.is_empty() {
-            warn!("{} peer dependency conflicts detected", peer_analysis.conflicts.len());
+            warn!(
+                "{} peer dependency conflicts detected",
+                peer_analysis.conflicts.len()
+            );
         }
 
         info!(
@@ -165,7 +171,9 @@ impl Installer {
         Ok(InstallResult {
             packages_installed: packages.len(),
             packages_from_cache: stats.from_cache.load(std::sync::atomic::Ordering::Relaxed),
-            bytes_downloaded: stats.bytes_downloaded.load(std::sync::atomic::Ordering::Relaxed),
+            bytes_downloaded: stats
+                .bytes_downloaded
+                .load(std::sync::atomic::Ordering::Relaxed),
             scripts_run,
             install_mode: self.mode,
         })
@@ -192,39 +200,37 @@ impl Installer {
                 from_cache += 1;
             } else {
                 // Download tarball
-                let tarball = self.downloader
+                let tarball = self
+                    .downloader
                     .downloader_client()
                     .download_tarball(&pkg.tarball_url)
                     .await?;
 
                 // Import to store
-                store.import_package(
-                    &pkg.name,
-                    &pkg.version,
-                    &tarball,
-                    pkg.integrity.as_deref(),
-                ).await?;
+                store
+                    .import_package(&pkg.name, &pkg.version, &tarball, pkg.integrity.as_deref())
+                    .await?;
 
                 imported += 1;
             }
 
             // Build dependencies map
-            let deps: HashMap<String, String> = pkg.dependencies
+            let deps: HashMap<String, String> = pkg
+                .dependencies
                 .iter()
                 .chain(pkg.peer_dependencies.iter())
                 .map(|(k, v)| (k.clone(), v.clone()))
                 .collect();
 
             // Install to virtual store
-            virtual_store.install_package(
-                &pkg.name,
-                &pkg.version,
-                integrity,
-                &deps,
-            ).await?;
+            virtual_store
+                .install_package(&pkg.name, &pkg.version, integrity, &deps)
+                .await?;
 
             // Create top-level link
-            virtual_store.create_top_level_link(&pkg.name, &pkg.version).await?;
+            virtual_store
+                .create_top_level_link(&pkg.name, &pkg.version)
+                .await?;
         }
 
         // Create .bin symlinks
@@ -260,18 +266,16 @@ impl Installer {
                 from_cache += 1;
             } else {
                 // Download tarball
-                let tarball = self.downloader
+                let tarball = self
+                    .downloader
                     .downloader_client()
                     .download_tarball(&pkg.tarball_url)
                     .await?;
 
                 // Import to store
-                store.import_package(
-                    &pkg.name,
-                    &pkg.version,
-                    &tarball,
-                    pkg.integrity.as_deref(),
-                ).await?;
+                store
+                    .import_package(&pkg.name, &pkg.version, &tarball, pkg.integrity.as_deref())
+                    .await?;
             }
 
             // Hard link from store to node_modules
@@ -290,7 +294,9 @@ impl Installer {
         Ok(InstallResult {
             packages_installed: packages.len(),
             packages_from_cache: from_cache,
-            bytes_downloaded: stats.bytes_downloaded.load(std::sync::atomic::Ordering::Relaxed),
+            bytes_downloaded: stats
+                .bytes_downloaded
+                .load(std::sync::atomic::Ordering::Relaxed),
             scripts_run,
             install_mode: self.mode,
         })
@@ -391,7 +397,11 @@ impl Installer {
                     perms.set_mode(0o755);
                     std::fs::set_permissions(target, perms)?;
                 }
-                debug!("Created bin link: {} -> {}", link_path.display(), target.display());
+                debug!(
+                    "Created bin link: {} -> {}",
+                    link_path.display(),
+                    target.display()
+                );
             }
         }
 
@@ -414,7 +424,8 @@ impl Installer {
             return Ok(false);
         }
 
-        let pkg_json: PackageJson = serde_json::from_str(&std::fs::read_to_string(&pkg_json_path)?)?;
+        let pkg_json: PackageJson =
+            serde_json::from_str(&std::fs::read_to_string(&pkg_json_path)?)?;
 
         if let Some(script) = pkg_json.scripts.get(script_name) {
             info!("Running {} script for {}", script_name, name);
@@ -512,10 +523,7 @@ fn format_bytes(bytes: u64) -> String {
 }
 
 /// Update the lockfile with installed packages.
-pub fn update_lockfile(
-    lockfile: &mut PackageLock,
-    packages: &[ResolvedPackage],
-) {
+pub fn update_lockfile(lockfile: &mut PackageLock, packages: &[ResolvedPackage]) {
     for pkg in packages {
         let path = format!("node_modules/{}", pkg.name);
 
@@ -535,4 +543,3 @@ pub fn update_lockfile(
         lockfile.add_package(&path, lock_pkg);
     }
 }
-

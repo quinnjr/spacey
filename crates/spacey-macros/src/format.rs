@@ -159,11 +159,7 @@ macro_rules! format_percent {
         format!("{:.1}%", $value as f64 * 100.0)
     };
     ($value:expr, $decimals:expr) => {
-        format!(
-            "{:.prec$}%",
-            $value as f64 * 100.0,
-            prec = $decimals
-        )
+        format!("{:.prec$}%", $value as f64 * 100.0, prec = $decimals)
     };
 }
 
@@ -306,11 +302,7 @@ macro_rules! progress_bar {
         let width = $width;
         let filled = (progress * width as f64).round() as usize;
         let empty = width - filled;
-        format!(
-            "[{}{}]",
-            "=".repeat(filled),
-            " ".repeat(empty)
-        )
+        format!("[{}{}]", "=".repeat(filled), " ".repeat(empty))
     }};
 }
 
@@ -409,4 +401,3 @@ mod tests {
         assert_eq!(progress_bar!(1.0, 10), "[==========]");
     }
 }
-

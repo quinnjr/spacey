@@ -15,4 +15,3 @@ pub async fn run(args: &TestArgs, cli: &Cli) -> Result<()> {
 
     super::run::run(&run_args, cli).await
 }
-

@@ -92,10 +92,8 @@ impl PeerDependencyManager {
         let mut analysis = PeerAnalysis::default();
 
         // Build map of installed packages
-        let installed: HashMap<&str, &ResolvedPackage> = packages
-            .iter()
-            .map(|p| (p.name.as_str(), p))
-            .collect();
+        let installed: HashMap<&str, &ResolvedPackage> =
+            packages.iter().map(|p| (p.name.as_str(), p)).collect();
 
         // Collect all peer requirements
         let mut peer_requirements: HashMap<String, Vec<PeerRequirement>> = HashMap::new();
@@ -209,10 +207,7 @@ impl PeerDependencyManager {
 
             // Find the best version requirement
             // For simplicity, use the first requirement
-            to_install.insert(
-                missing.peer_name.clone(),
-                missing.peer_version_req.clone(),
-            );
+            to_install.insert(missing.peer_name.clone(), missing.peer_version_req.clone());
         }
 
         to_install.into_iter().collect()
@@ -261,11 +256,7 @@ impl PeerDependencyManager {
         }
 
         // Check for missing required peers
-        let required_missing: Vec<_> = analysis
-            .missing
-            .iter()
-            .filter(|m| !m.optional)
-            .collect();
+        let required_missing: Vec<_> = analysis.missing.iter().filter(|m| !m.optional).collect();
 
         if !required_missing.is_empty() && !self.config.auto_install {
             let mut messages = Vec::new();
@@ -367,10 +358,7 @@ pub fn calculate_peer_layout(
 
     for pkg in packages {
         for peer_name in pkg.peer_dependencies.keys() {
-            peer_users
-                .entry(peer_name.clone())
-                .or_default()
-                .push(pkg);
+            peer_users.entry(peer_name.clone()).or_default().push(pkg);
         }
     }
 
@@ -384,10 +372,7 @@ pub fn calculate_peer_layout(
         PeerDedupeStrategy::Nested => {
             // Keep peers nested
             for (peer_name, users) in &peer_users {
-                let locations: Vec<String> = users
-                    .iter()
-                    .map(|p| p.name.clone())
-                    .collect();
+                let locations: Vec<String> = users.iter().map(|p| p.name.clone()).collect();
                 layout.insert(peer_name.clone(), locations);
             }
         }
@@ -404,10 +389,7 @@ pub fn calculate_peer_layout(
                     layout.insert(peer_name.clone(), vec!["".to_string()]);
                 } else {
                     // Different requirements, keep nested
-                    let locations: Vec<String> = users
-                        .iter()
-                        .map(|p| p.name.clone())
-                        .collect();
+                    let locations: Vec<String> = users.iter().map(|p| p.name.clone()).collect();
                     layout.insert(peer_name.clone(), locations);
                 }
             }
@@ -432,4 +414,3 @@ mod tests {
         assert!(manager.version_satisfies("1.0.0", "*"));
     }
 }
-

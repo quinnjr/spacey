@@ -3,9 +3,9 @@
 //! This module provides the runtime interface that Servo expects from a
 //! JavaScript engine.
 
+use parking_lot::RwLock;
 use spacey_spidermonkey::Engine;
 use std::sync::Arc;
-use parking_lot::RwLock;
 
 /// The Spacey runtime for Servo.
 ///
@@ -31,7 +31,8 @@ impl SpaceyRuntime {
         self.global_scope = Some("window".to_string());
 
         // Initialize basic DOM objects
-        let _ = self.engine.write().eval(r#"
+        let _ = self.engine.write().eval(
+            r#"
             // Basic DOM stubs for Servo integration
             if (typeof window === 'undefined') {
                 var window = {};
@@ -57,7 +58,8 @@ impl SpaceyRuntime {
                     info: function() {}
                 };
             }
-        "#);
+        "#,
+        );
     }
 
     /// Execute JavaScript in the runtime.

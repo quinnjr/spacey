@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `assert` module implementation
 
@@ -28,7 +28,9 @@ pub fn create_module() -> Value {
 pub fn assert(value: &Value, message: Option<&str>) -> Result<()> {
     if !is_truthy(value) {
         Err(NodeError::Assertion(
-            message.unwrap_or("The expression evaluated to a falsy value").to_string()
+            message
+                .unwrap_or("The expression evaluated to a falsy value")
+                .to_string(),
         ))
     } else {
         Ok(())
@@ -44,7 +46,9 @@ pub fn ok(value: &Value, message: Option<&str>) -> Result<()> {
 pub fn equal(actual: &Value, expected: &Value, message: Option<&str>) -> Result<()> {
     if !loose_equal(actual, expected) {
         Err(NodeError::Assertion(
-            message.unwrap_or_else(|| "Values are not equal").to_string()
+            message
+                .unwrap_or_else(|| "Values are not equal")
+                .to_string(),
         ))
     } else {
         Ok(())
@@ -55,7 +59,7 @@ pub fn equal(actual: &Value, expected: &Value, message: Option<&str>) -> Result<
 pub fn not_equal(actual: &Value, expected: &Value, message: Option<&str>) -> Result<()> {
     if loose_equal(actual, expected) {
         Err(NodeError::Assertion(
-            message.unwrap_or_else(|| "Values are equal").to_string()
+            message.unwrap_or_else(|| "Values are equal").to_string(),
         ))
     } else {
         Ok(())
@@ -66,7 +70,9 @@ pub fn not_equal(actual: &Value, expected: &Value, message: Option<&str>) -> Res
 pub fn strict_equal(actual: &Value, expected: &Value, message: Option<&str>) -> Result<()> {
     if !strict_equal_values(actual, expected) {
         Err(NodeError::Assertion(
-            message.unwrap_or_else(|| "Values are not strictly equal").to_string()
+            message
+                .unwrap_or_else(|| "Values are not strictly equal")
+                .to_string(),
         ))
     } else {
         Ok(())
@@ -77,7 +83,9 @@ pub fn strict_equal(actual: &Value, expected: &Value, message: Option<&str>) -> 
 pub fn not_strict_equal(actual: &Value, expected: &Value, message: Option<&str>) -> Result<()> {
     if strict_equal_values(actual, expected) {
         Err(NodeError::Assertion(
-            message.unwrap_or_else(|| "Values are strictly equal").to_string()
+            message
+                .unwrap_or_else(|| "Values are strictly equal")
+                .to_string(),
         ))
     } else {
         Ok(())
@@ -88,7 +96,9 @@ pub fn not_strict_equal(actual: &Value, expected: &Value, message: Option<&str>)
 pub fn deep_equal(actual: &Value, expected: &Value, message: Option<&str>) -> Result<()> {
     if !deep_loose_equal(actual, expected) {
         Err(NodeError::Assertion(
-            message.unwrap_or_else(|| "Values are not deeply equal").to_string()
+            message
+                .unwrap_or_else(|| "Values are not deeply equal")
+                .to_string(),
         ))
     } else {
         Ok(())
@@ -99,7 +109,9 @@ pub fn deep_equal(actual: &Value, expected: &Value, message: Option<&str>) -> Re
 pub fn not_deep_equal(actual: &Value, expected: &Value, message: Option<&str>) -> Result<()> {
     if deep_loose_equal(actual, expected) {
         Err(NodeError::Assertion(
-            message.unwrap_or_else(|| "Values are deeply equal").to_string()
+            message
+                .unwrap_or_else(|| "Values are deeply equal")
+                .to_string(),
         ))
     } else {
         Ok(())
@@ -110,7 +122,9 @@ pub fn not_deep_equal(actual: &Value, expected: &Value, message: Option<&str>) -
 pub fn deep_strict_equal(actual: &Value, expected: &Value, message: Option<&str>) -> Result<()> {
     if !util::is_deep_strict_equal(actual, expected) {
         Err(NodeError::Assertion(
-            message.unwrap_or_else(|| "Values are not deeply strictly equal").to_string()
+            message
+                .unwrap_or_else(|| "Values are not deeply strictly equal")
+                .to_string(),
         ))
     } else {
         Ok(())
@@ -118,10 +132,16 @@ pub fn deep_strict_equal(actual: &Value, expected: &Value, message: Option<&str>
 }
 
 /// assert.notDeepStrictEqual(actual, expected, message?)
-pub fn not_deep_strict_equal(actual: &Value, expected: &Value, message: Option<&str>) -> Result<()> {
+pub fn not_deep_strict_equal(
+    actual: &Value,
+    expected: &Value,
+    message: Option<&str>,
+) -> Result<()> {
     if util::is_deep_strict_equal(actual, expected) {
         Err(NodeError::Assertion(
-            message.unwrap_or_else(|| "Values are deeply strictly equal").to_string()
+            message
+                .unwrap_or_else(|| "Values are deeply strictly equal")
+                .to_string(),
         ))
     } else {
         Ok(())
@@ -131,14 +151,17 @@ pub fn not_deep_strict_equal(actual: &Value, expected: &Value, message: Option<&
 /// assert.fail(message?)
 pub fn fail(message: Option<&str>) -> Result<()> {
     Err(NodeError::Assertion(
-        message.unwrap_or("Failed").to_string()
+        message.unwrap_or("Failed").to_string(),
     ))
 }
 
 /// assert.ifError(value) - throws if value is truthy
 pub fn if_error(value: &Value) -> Result<()> {
     if is_truthy(value) {
-        Err(NodeError::Assertion(format!("Got unwanted error: {:?}", value)))
+        Err(NodeError::Assertion(format!(
+            "Got unwanted error: {:?}",
+            value
+        )))
     } else {
         Ok(())
     }
@@ -151,7 +174,9 @@ pub fn matches(string: &str, pattern: &str, message: Option<&str>) -> Result<()>
 
     if !re.is_match(string) {
         Err(NodeError::Assertion(
-            message.unwrap_or_else(|| "String does not match pattern").to_string()
+            message
+                .unwrap_or_else(|| "String does not match pattern")
+                .to_string(),
         ))
     } else {
         Ok(())
@@ -165,7 +190,9 @@ pub fn does_not_match(string: &str, pattern: &str, message: Option<&str>) -> Res
 
     if re.is_match(string) {
         Err(NodeError::Assertion(
-            message.unwrap_or_else(|| "String matches pattern").to_string()
+            message
+                .unwrap_or_else(|| "String matches pattern")
+                .to_string(),
         ))
     } else {
         Ok(())
@@ -219,9 +246,8 @@ fn deep_loose_equal(a: &Value, b: &Value) -> bool {
             if a.len() != b.len() {
                 return false;
             }
-            a.iter().all(|(k, v)| {
-                b.get(k).map(|bv| deep_loose_equal(v, bv)).unwrap_or(false)
-            })
+            a.iter()
+                .all(|(k, v)| b.get(k).map(|bv| deep_loose_equal(v, bv)).unwrap_or(false))
         }
         _ => loose_equal(a, b),
     }
@@ -247,7 +273,14 @@ mod tests {
     #[test]
     fn test_strict_equal() {
         assert!(strict_equal(&Value::Number(1.0), &Value::Number(1.0), None).is_ok());
-        assert!(strict_equal(&Value::String("a".to_string()), &Value::String("a".to_string()), None).is_ok());
+        assert!(
+            strict_equal(
+                &Value::String("a".to_string()),
+                &Value::String("a".to_string()),
+                None
+            )
+            .is_ok()
+        );
 
         assert!(strict_equal(&Value::Number(1.0), &Value::String("1".to_string()), None).is_err());
     }
@@ -260,7 +293,10 @@ mod tests {
             for (i, v) in values.into_iter().enumerate() {
                 obj.insert(i.to_string(), v);
             }
-            obj.insert("length".to_string(), Value::Number(obj.len() as f64 - 1.0 + 1.0));
+            obj.insert(
+                "length".to_string(),
+                Value::Number(obj.len() as f64 - 1.0 + 1.0),
+            );
             Value::NativeObject(obj)
         }
 
@@ -278,4 +314,3 @@ mod tests {
         assert!(fail(Some("Custom message")).is_err());
     }
 }
-

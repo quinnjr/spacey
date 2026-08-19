@@ -1,7 +1,7 @@
 //! Abstract equality comparison (ES3 Section 11.9.3)
 
-use std::sync::Arc;
 use crate::runtime::value::Value;
+use std::sync::Arc;
 
 /// Abstract equality comparison (ES3 Section 11.9.3)
 ///
@@ -72,10 +72,19 @@ mod tests {
     fn test_abstract_equals_same_type() {
         assert!(abstract_equals(&Value::Undefined, &Value::Undefined));
         assert!(abstract_equals(&Value::Null, &Value::Null));
-        assert!(abstract_equals(&Value::Boolean(true), &Value::Boolean(true)));
-        assert!(!abstract_equals(&Value::Boolean(true), &Value::Boolean(false)));
+        assert!(abstract_equals(
+            &Value::Boolean(true),
+            &Value::Boolean(true)
+        ));
+        assert!(!abstract_equals(
+            &Value::Boolean(true),
+            &Value::Boolean(false)
+        ));
         assert!(abstract_equals(&Value::Number(42.0), &Value::Number(42.0)));
-        assert!(abstract_equals(&Value::String("foo".into()), &Value::String("foo".into())));
+        assert!(abstract_equals(
+            &Value::String("foo".into()),
+            &Value::String("foo".into())
+        ));
     }
 
     #[test]
@@ -86,9 +95,18 @@ mod tests {
 
     #[test]
     fn test_abstract_equals_number_string() {
-        assert!(abstract_equals(&Value::Number(42.0), &Value::String("42".into())));
-        assert!(abstract_equals(&Value::String("42".into()), &Value::Number(42.0)));
-        assert!(!abstract_equals(&Value::Number(42.0), &Value::String("43".into())));
+        assert!(abstract_equals(
+            &Value::Number(42.0),
+            &Value::String("42".into())
+        ));
+        assert!(abstract_equals(
+            &Value::String("42".into()),
+            &Value::Number(42.0)
+        ));
+        assert!(!abstract_equals(
+            &Value::Number(42.0),
+            &Value::String("43".into())
+        ));
     }
 
     #[test]
@@ -100,9 +118,9 @@ mod tests {
 
     #[test]
     fn test_abstract_equals_nan() {
-        assert!(!abstract_equals(&Value::Number(f64::NAN), &Value::Number(f64::NAN)));
+        assert!(!abstract_equals(
+            &Value::Number(f64::NAN),
+            &Value::Number(f64::NAN)
+        ));
     }
 }
-
-
-

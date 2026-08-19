@@ -11,10 +11,7 @@ use crate::runtime::value::Value;
 
 /// String() constructor - converts value to string.
 pub fn string_constructor(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, String> {
-    let s = args
-        .first()
-        .map(|v| v.to_js_string())
-        .unwrap_or_default();
+    let s = args.first().map(|v| v.to_js_string()).unwrap_or_default();
     Ok(Value::String(s))
 }
 

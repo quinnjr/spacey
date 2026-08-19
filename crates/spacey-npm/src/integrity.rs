@@ -1,6 +1,6 @@
 //! Integrity verification for packages.
 
-use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
+use base64::{Engine, engine::general_purpose::STANDARD as BASE64};
 use sha1::Sha1;
 use sha2::{Digest, Sha256, Sha384, Sha512};
 
@@ -102,4 +102,3 @@ mod tests {
         assert!(checker.verify_shasum(data, &shasum));
     }
 }
-

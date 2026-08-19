@@ -455,8 +455,16 @@ fn test_parse_progressive() {
                 let partial = lines[..end].join("\n");
                 let mut p = Parser::new(&partial);
                 if p.parse_program().is_err() {
-                    println!("Parse error somewhere in lines {}-{}: {:?}", end-50, end, e);
-                    println!("Context:\n{}", lines[end.saturating_sub(5)..end.min(lines.len())].join("\n"));
+                    println!(
+                        "Parse error somewhere in lines {}-{}: {:?}",
+                        end - 50,
+                        end,
+                        e
+                    );
+                    println!(
+                        "Context:\n{}",
+                        lines[end.saturating_sub(5)..end.min(lines.len())].join("\n")
+                    );
                     break;
                 }
             }
@@ -516,12 +524,14 @@ fn test_parse_around_regex() {
 
     // Try lines around the regex area
     for end in [650, 680, 685, 686, 687] {
-        if end > lines.len() { break; }
+        if end > lines.len() {
+            break;
+        }
         let partial = lines[..end].join("\n");
         let mut parser = Parser::new(&partial);
         if let Err(e) = parser.parse_program() {
             println!("Parse error at line {}: {:?}", end, e);
-            println!("Line {}: {}", end, lines[end-1]);
+            println!("Line {}: {}", end, lines[end - 1]);
         } else {
             println!("Lines 1-{}: OK", end);
         }
@@ -543,7 +553,10 @@ fn test_full_parse() {
         if let Err(e) = parser.parse_program() {
             println!("Parse error around line {}: {:?}", end, e);
             let start = (end as i32 - 5).max(0) as usize;
-            println!("Context:\n{}", lines[start..end.min(lines.len())].join("\n"));
+            println!(
+                "Context:\n{}",
+                lines[start..end.min(lines.len())].join("\n")
+            );
             return;
         }
     }
@@ -574,7 +587,7 @@ fn test_find_exact_error_line() {
         let mut parser = Parser::new(&partial);
         if let Err(e) = parser.parse_program() {
             println!("First parse error at line {}: {:?}", end, e);
-            println!("Line {}: {}", end, lines[end-1]);
+            println!("Line {}: {}", end, lines[end - 1]);
             return;
         }
     }

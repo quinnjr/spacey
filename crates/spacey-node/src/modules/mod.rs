@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Built-in Node.js modules
 //!
@@ -42,7 +42,10 @@ pub fn create_native_modules() -> HashMap<String, Value> {
     modules.insert("util".to_string(), util::create_module());
     modules.insert("assert".to_string(), assert::create_module());
     modules.insert("querystring".to_string(), querystring::create_module());
-    modules.insert("string_decoder".to_string(), string_decoder::create_module());
+    modules.insert(
+        "string_decoder".to_string(),
+        string_decoder::create_module(),
+    );
     modules.insert("url".to_string(), url::create_module());
 
     // I/O modules
@@ -71,4 +74,3 @@ pub fn get_builtin(name: &str) -> Option<Value> {
     let modules = create_native_modules();
     modules.get(name).cloned()
 }
-

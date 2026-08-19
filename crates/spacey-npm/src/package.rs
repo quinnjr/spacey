@@ -7,7 +7,9 @@ use std::path::Path;
 use crate::error::{Result, SnpmError};
 
 /// Deserialize engines field which can be either an array or a map.
-fn deserialize_engines<'de, D>(deserializer: D) -> std::result::Result<BTreeMap<String, String>, D::Error>
+fn deserialize_engines<'de, D>(
+    deserializer: D,
+) -> std::result::Result<BTreeMap<String, String>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -288,16 +290,20 @@ impl PackageJson {
     pub fn add_dependency(&mut self, name: &str, version: &str, dep_type: DependencyType) {
         match dep_type {
             DependencyType::Production => {
-                self.dependencies.insert(name.to_string(), version.to_string());
+                self.dependencies
+                    .insert(name.to_string(), version.to_string());
             }
             DependencyType::Development => {
-                self.dev_dependencies.insert(name.to_string(), version.to_string());
+                self.dev_dependencies
+                    .insert(name.to_string(), version.to_string());
             }
             DependencyType::Peer => {
-                self.peer_dependencies.insert(name.to_string(), version.to_string());
+                self.peer_dependencies
+                    .insert(name.to_string(), version.to_string());
             }
             DependencyType::Optional => {
-                self.optional_dependencies.insert(name.to_string(), version.to_string());
+                self.optional_dependencies
+                    .insert(name.to_string(), version.to_string());
             }
         }
     }
@@ -465,4 +471,3 @@ pub struct PackageDist {
     #[serde(rename = "npm-signature")]
     pub npm_signature: Option<String>,
 }
-

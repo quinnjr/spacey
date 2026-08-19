@@ -99,6 +99,3 @@ mod tests {
         assert!(matches!(result, Value::Number(n) if n == 42.0));
     }
 }
-
-
-

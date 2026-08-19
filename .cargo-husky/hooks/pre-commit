@@ -26,7 +26,7 @@ echo "✅ Clippy OK"
 
 # Run quick tests (lib tests only for speed)
 echo "🧪 Running quick tests..."
-if ! cargo test --lib; then
+if ! cargo test --workspace --lib; then
     echo "❌ Tests failed!"
     exit 1
 fi

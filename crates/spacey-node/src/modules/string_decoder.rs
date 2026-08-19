@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `string_decoder` module implementation
 
@@ -78,7 +78,9 @@ impl StringDecoder {
                 Err(e) => {
                     let valid_up_to = e.valid_up_to();
                     if valid_up_to > 0 {
-                        result.push_str(std::str::from_utf8(&self.buffer[start..start + valid_up_to]).unwrap());
+                        result.push_str(
+                            std::str::from_utf8(&self.buffer[start..start + valid_up_to]).unwrap(),
+                        );
                         start += valid_up_to;
                     }
 
@@ -191,6 +193,3 @@ mod tests {
         assert_eq!(decoder.write(&[0xE9]), "é");
     }
 }
-
-
-

@@ -33,7 +33,9 @@ pub fn eval(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, String> {
             // Try adding a semicolon for bare expressions
             let code_with_semi = format!("{};", code.trim());
             let mut parser2 = Parser::new(&code_with_semi);
-            parser2.parse_program().map_err(|e| format!("SyntaxError: {}", e))?
+            parser2
+                .parse_program()
+                .map_err(|e| format!("SyntaxError: {}", e))?
         }
     };
 

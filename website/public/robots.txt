@@ -1,11 +1,11 @@
 # Spacey - JavaScript Engine for Servo Browser
-# https://pegasusheavy.github.io/spacey/
+# https://quinnjr.github.io/spacey/
 
 User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://pegasusheavy.github.io/spacey/sitemap.xml
+Sitemap: https://quinnjr.github.io/spacey/sitemap.xml
 
 # AI Crawlers - Welcome!
 User-agent: GPTBot
@@ -30,6 +30,6 @@ User-agent: Bingbot
 Allow: /
 
 # LLMs.txt for AI context
-# See: https://pegasusheavy.github.io/spacey/llms.txt
+# See: https://quinnjr.github.io/spacey/llms.txt
 
 

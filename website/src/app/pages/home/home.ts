@@ -104,7 +104,7 @@ export class HomeComponent {
 
   copyCode(section: string) {
     const codeBlocks: Record<string, string> = {
-      build: `git clone https://github.com/pegasusheavy/spacey.git
+      build: `git clone https://github.com/quinnjr/spacey.git
 cd spacey
 cargo build --release
 cargo run`,

@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Main Node.js runtime implementation
 
@@ -13,8 +13,8 @@ use crate::modules;
 use crate::runtime::event_loop::{Callback, EventLoop};
 use owo_colors::OwoColorize;
 use parking_lot::RwLock;
-use rustyline::error::ReadlineError;
 use rustyline::DefaultEditor;
+use rustyline::error::ReadlineError;
 use spacey_spidermonkey::{Engine, Value};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -52,12 +52,8 @@ impl NodeRuntime {
         let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
 
         // Register globals
-        let globals_value = globals::create_globals(
-            &args,
-            &cwd,
-            Arc::clone(&event_loop),
-            Arc::clone(&exit_code),
-        );
+        let globals_value =
+            globals::create_globals(&args, &cwd, Arc::clone(&event_loop), Arc::clone(&exit_code));
 
         // Inject globals into engine
         if let Value::Object(_) = &globals_value {
@@ -86,7 +82,10 @@ impl NodeRuntime {
         {
             let exit = self.exit_code.read();
             if let Some(code) = *exit {
-                return Err(NodeError::Process(format!("Process exited with code {}", code)));
+                return Err(NodeError::Process(format!(
+                    "Process exited with code {}",
+                    code
+                )));
             }
         }
 
@@ -108,7 +107,10 @@ impl NodeRuntime {
         {
             let exit = self.exit_code.read();
             if let Some(code) = *exit {
-                return Err(NodeError::Process(format!("Process exited with code {}", code)));
+                return Err(NodeError::Process(format!(
+                    "Process exited with code {}",
+                    code
+                )));
             }
         }
 
@@ -147,7 +149,9 @@ impl NodeRuntime {
             }
             ModuleType::Json => {
                 // JSON files can't be run directly
-                return Err(NodeError::TypeError("Cannot run JSON file directly".to_string()));
+                return Err(NodeError::TypeError(
+                    "Cannot run JSON file directly".to_string(),
+                ));
             }
         }
 
@@ -213,7 +217,12 @@ impl NodeRuntime {
     }
 
     /// Wrap code in ESM context with import.meta
-    fn wrap_esm_code(&self, code: &str, filename: &Path, import_meta: &crate::module_system::ImportMeta) -> String {
+    fn wrap_esm_code(
+        &self,
+        code: &str,
+        filename: &Path,
+        import_meta: &crate::module_system::ImportMeta,
+    ) -> String {
         // For ESM, we need to:
         // 1. Transform imports to require() calls (simplified)
         // 2. Provide import.meta object
@@ -240,8 +249,14 @@ impl NodeRuntime {
     {}
 }})();"#,
             import_meta.url.replace('\\', "\\\\").replace('"', "\\\""),
-            import_meta.dirname.replace('\\', "\\\\").replace('"', "\\\""),
-            import_meta.filename.replace('\\', "\\\\").replace('"', "\\\""),
+            import_meta
+                .dirname
+                .replace('\\', "\\\\")
+                .replace('"', "\\\""),
+            import_meta
+                .filename
+                .replace('\\', "\\\\")
+                .replace('"', "\\\""),
             import_meta.main,
             code
         )
@@ -254,8 +269,16 @@ impl NodeRuntime {
 {}
 }})({{}}, require, {{}}, "{}", "{}");"#,
             code,
-            filename.display().to_string().replace('\\', "\\\\").replace('"', "\\\""),
-            dirname.display().to_string().replace('\\', "\\\\").replace('"', "\\\"")
+            filename
+                .display()
+                .to_string()
+                .replace('\\', "\\\\")
+                .replace('"', "\\\""),
+            dirname
+                .display()
+                .to_string()
+                .replace('\\', "\\\\")
+                .replace('"', "\\\"")
         )
     }
 
@@ -280,7 +303,9 @@ impl NodeRuntime {
             // Execute callbacks
             for callback in callbacks {
                 match callback {
-                    Callback::Function(func) | Callback::Immediate(func) | Callback::Microtask(func) => {
+                    Callback::Function(func)
+                    | Callback::Immediate(func)
+                    | Callback::Microtask(func) => {
                         // Execute the callback
                         if let Value::Function(_) = &func {
                             // Call the function through the engine
@@ -424,10 +449,7 @@ impl NodeRuntime {
 
     /// Check if a file is an ESM module
     pub fn is_esm(&self, path: &Path) -> bool {
-        matches!(
-            self.esm_loader.get_module_type(path),
-            Ok(ModuleType::ESM)
-        )
+        matches!(self.esm_loader.get_module_type(path), Ok(ModuleType::ESM))
     }
 }
 
@@ -456,4 +478,3 @@ impl Default for NodeRuntime {
         Self::new(vec![])
     }
 }
-

@@ -277,4 +277,3 @@ mod tests {
         assert!(!lock.is_locked("lodash", "4.17.20"));
     }
 }
-

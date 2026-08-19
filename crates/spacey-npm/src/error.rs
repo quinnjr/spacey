@@ -114,4 +114,3 @@ impl From<String> for SnpmError {
         SnpmError::Other(s)
     }
 }
-

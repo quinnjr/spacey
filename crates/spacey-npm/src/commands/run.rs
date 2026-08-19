@@ -1,8 +1,8 @@
 //! Run command implementation.
 
+use owo_colors::OwoColorize;
 use std::path::PathBuf;
 use std::process::Command;
-use owo_colors::OwoColorize;
 
 use crate::cli::{Cli, RunArgs};
 use crate::error::{Result, SnpmError};
@@ -63,4 +63,3 @@ pub async fn run(args: &RunArgs, cli: &Cli) -> Result<()> {
 
     Ok(())
 }
-

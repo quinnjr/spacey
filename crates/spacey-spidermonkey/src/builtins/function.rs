@@ -398,10 +398,7 @@ mod tests {
     fn test_function_constructor_with_body() {
         let mut frame = make_frame();
         // Function with body - note: body needs proper JS syntax
-        let result = function_constructor(
-            &mut frame,
-            &[Value::String("return 42;".to_string())],
-        );
+        let result = function_constructor(&mut frame, &[Value::String("return 42;".to_string())]);
         assert!(result.is_ok(), "Function constructor failed: {:?}", result);
         assert!(matches!(result.unwrap(), Value::Function(_)));
     }

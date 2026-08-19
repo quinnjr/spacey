@@ -112,11 +112,7 @@ macro_rules! retry_with_delay {
 #[macro_export]
 macro_rules! when {
     ($cond:expr, $then:expr) => {
-        if $cond {
-            Some($then)
-        } else {
-            None
-        }
+        if $cond { Some($then) } else { None }
     };
 }
 
@@ -134,11 +130,7 @@ macro_rules! when {
 #[macro_export]
 macro_rules! if_else {
     ($cond:expr, $then:expr, $else:expr) => {
-        if $cond {
-            $then
-        } else {
-            $else
-        }
+        if $cond { $then } else { $else }
     };
 }
 
@@ -313,14 +305,18 @@ mod tests {
     #[test]
     fn test_times() {
         let mut count = 0;
-        times!(3, { count += 1; });
+        times!(3, {
+            count += 1;
+        });
         assert_eq!(count, 3);
     }
 
     #[test]
     fn test_times_with_index() {
         let mut sum = 0;
-        times_with_index!(i, 5, { sum += i; });
+        times_with_index!(i, 5, {
+            sum += i;
+        });
         assert_eq!(sum, 10);
     }
 
@@ -335,4 +331,3 @@ mod tests {
         assert_eq!(check(5), 10);
     }
 }
-

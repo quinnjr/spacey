@@ -133,7 +133,14 @@ pub fn object_is_prototype_of(_frame: &mut CallFrame, args: &[Value]) -> Result<
     let target = args.get(1).unwrap_or(&Value::Undefined);
 
     match (this_obj, target) {
-        (_, Value::Undefined | Value::Null | Value::Boolean(_) | Value::Number(_) | Value::String(_)) => {
+        (
+            _,
+            Value::Undefined
+            | Value::Null
+            | Value::Boolean(_)
+            | Value::Number(_)
+            | Value::String(_),
+        ) => {
             // Primitives have no prototype chain to walk
             Ok(Value::Boolean(false))
         }
@@ -148,7 +155,10 @@ pub fn object_is_prototype_of(_frame: &mut CallFrame, args: &[Value]) -> Result<
 
 /// Object.prototype.propertyIsEnumerable(V) - checks if property is enumerable.
 /// ES3 Section 15.2.4.7
-pub fn object_property_is_enumerable(_frame: &mut CallFrame, args: &[Value]) -> Result<Value, String> {
+pub fn object_property_is_enumerable(
+    _frame: &mut CallFrame,
+    args: &[Value],
+) -> Result<Value, String> {
     let this_obj = args.first().unwrap_or(&Value::Undefined);
     let prop_name = args.get(1).map(|v| v.to_js_string()).unwrap_or_default();
 

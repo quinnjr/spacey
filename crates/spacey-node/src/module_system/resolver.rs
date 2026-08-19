@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Module path resolution (Node.js algorithm)
 
@@ -86,13 +86,7 @@ pub const BUILTIN_MODULES: &[&str] = &[
 ];
 
 /// Built-in modules that have promise variants (node:fs/promises)
-pub const PROMISE_MODULES: &[&str] = &[
-    "fs",
-    "dns",
-    "readline",
-    "stream",
-    "timers",
-];
+pub const PROMISE_MODULES: &[&str] = &["fs", "dns", "readline", "stream", "timers"];
 
 /// Built-in module subpaths (e.g., node:fs/promises)
 pub const BUILTIN_SUBPATHS: &[(&str, &str)] = &[
@@ -290,7 +284,8 @@ impl ModuleResolver {
                 if let Ok(pkg) = serde_json::from_str::<PackageJson>(&content) {
                     // Try "exports" field first (modern resolution)
                     if let Some(exports) = &pkg.exports {
-                        if let Some(resolved) = self.resolve_exports(dir, exports, ".", conditions) {
+                        if let Some(resolved) = self.resolve_exports(dir, exports, ".", conditions)
+                        {
                             return self.categorize_file(&resolved);
                         }
                     }
@@ -355,7 +350,8 @@ impl ModuleResolver {
             // Array of fallbacks
             serde_json::Value::Array(arr) => {
                 for item in arr {
-                    if let Some(resolved) = self.resolve_exports(pkg_dir, item, subpath, conditions) {
+                    if let Some(resolved) = self.resolve_exports(pkg_dir, item, subpath, conditions)
+                    {
                         return Some(resolved);
                     }
                 }
@@ -376,7 +372,9 @@ impl ModuleResolver {
                     // Resolve conditions in order
                     for condition in conditions {
                         if let Some(value) = obj.get(*condition) {
-                            if let Some(resolved) = self.resolve_exports(pkg_dir, value, subpath, conditions) {
+                            if let Some(resolved) =
+                                self.resolve_exports(pkg_dir, value, subpath, conditions)
+                            {
                                 return Some(resolved);
                             }
                         }
@@ -498,7 +496,11 @@ impl ModuleResolver {
     }
 
     /// Resolve a module from node_modules for ESM
-    fn resolve_node_modules_esm(&self, specifier: &str, parent_path: &Path) -> Result<ResolveResult> {
+    fn resolve_node_modules_esm(
+        &self,
+        specifier: &str,
+        parent_path: &Path,
+    ) -> Result<ResolveResult> {
         let (package_name, subpath) = self.parse_package_specifier(specifier);
 
         let mut current = parent_path.parent();
@@ -724,7 +726,10 @@ mod tests {
     #[test]
     fn test_strip_node_prefix() {
         assert_eq!(ModuleResolver::strip_node_prefix("node:fs"), "fs");
-        assert_eq!(ModuleResolver::strip_node_prefix("node:fs/promises"), "fs/promises");
+        assert_eq!(
+            ModuleResolver::strip_node_prefix("node:fs/promises"),
+            "fs/promises"
+        );
         assert_eq!(ModuleResolver::strip_node_prefix("fs"), "fs");
         assert_eq!(ModuleResolver::strip_node_prefix("./local"), "./local");
     }
@@ -757,4 +762,3 @@ mod tests {
         );
     }
 }
-

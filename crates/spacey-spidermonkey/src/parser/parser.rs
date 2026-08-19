@@ -150,13 +150,15 @@ impl<'a> Parser<'a> {
         self.advance(); // consume 'break'
 
         // Check for label (no line terminator before label)
-        if !self.check(&TokenKind::Semicolon) && !self.is_at_end()
-            && let TokenKind::Identifier(label) = &self.current.kind {
-                let label = label.clone();
-                self.advance();
-                self.expect(&TokenKind::Semicolon)?;
-                return Ok(Statement::BreakLabel(label));
-            }
+        if !self.check(&TokenKind::Semicolon)
+            && !self.is_at_end()
+            && let TokenKind::Identifier(label) = &self.current.kind
+        {
+            let label = label.clone();
+            self.advance();
+            self.expect(&TokenKind::Semicolon)?;
+            return Ok(Statement::BreakLabel(label));
+        }
 
         self.expect(&TokenKind::Semicolon)?;
         Ok(Statement::Break)
@@ -167,13 +169,15 @@ impl<'a> Parser<'a> {
         self.advance(); // consume 'continue'
 
         // Check for label (no line terminator before label)
-        if !self.check(&TokenKind::Semicolon) && !self.is_at_end()
-            && let TokenKind::Identifier(label) = &self.current.kind {
-                let label = label.clone();
-                self.advance();
-                self.expect(&TokenKind::Semicolon)?;
-                return Ok(Statement::ContinueLabel(label));
-            }
+        if !self.check(&TokenKind::Semicolon)
+            && !self.is_at_end()
+            && let TokenKind::Identifier(label) = &self.current.kind
+        {
+            let label = label.clone();
+            self.advance();
+            self.expect(&TokenKind::Semicolon)?;
+            return Ok(Statement::ContinueLabel(label));
+        }
 
         self.expect(&TokenKind::Semicolon)?;
         Ok(Statement::Continue)
@@ -1197,7 +1201,9 @@ impl<'a> Parser<'a> {
                     exprs.push(Expression::Identifier(p));
                 }
                 // Already consumed RightParen above when checking for arrow
-                return Ok(Expression::Sequence(SequenceExpression { expressions: exprs }));
+                return Ok(Expression::Sequence(SequenceExpression {
+                    expressions: exprs,
+                }));
             }
 
             // Already consumed RightParen above when checking for arrow
@@ -1222,7 +1228,9 @@ impl<'a> Parser<'a> {
                 exprs.push(self.parse_assignment()?);
             }
             self.expect(&TokenKind::RightParen)?;
-            return Ok(Expression::Sequence(SequenceExpression { expressions: exprs }));
+            return Ok(Expression::Sequence(SequenceExpression {
+                expressions: exprs,
+            }));
         }
 
         self.expect(&TokenKind::RightParen)?;
@@ -1577,7 +1585,11 @@ impl<'a> Parser<'a> {
     /// Skip a primary type expression.
     fn skip_primary_type(&mut self) -> Result<(), Error> {
         match &self.current.kind {
-            TokenKind::Any | TokenKind::Unknown | TokenKind::Never | TokenKind::Void | TokenKind::Null => {
+            TokenKind::Any
+            | TokenKind::Unknown
+            | TokenKind::Never
+            | TokenKind::Void
+            | TokenKind::Null => {
                 self.advance();
             }
             TokenKind::Identifier(_) => {
@@ -1940,10 +1952,9 @@ impl<'a> Parser<'a> {
 
             members.push((member_name.name, value));
 
-            if !self.check(&TokenKind::RightBrace)
-                && self.check(&TokenKind::Comma) {
-                    self.advance();
-                }
+            if !self.check(&TokenKind::RightBrace) && self.check(&TokenKind::Comma) {
+                self.advance();
+            }
         }
 
         self.expect(&TokenKind::RightBrace)?;
@@ -1954,9 +1965,7 @@ impl<'a> Parser<'a> {
             kind: VariableKind::Var,
             declarations: vec![VariableDeclarator {
                 id: enum_name.clone(),
-                init: Some(Expression::Object(ObjectExpression {
-                    properties: vec![],
-                })),
+                init: Some(Expression::Object(ObjectExpression { properties: vec![] })),
             }],
         });
 
@@ -1978,9 +1987,9 @@ impl<'a> Parser<'a> {
                             operator: AssignmentOperator::Assign,
                             left: Box::new(Expression::Member(MemberExpression {
                                 object: Box::new(Expression::Identifier(enum_name.clone())),
-                                property: MemberProperty::Expression(Box::new(Expression::Literal(
-                                    Literal::String(name.clone()),
-                                ))),
+                                property: MemberProperty::Expression(Box::new(
+                                    Expression::Literal(Literal::String(name.clone())),
+                                )),
                                 computed: true,
                             })),
                             right: Box::new(Expression::Literal(Literal::String(s))),

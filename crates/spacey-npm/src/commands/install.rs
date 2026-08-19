@@ -22,7 +22,10 @@ pub async fn run(args: &InstallArgs, cli: &Cli) -> Result<()> {
     // Check for package.json
     let pkg_json_path = PathBuf::from("package.json");
     if !pkg_json_path.exists() && args.packages.is_empty() {
-        println!("{}", "No package.json found. Run 'snpm init' first.".yellow());
+        println!(
+            "{}",
+            "No package.json found. Run 'snpm init' first.".yellow()
+        );
         return Ok(());
     }
 
@@ -40,7 +43,7 @@ pub async fn run(args: &InstallArgs, cli: &Cli) -> Result<()> {
     // For frozen lockfile mode, require a lockfile to exist
     if args.frozen_lockfile && !snpm_toml_path.exists() && !lockfile_path.exists() {
         return Err(crate::error::SnpmError::InvalidLockfile(
-            "Frozen lockfile mode requires snpm.toml or package-lock.json to exist".into()
+            "Frozen lockfile mode requires snpm.toml or package-lock.json to exist".into(),
         ));
     }
 
@@ -253,7 +256,9 @@ mod tests {
         assert_eq!(parse_package_spec("lodash"), ("lodash", "latest"));
         assert_eq!(parse_package_spec("lodash@4.17.21"), ("lodash", "4.17.21"));
         assert_eq!(parse_package_spec("@types/node"), ("@types/node", "latest"));
-        assert_eq!(parse_package_spec("@types/node@18.0.0"), ("@types/node", "18.0.0"));
+        assert_eq!(
+            parse_package_spec("@types/node@18.0.0"),
+            ("@types/node", "18.0.0")
+        );
     }
 }
-

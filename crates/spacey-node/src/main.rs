@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! spacey-node CLI - Node.js-compatible JavaScript/TypeScript runtime
 
@@ -18,7 +18,7 @@ use std::path::PathBuf;
              TypeScript files (.ts, .tsx, .mts, .cts) are natively executed without\n\
              transpilation. Type annotations are stripped at parse time.",
     version = VERSION,
-    author = "Pegasus Heavy Industries"
+    author = "Joseph R. Quinn"
 )]
 struct Cli {
     /// JavaScript or TypeScript file to execute
@@ -71,7 +71,10 @@ async fn main() -> anyhow::Result<()> {
     // Handle version flag
     if cli.show_version {
         println!("spacey-node v{}", VERSION);
-        println!("Node.js API compatibility: v{}", spacey_node::NODE_API_VERSION);
+        println!(
+            "Node.js API compatibility: v{}",
+            spacey_node::NODE_API_VERSION
+        );
         return Ok(());
     }
 
@@ -154,7 +157,10 @@ fn print_banner() {
         VERSION.yellow(),
         spacey_node::NODE_API_VERSION.dimmed()
     );
-    println!("Type {} for help, {} to exit", ".help".green(), ".exit".green());
+    println!(
+        "Type {} for help, {} to exit",
+        ".help".green(),
+        ".exit".green()
+    );
     println!();
 }
-

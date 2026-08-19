@@ -26,17 +26,17 @@
 
 #![warn(missing_docs)]
 
+use parking_lot::RwLock;
 use spacey_spidermonkey::Engine;
 use std::sync::Arc;
-use parking_lot::RwLock;
 
-mod runtime;
 mod bindings;
 mod event_loop;
+mod runtime;
 
-pub use runtime::SpaceyRuntime;
 pub use bindings::DomBindings;
 pub use event_loop::EventLoop;
+pub use runtime::SpaceyRuntime;
 
 /// The main Spacey-Servo integration struct.
 ///
@@ -62,10 +62,7 @@ impl SpaceyServo {
         let engine = Arc::new(RwLock::new(Engine::new()));
         let event_loop = Arc::new(EventLoop::new());
 
-        Self {
-            engine,
-            event_loop,
-        }
+        Self { engine, event_loop }
     }
 
     /// Get a reference to the JavaScript engine.
@@ -97,8 +94,8 @@ impl SpaceyServo {
 
     /// Execute a script file.
     pub fn eval_file(&self, path: &str) -> Result<String, String> {
-        let source = std::fs::read_to_string(path)
-            .map_err(|e| format!("Failed to read file: {}", e))?;
+        let source =
+            std::fs::read_to_string(path).map_err(|e| format!("Failed to read file: {}", e))?;
         self.eval(&source)
     }
 }

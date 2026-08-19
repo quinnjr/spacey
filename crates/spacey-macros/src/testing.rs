@@ -424,7 +424,10 @@ mod tests {
     #[test]
     fn test_assert_matches() {
         #[derive(Debug)]
-        enum E { A(i32), B }
+        enum E {
+            A(i32),
+            B,
+        }
         assert_matches!(E::A(42), E::A(_));
         assert_matches!(E::A(42), E::A(n) if n > 0);
     }
@@ -485,4 +488,3 @@ mod tests {
         assert_not_empty!(v);
     }
 }
-

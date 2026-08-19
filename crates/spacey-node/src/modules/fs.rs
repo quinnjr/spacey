@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `fs` module implementation
 //!
@@ -67,18 +67,12 @@ pub fn read_file_sync(path: &str, encoding: Option<&str>) -> Result<Value> {
         Some("utf8") | Some("utf-8") => {
             Ok(Value::String(String::from_utf8_lossy(&content).to_string()))
         }
-        Some("base64") => {
-            Ok(Value::String(base64::Engine::encode(
-                &base64::prelude::BASE64_STANDARD,
-                &content,
-            )))
-        }
-        Some("hex") => {
-            Ok(Value::String(hex::encode(&content)))
-        }
-        Some(enc) => {
-            Err(NodeError::type_error(format!("Unknown encoding: {}", enc)))
-        }
+        Some("base64") => Ok(Value::String(base64::Engine::encode(
+            &base64::prelude::BASE64_STANDARD,
+            &content,
+        ))),
+        Some("hex") => Ok(Value::String(hex::encode(&content))),
+        Some(enc) => Err(NodeError::type_error(format!("Unknown encoding: {}", enc))),
         None => {
             // Return as Buffer (represented as array-like object)
             let mut arr: HashMap<String, Value> = content
@@ -247,8 +241,14 @@ pub fn readdir_sync(path: &str, options: Option<ReaddirOptions>) -> Result<Vec<V
             let mut dirent = HashMap::new();
             dirent.insert("name".to_string(), Value::String(name));
             dirent.insert("isFile".to_string(), Value::Boolean(file_type.is_file()));
-            dirent.insert("isDirectory".to_string(), Value::Boolean(file_type.is_dir()));
-            dirent.insert("isSymbolicLink".to_string(), Value::Boolean(file_type.is_symlink()));
+            dirent.insert(
+                "isDirectory".to_string(),
+                Value::Boolean(file_type.is_dir()),
+            );
+            dirent.insert(
+                "isSymbolicLink".to_string(),
+                Value::Boolean(file_type.is_symlink()),
+            );
             result.push(Value::NativeObject(dirent));
         } else {
             result.push(Value::String(name));
@@ -552,4 +552,3 @@ mod tests {
         assert!(!exists_sync(path_str));
     }
 }
-

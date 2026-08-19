@@ -517,9 +517,10 @@ impl Heap {
         for obj in old_gen.iter().flatten() {
             for value in obj.data().properties.values() {
                 if let PropertyValue::Object(ref_obj) = value
-                    && ref_obj.is_young() {
-                        self.mark_young(*ref_obj);
-                    }
+                    && ref_obj.is_young()
+                {
+                    self.mark_young(*ref_obj);
+                }
             }
         }
     }
@@ -531,13 +532,14 @@ impl Heap {
         // Iterate through marked objects in nursery
         for idx in 0..self.nursery.object_count() {
             if let Some(header) = self.nursery.get_header(idx)
-                && header.color.load(Ordering::Relaxed) == MarkColor::Black as u8 {
-                    // Object survived - promote to old gen
-                    if let Some(obj) = self.nursery.get(idx) {
-                        self.allocate_old(obj.clone());
-                        promoted += 1;
-                    }
+                && header.color.load(Ordering::Relaxed) == MarkColor::Black as u8
+            {
+                // Object survived - promote to old gen
+                if let Some(obj) = self.nursery.get(idx) {
+                    self.allocate_old(obj.clone());
+                    promoted += 1;
                 }
+            }
         }
 
         promoted
@@ -666,11 +668,12 @@ impl Heap {
 
         for (idx, obj_opt) in old_gen.iter_mut().enumerate() {
             if let Some(obj) = obj_opt
-                && obj.header().color.load(Ordering::Relaxed) == MarkColor::White as u8 {
-                    freed_bytes += obj.size();
-                    *obj_opt = None;
-                    free_list.push(idx);
-                }
+                && obj.header().color.load(Ordering::Relaxed) == MarkColor::White as u8
+            {
+                freed_bytes += obj.size();
+                *obj_opt = None;
+                free_list.push(idx);
+            }
         }
 
         // Update stats
@@ -698,11 +701,12 @@ impl Heap {
                 .enumerate()
                 .for_each(|(idx, obj_opt)| {
                     if let Some(obj) = obj_opt
-                        && obj.header().color.load(Ordering::Relaxed) == MarkColor::White as u8 {
-                            freed_bytes.fetch_add(obj.size(), Ordering::Relaxed);
-                            *obj_opt = None;
-                            free_indices.push(idx);
-                        }
+                        && obj.header().color.load(Ordering::Relaxed) == MarkColor::White as u8
+                    {
+                        freed_bytes.fetch_add(obj.size(), Ordering::Relaxed);
+                        *obj_opt = None;
+                        free_indices.push(idx);
+                    }
                 });
         }
 

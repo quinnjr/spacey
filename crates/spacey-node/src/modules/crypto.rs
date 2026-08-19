@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `crypto` module implementation
 
@@ -19,8 +19,8 @@ pub fn create_module() -> Value {
 
     // List of supported hash algorithms
     let hashes = vec![
-        "md5", "sha1", "sha224", "sha256", "sha384", "sha512",
-        "sha3-224", "sha3-256", "sha3-384", "sha3-512",
+        "md5", "sha1", "sha224", "sha256", "sha384", "sha512", "sha3-224", "sha3-256", "sha3-384",
+        "sha3-512",
     ];
 
     // getHashes as array-like object
@@ -34,8 +34,11 @@ pub fn create_module() -> Value {
 
     // List of supported ciphers
     let ciphers = vec![
-        "aes-128-cbc", "aes-192-cbc", "aes-256-cbc",
-        "aes-128-gcm", "aes-256-gcm",
+        "aes-128-cbc",
+        "aes-192-cbc",
+        "aes-256-cbc",
+        "aes-128-gcm",
+        "aes-256-gcm",
         "chacha20-poly1305",
     ];
 
@@ -58,7 +61,10 @@ fn get_algorithm(name: &str) -> Result<&'static Algorithm> {
         "sha256" | "sha-256" => Ok(&digest::SHA256),
         "sha384" | "sha-384" => Ok(&digest::SHA384),
         "sha512" | "sha-512" => Ok(&digest::SHA512),
-        _ => Err(NodeError::Crypto(format!("Unsupported algorithm: {}", name))),
+        _ => Err(NodeError::Crypto(format!(
+            "Unsupported algorithm: {}",
+            name
+        ))),
     }
 }
 
@@ -92,9 +98,7 @@ impl Hash {
         match encoding {
             Some("hex") | None => hex::encode(bytes),
             Some("base64") => base64::Engine::encode(&base64::prelude::BASE64_STANDARD, bytes),
-            Some("binary") | Some("latin1") => {
-                bytes.iter().map(|&b| b as char).collect()
-            }
+            Some("binary") | Some("latin1") => bytes.iter().map(|&b| b as char).collect(),
             _ => hex::encode(bytes),
         }
     }
@@ -114,7 +118,12 @@ impl Hmac {
             "sha256" | "sha-256" => hmac::HMAC_SHA256,
             "sha384" | "sha-384" => hmac::HMAC_SHA384,
             "sha512" | "sha-512" => hmac::HMAC_SHA512,
-            _ => return Err(NodeError::Crypto(format!("Unsupported HMAC algorithm: {}", algorithm))),
+            _ => {
+                return Err(NodeError::Crypto(format!(
+                    "Unsupported HMAC algorithm: {}",
+                    algorithm
+                )));
+            }
         };
 
         let key = hmac::Key::new(alg, key);
@@ -142,9 +151,7 @@ impl Hmac {
         match encoding {
             Some("hex") | None => hex::encode(bytes),
             Some("base64") => base64::Engine::encode(&base64::prelude::BASE64_STANDARD, bytes),
-            Some("binary") | Some("latin1") => {
-                bytes.iter().map(|&b| b as char).collect()
-            }
+            Some("binary") | Some("latin1") => bytes.iter().map(|&b| b as char).collect(),
             _ => hex::encode(bytes),
         }
     }
@@ -223,15 +230,19 @@ pub fn pbkdf2(
         "sha256" | "sha-256" => ring_pbkdf2::PBKDF2_HMAC_SHA256,
         "sha384" | "sha-384" => ring_pbkdf2::PBKDF2_HMAC_SHA384,
         "sha512" | "sha-512" => ring_pbkdf2::PBKDF2_HMAC_SHA512,
-        _ => return Err(NodeError::Crypto(format!("Unsupported PBKDF2 digest: {}", digest))),
+        _ => {
+            return Err(NodeError::Crypto(format!(
+                "Unsupported PBKDF2 digest: {}",
+                digest
+            )));
+        }
     };
 
     let mut key = vec![0u8; key_length];
     ring_pbkdf2::derive(
         algorithm,
-        std::num::NonZeroU32::new(iterations).ok_or_else(|| {
-            NodeError::range_error("iterations must be > 0")
-        })?,
+        std::num::NonZeroU32::new(iterations)
+            .ok_or_else(|| NodeError::range_error("iterations must be > 0"))?,
         salt,
         password,
         &mut key,
@@ -318,4 +329,3 @@ mod tests {
         assert!(!timing_safe_equal(b"hello", b"hell"));
     }
 }
-

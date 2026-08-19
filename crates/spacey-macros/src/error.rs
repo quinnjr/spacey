@@ -301,4 +301,3 @@ mod tests {
         assert_eq!(format!("{}", err), "test error occurred");
     }
 }
-

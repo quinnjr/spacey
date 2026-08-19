@@ -31,7 +31,8 @@ impl DomBindings {
     /// Install all bindings into an engine.
     pub fn install(&self, engine: &mut Engine) -> Result<(), String> {
         for (name, binding) in &self.bindings {
-            engine.eval(binding)
+            engine
+                .eval(binding)
                 .map_err(|e| format!("Failed to install binding {}: {:?}", name, e))?;
         }
         Ok(())
@@ -69,7 +70,8 @@ impl DomBindings {
                 // TODO: Implement proper timer support
             };
         }
-        "#.to_string()
+        "#
+        .to_string()
     }
 
     /// Get the Document binding code.
@@ -110,7 +112,8 @@ impl DomBindings {
                 return [];
             };
         }
-        "#.to_string()
+        "#
+        .to_string()
     }
 
     /// Get the Element binding code.
@@ -161,7 +164,8 @@ impl DomBindings {
                 // TODO: Implement proper event handling
             };
         }
-        "#.to_string()
+        "#
+        .to_string()
     }
 
     /// Get the Node binding code.
@@ -182,7 +186,8 @@ impl DomBindings {
             Node.DOCUMENT_NODE = 9;
             Node.DOCUMENT_FRAGMENT_NODE = 11;
         }
-        "#.to_string()
+        "#
+        .to_string()
     }
 
     /// Get the EventTarget binding code.
@@ -216,7 +221,8 @@ impl DomBindings {
                 return !event.defaultPrevented;
             };
         }
-        "#.to_string()
+        "#
+        .to_string()
     }
 }
 

@@ -2,23 +2,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `path` module implementation
 
 use spacey_spidermonkey::Value;
 use std::collections::HashMap;
-use std::path::{Path, PathBuf, MAIN_SEPARATOR};
+use std::path::{MAIN_SEPARATOR, Path, PathBuf};
 
 /// Create the path module exports
 pub fn create_module() -> Value {
     let mut exports = HashMap::new();
 
     // path.sep - path segment separator
-    exports.insert(
-        "sep".to_string(),
-        Value::String(MAIN_SEPARATOR.to_string()),
-    );
+    exports.insert("sep".to_string(), Value::String(MAIN_SEPARATOR.to_string()));
 
     // path.delimiter - path list delimiter (: on Unix, ; on Windows)
     exports.insert(
@@ -54,7 +51,10 @@ fn create_win32_module() -> Value {
 /// path.basename(path, ext?)
 pub fn basename(path: &str, ext: Option<&str>) -> String {
     let p = Path::new(path);
-    let name = p.file_name().map(|s| s.to_string_lossy().to_string()).unwrap_or_default();
+    let name = p
+        .file_name()
+        .map(|s| s.to_string_lossy().to_string())
+        .unwrap_or_default();
 
     if let Some(ext) = ext {
         if name.ends_with(ext) {
@@ -73,11 +73,7 @@ pub fn dirname(path: &str) -> String {
     p.parent()
         .map(|s| {
             let dir = s.to_string_lossy().to_string();
-            if dir.is_empty() {
-                ".".to_string()
-            } else {
-                dir
-            }
+            if dir.is_empty() { ".".to_string() } else { dir }
         })
         .unwrap_or_else(|| ".".to_string())
 }
@@ -364,4 +360,3 @@ mod tests {
         assert!(!is_absolute("./foo"));
     }
 }
-

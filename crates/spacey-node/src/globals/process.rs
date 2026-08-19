@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `process` global object
 
@@ -57,7 +57,10 @@ pub fn create_process_object(
     }
 
     // process.platform
-    process.insert("platform".to_string(), Value::String(get_platform().to_string()));
+    process.insert(
+        "platform".to_string(),
+        Value::String(get_platform().to_string()),
+    );
 
     // process.arch
     process.insert("arch".to_string(), Value::String(get_arch().to_string()));
@@ -70,13 +73,25 @@ pub fn create_process_object(
 
     // process.versions
     let mut versions = HashMap::new();
-    versions.insert("node".to_string(), Value::String(crate::NODE_API_VERSION.to_string()));
-    versions.insert("spacey".to_string(), Value::String(crate::VERSION.to_string()));
-    versions.insert("v8".to_string(), Value::String("spacey-spidermonkey".to_string()));
+    versions.insert(
+        "node".to_string(),
+        Value::String(crate::NODE_API_VERSION.to_string()),
+    );
+    versions.insert(
+        "spacey".to_string(),
+        Value::String(crate::VERSION.to_string()),
+    );
+    versions.insert(
+        "v8".to_string(),
+        Value::String("spacey-spidermonkey".to_string()),
+    );
     process.insert("versions".to_string(), Value::NativeObject(versions));
 
     // process.title
-    process.insert("title".to_string(), Value::String("spacey-node".to_string()));
+    process.insert(
+        "title".to_string(),
+        Value::String("spacey-node".to_string()),
+    );
 
     // process.execPath
     process.insert(
@@ -152,7 +167,10 @@ fn get_arch() -> &'static str {
 /// Create a simplified stdout object
 fn create_stdout_object() -> Value {
     let mut stdout = HashMap::new();
-    stdout.insert("isTTY".to_string(), Value::Boolean(atty::is(atty::Stream::Stdout)));
+    stdout.insert(
+        "isTTY".to_string(),
+        Value::Boolean(atty::is(atty::Stream::Stdout)),
+    );
     stdout.insert("fd".to_string(), Value::Number(1.0));
     // write() method would be a native function
     Value::NativeObject(stdout)
@@ -161,7 +179,10 @@ fn create_stdout_object() -> Value {
 /// Create a simplified stderr object
 fn create_stderr_object() -> Value {
     let mut stderr = HashMap::new();
-    stderr.insert("isTTY".to_string(), Value::Boolean(atty::is(atty::Stream::Stderr)));
+    stderr.insert(
+        "isTTY".to_string(),
+        Value::Boolean(atty::is(atty::Stream::Stderr)),
+    );
     stderr.insert("fd".to_string(), Value::Number(2.0));
     Value::NativeObject(stderr)
 }
@@ -169,8 +190,10 @@ fn create_stderr_object() -> Value {
 /// Create a simplified stdin object
 fn create_stdin_object() -> Value {
     let mut stdin = HashMap::new();
-    stdin.insert("isTTY".to_string(), Value::Boolean(atty::is(atty::Stream::Stdin)));
+    stdin.insert(
+        "isTTY".to_string(),
+        Value::Boolean(atty::is(atty::Stream::Stdin)),
+    );
     stdin.insert("fd".to_string(), Value::Number(0.0));
     Value::NativeObject(stdin)
 }
-

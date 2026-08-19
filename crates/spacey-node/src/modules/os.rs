@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `os` module implementation
 
@@ -26,7 +26,14 @@ pub fn create_module() -> Value {
     // os.devNull
     exports.insert(
         "devNull".to_string(),
-        Value::String(if cfg!(windows) { "\\\\.\\nul" } else { "/dev/null" }.to_string()),
+        Value::String(
+            if cfg!(windows) {
+                "\\\\.\\nul"
+            } else {
+                "/dev/null"
+            }
+            .to_string(),
+        ),
     );
 
     Value::NativeObject(exports)
@@ -180,25 +187,21 @@ pub fn uptime() -> u64 {
 
 /// os.totalmem()
 pub fn totalmem() -> u64 {
-    let s = System::new_with_specifics(
-        RefreshKind::new().with_memory(MemoryRefreshKind::everything()),
-    );
+    let s =
+        System::new_with_specifics(RefreshKind::new().with_memory(MemoryRefreshKind::everything()));
     s.total_memory()
 }
 
 /// os.freemem()
 pub fn freemem() -> u64 {
-    let s = System::new_with_specifics(
-        RefreshKind::new().with_memory(MemoryRefreshKind::everything()),
-    );
+    let s =
+        System::new_with_specifics(RefreshKind::new().with_memory(MemoryRefreshKind::everything()));
     s.free_memory()
 }
 
 /// os.cpus()
 pub fn cpus() -> Vec<Value> {
-    let s = System::new_with_specifics(
-        RefreshKind::new().with_cpu(CpuRefreshKind::everything()),
-    );
+    let s = System::new_with_specifics(RefreshKind::new().with_cpu(CpuRefreshKind::everything()));
 
     s.cpus()
         .iter()
@@ -236,28 +239,38 @@ pub fn network_interfaces() -> HashMap<String, Vec<Value>> {
 pub fn user_info() -> Value {
     let mut info = HashMap::new();
 
-    info.insert("username".to_string(), Value::String(
-        std::env::var("USER")
-            .or_else(|_| std::env::var("USERNAME"))
-            .unwrap_or_else(|_| "unknown".to_string())
-    ));
+    info.insert(
+        "username".to_string(),
+        Value::String(
+            std::env::var("USER")
+                .or_else(|_| std::env::var("USERNAME"))
+                .unwrap_or_else(|_| "unknown".to_string()),
+        ),
+    );
 
     info.insert("homedir".to_string(), Value::String(homedir()));
 
-    info.insert("shell".to_string(), Value::String(
-        std::env::var("SHELL").unwrap_or_else(|_| {
+    info.insert(
+        "shell".to_string(),
+        Value::String(std::env::var("SHELL").unwrap_or_else(|_| {
             if cfg!(windows) {
                 "cmd.exe".to_string()
             } else {
                 "/bin/sh".to_string()
             }
-        })
-    ));
+        })),
+    );
 
     #[cfg(unix)]
     {
-        info.insert("uid".to_string(), Value::Number(nix::unistd::getuid().as_raw() as f64));
-        info.insert("gid".to_string(), Value::Number(nix::unistd::getgid().as_raw() as f64));
+        info.insert(
+            "uid".to_string(),
+            Value::Number(nix::unistd::getuid().as_raw() as f64),
+        );
+        info.insert(
+            "gid".to_string(),
+            Value::Number(nix::unistd::getgid().as_raw() as f64),
+        );
     }
 
     #[cfg(not(unix))]
@@ -330,4 +343,3 @@ mod tests {
         assert!(!c.is_empty());
     }
 }
-

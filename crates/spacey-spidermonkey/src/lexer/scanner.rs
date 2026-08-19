@@ -1307,7 +1307,10 @@ mod tests {
     fn test_typescript_mode_toggle() {
         let mut scanner = Scanner::new("type");
         assert!(!scanner.is_typescript_mode());
-        assert!(matches!(scanner.next_token().kind, TokenKind::Identifier(_)));
+        assert!(matches!(
+            scanner.next_token().kind,
+            TokenKind::Identifier(_)
+        ));
 
         let mut scanner = Scanner::new_typescript("type");
         assert!(scanner.is_typescript_mode());

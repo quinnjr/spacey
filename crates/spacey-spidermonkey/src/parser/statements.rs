@@ -79,8 +79,8 @@
 #[cfg(test)]
 mod tests {
     // Import from the main parser for testing
-    use crate::parser::Parser;
     use crate::ast::Statement;
+    use crate::parser::Parser;
 
     fn parse_stmt(src: &str) -> Statement {
         let mut parser = Parser::new(src);
@@ -237,6 +237,3 @@ mod tests {
         assert!(matches!(stmt, Statement::ContinueLabel(_)));
     }
 }
-
-
-

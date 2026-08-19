@@ -2,10 +2,10 @@
 name = "spacey-npm"
 version = "0.1.0"
 edition = "2024"
-authors = ["Pegasus Heavy Industries"]
+authors = ["Joseph R. Quinn"]
 description = "A fast, async, multithreaded NPM-compatible package manager"
 license = "MIT"
-repository = "https://github.com/PegasusHeavyIndustries/spacey"
+repository = "https://github.com/quinnjr/spacey"
 keywords = ["npm", "package-manager", "javascript", "node"]
 categories = ["command-line-utilities", "development-tools"]
 

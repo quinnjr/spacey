@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `url` module implementation
 
@@ -62,7 +62,10 @@ impl Url {
         obj.insert("href".to_string(), Value::String(self.href.clone()));
         obj.insert(
             "protocol".to_string(),
-            self.protocol.clone().map(Value::String).unwrap_or(Value::Null),
+            self.protocol
+                .clone()
+                .map(Value::String)
+                .unwrap_or(Value::Null),
         );
         obj.insert("slashes".to_string(), Value::Boolean(self.slashes));
         obj.insert(
@@ -75,7 +78,10 @@ impl Url {
         );
         obj.insert(
             "hostname".to_string(),
-            self.hostname.clone().map(Value::String).unwrap_or(Value::Null),
+            self.hostname
+                .clone()
+                .map(Value::String)
+                .unwrap_or(Value::Null),
         );
         obj.insert(
             "port".to_string(),
@@ -83,11 +89,17 @@ impl Url {
         );
         obj.insert(
             "pathname".to_string(),
-            self.pathname.clone().map(Value::String).unwrap_or(Value::Null),
+            self.pathname
+                .clone()
+                .map(Value::String)
+                .unwrap_or(Value::Null),
         );
         obj.insert(
             "search".to_string(),
-            self.search.clone().map(Value::String).unwrap_or(Value::Null),
+            self.search
+                .clone()
+                .map(Value::String)
+                .unwrap_or(Value::Null),
         );
         obj.insert(
             "path".to_string(),
@@ -211,7 +223,8 @@ pub fn resolve(from: &str, to: &str) -> Result<String> {
     let base = url::Url::parse(from)
         .map_err(|e| NodeError::Generic(format!("Invalid base URL: {}", e)))?;
 
-    let resolved = base.join(to)
+    let resolved = base
+        .join(to)
         .map_err(|e| NodeError::Generic(format!("Failed to resolve URL: {}", e)))?;
 
     Ok(resolved.to_string())
@@ -252,7 +265,12 @@ mod tests {
 
     #[test]
     fn test_parse() {
-        let url = parse("https://user:pass@example.com:8080/path?query=1#hash", true, true).unwrap();
+        let url = parse(
+            "https://user:pass@example.com:8080/path?query=1#hash",
+            true,
+            true,
+        )
+        .unwrap();
 
         assert_eq!(url.protocol, Some("https:".to_string()));
         assert_eq!(url.hostname, Some("example.com".to_string()));
@@ -281,6 +299,3 @@ mod tests {
         assert_eq!(resolved, "https://example.com/other");
     }
 }
-
-
-

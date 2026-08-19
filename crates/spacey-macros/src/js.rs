@@ -353,7 +353,10 @@ macro_rules! span {
             }
         }
 
-        Span { start: $start, end: $end }
+        Span {
+            start: $start,
+            end: $end,
+        }
     }};
 }
 
@@ -433,11 +436,14 @@ mod tests {
     #[test]
     fn test_is_token() {
         #[derive(Debug, Clone, PartialEq)]
-        enum Tok { A, B, C }
+        enum Tok {
+            A,
+            B,
+            C,
+        }
 
         assert!(is_token!(Tok::A, Tok::A));
         assert!(!is_token!(Tok::A, Tok::B));
         assert!(is_token!(Tok::A, Tok::A | Tok::B));
     }
 }
-

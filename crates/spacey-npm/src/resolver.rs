@@ -130,7 +130,10 @@ impl Resolver {
             }
 
             // Resolve from registry
-            match self.resolve_from_registry(&name, &version_req, dep_type, optional).await {
+            match self
+                .resolve_from_registry(&name, &version_req, dep_type, optional)
+                .await
+            {
                 Ok(resolved) => {
                     debug!("Resolved {} from registry: {}", name, resolved.version);
 
@@ -227,12 +230,14 @@ impl Resolver {
         let package = self.registry.get_package(name).await?;
         let version = self.find_best_version(&package, version_req)?;
 
-        let pkg_version = package.versions.get(&version).ok_or_else(|| {
-            SnpmError::VersionNotFound {
-                package: name.to_string(),
-                version: version.clone(),
-            }
-        })?;
+        let pkg_version =
+            package
+                .versions
+                .get(&version)
+                .ok_or_else(|| SnpmError::VersionNotFound {
+                    package: name.to_string(),
+                    version: version.clone(),
+                })?;
 
         Ok(ResolvedPackage {
             name: name.to_string(),
@@ -254,14 +259,12 @@ impl Resolver {
         // Handle special version strings
         match version_req {
             "latest" => {
-                return package
-                    .dist_tags
-                    .get("latest")
-                    .cloned()
-                    .ok_or_else(|| SnpmError::VersionNotFound {
+                return package.dist_tags.get("latest").cloned().ok_or_else(|| {
+                    SnpmError::VersionNotFound {
                         package: package.name.clone(),
                         version: "latest".into(),
-                    });
+                    }
+                });
             }
             v if v.starts_with("npm:") => {
                 // Aliased package: npm:package@version
@@ -324,7 +327,10 @@ impl Resolver {
                         }
                     }
                 } else {
-                    let msg = format!("{} requires peer dependency {}@{}", name, peer_name, peer_req);
+                    let msg = format!(
+                        "{} requires peer dependency {}@{}",
+                        name, peer_name, peer_req
+                    );
                     if self.strict_peer_deps {
                         return Err(SnpmError::PeerConflict(msg));
                     } else {
@@ -361,9 +367,7 @@ fn parse_version_req(version_req: &str) -> Result<VersionReq> {
     }
 
     // Handle x.x.x ranges
-    let req = version_req
-        .replace(".x", ".*")
-        .replace(".X", ".*");
+    let req = version_req.replace(".x", ".*").replace(".X", ".*");
 
     VersionReq::parse(&req).map_err(|e| SnpmError::Semver(e))
 }
@@ -382,4 +386,3 @@ mod tests {
         assert!(parse_version_req("*").is_ok());
     }
 }
-

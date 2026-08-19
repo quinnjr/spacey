@@ -50,4 +50,3 @@ pub async fn run(args: &SearchArgs, cli: &Cli) -> Result<()> {
 
     Ok(())
 }
-

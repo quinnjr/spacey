@@ -1,9 +1,9 @@
 //! CI command implementation.
 
-use std::path::PathBuf;
-use owo_colors::OwoColorize;
-use crate::cli::{Cli, CiArgs, InstallArgs};
+use crate::cli::{CiArgs, Cli, InstallArgs};
 use crate::error::{Result, SnpmError};
+use owo_colors::OwoColorize;
+use std::path::PathBuf;
 
 pub async fn run(args: &CiArgs, cli: &Cli) -> Result<()> {
     let snpm_toml_path = PathBuf::from("snpm.toml");
@@ -14,16 +14,29 @@ pub async fn run(args: &CiArgs, cli: &Cli) -> Result<()> {
 
     if !has_lockfile {
         return Err(SnpmError::InvalidLockfile(
-            "CI requires a lockfile. Neither snpm.toml nor package-lock.json found.".into()
+            "CI requires a lockfile. Neither snpm.toml nor package-lock.json found.".into(),
         ));
     }
 
     if !cli.quiet {
         if snpm_toml_path.exists() {
-            println!("{} {} {}", "CI:".cyan().bold(), "Using".dimmed(), "snpm.toml".green());
+            println!(
+                "{} {} {}",
+                "CI:".cyan().bold(),
+                "Using".dimmed(),
+                "snpm.toml".green()
+            );
         } else {
-            println!("{} {} {}", "CI:".cyan().bold(), "Using".dimmed(), "package-lock.json".yellow());
-            println!("  {} Consider using snpm.toml for better reproducibility", "Tip:".dimmed());
+            println!(
+                "{} {} {}",
+                "CI:".cyan().bold(),
+                "Using".dimmed(),
+                "package-lock.json".yellow()
+            );
+            println!(
+                "  {} Consider using snpm.toml for better reproducibility",
+                "Tip:".dimmed()
+            );
         }
     }
 

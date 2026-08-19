@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `util` module implementation
 
@@ -124,7 +124,10 @@ fn value_to_string(value: &Value) -> String {
 fn value_to_number_string(value: &Value) -> String {
     match value {
         Value::Number(n) => (*n as i64).to_string(),
-        Value::String(s) => s.parse::<i64>().map(|n| n.to_string()).unwrap_or_else(|_| "NaN".to_string()),
+        Value::String(s) => s
+            .parse::<i64>()
+            .map(|n| n.to_string())
+            .unwrap_or_else(|_| "NaN".to_string()),
         Value::Boolean(b) => if *b { "1" } else { "0" }.to_string(),
         _ => "NaN".to_string(),
     }
@@ -133,7 +136,10 @@ fn value_to_number_string(value: &Value) -> String {
 fn value_to_float_string(value: &Value) -> String {
     match value {
         Value::Number(n) => n.to_string(),
-        Value::String(s) => s.parse::<f64>().map(|n| n.to_string()).unwrap_or_else(|_| "NaN".to_string()),
+        Value::String(s) => s
+            .parse::<f64>()
+            .map(|n| n.to_string())
+            .unwrap_or_else(|_| "NaN".to_string()),
         Value::Boolean(b) => if *b { "1" } else { "0" }.to_string(),
         _ => "NaN".to_string(),
     }
@@ -303,7 +309,9 @@ pub fn is_deep_strict_equal(val1: &Value, val2: &Value) -> bool {
                 return false;
             }
             a.iter().all(|(k, v)| {
-                b.get(k).map(|bv| is_deep_strict_equal(v, bv)).unwrap_or(false)
+                b.get(k)
+                    .map(|bv| is_deep_strict_equal(v, bv))
+                    .unwrap_or(false)
             })
         }
         _ => false,
@@ -503,8 +511,14 @@ mod tests {
 
     #[test]
     fn test_is_deep_strict_equal() {
-        assert!(is_deep_strict_equal(&Value::Number(1.0), &Value::Number(1.0)));
-        assert!(!is_deep_strict_equal(&Value::Number(1.0), &Value::Number(2.0)));
+        assert!(is_deep_strict_equal(
+            &Value::Number(1.0),
+            &Value::Number(1.0)
+        ));
+        assert!(!is_deep_strict_equal(
+            &Value::Number(1.0),
+            &Value::Number(2.0)
+        ));
 
         // Create array-like objects
         fn make_array(values: Vec<Value>) -> Value {
@@ -521,4 +535,3 @@ mod tests {
         assert!(is_deep_strict_equal(&arr1, &arr2));
     }
 }
-

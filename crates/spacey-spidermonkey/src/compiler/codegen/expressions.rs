@@ -371,4 +371,3 @@ mod tests {
         assert!(!bc.instructions.is_empty());
     }
 }
-

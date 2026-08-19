@@ -173,4 +173,4 @@ MPL-2.0
 
 ## Contributing
 
-See the main [Spacey repository](https://github.com/pegasusheavy/spacey) for contribution guidelines.
+See the main [Spacey repository](https://github.com/quinnjr/spacey) for contribution guidelines.

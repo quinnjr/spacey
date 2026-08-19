@@ -47,7 +47,7 @@
   <rect x="100" y="550" width="1000" height="4" rx="2" fill="url(#accent)"/>
 
   <!-- URL -->
-  <text x="100" y="590" font-family="Inter, sans-serif" font-size="16" fill="#6b7280">github.com/pegasusheavy/spacey</text>
+  <text x="100" y="590" font-family="Inter, sans-serif" font-size="16" fill="#6b7280">github.com/quinnjr/spacey</text>
 
   <!-- SpiderMonkey Alternative badge -->
   <rect x="850" y="220" width="250" height="40" rx="8" fill="rgba(255,113,57,0.2)" stroke="#ff7139" stroke-width="1"/>

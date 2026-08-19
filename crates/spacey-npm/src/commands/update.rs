@@ -19,4 +19,3 @@ pub async fn run(args: &UpdateArgs, cli: &Cli) -> Result<()> {
 
     Ok(())
 }
-

@@ -1,7 +1,7 @@
 //! Runtime object representation for the VM.
 
-use std::collections::HashMap;
 use crate::runtime::value::Value;
+use std::collections::HashMap;
 
 /// Runtime object representation
 #[derive(Clone, Debug)]
@@ -32,7 +32,8 @@ impl RuntimeObject {
             array_elements: elements,
             is_array: true,
         };
-        obj.properties.insert("length".to_string(), Value::Number(len as f64));
+        obj.properties
+            .insert("length".to_string(), Value::Number(len as f64));
         obj
     }
 
@@ -41,10 +42,17 @@ impl RuntimeObject {
         if self.is_array {
             // Check for numeric index
             if let Ok(idx) = name.parse::<usize>() {
-                return self.array_elements.get(idx).cloned().unwrap_or(Value::Undefined);
+                return self
+                    .array_elements
+                    .get(idx)
+                    .cloned()
+                    .unwrap_or(Value::Undefined);
             }
         }
-        self.properties.get(name).cloned().unwrap_or(Value::Undefined)
+        self.properties
+            .get(name)
+            .cloned()
+            .unwrap_or(Value::Undefined)
     }
 
     /// Check if this is an array
@@ -62,7 +70,8 @@ impl RuntimeObject {
         if self.is_array {
             self.array_elements.push(value);
             let len = self.array_elements.len() as f64;
-            self.properties.insert("length".to_string(), Value::Number(len));
+            self.properties
+                .insert("length".to_string(), Value::Number(len));
             len
         } else {
             0.0
@@ -74,7 +83,8 @@ impl RuntimeObject {
         if self.is_array {
             let result = self.array_elements.pop().unwrap_or(Value::Undefined);
             let len = self.array_elements.len() as f64;
-            self.properties.insert("length".to_string(), Value::Number(len));
+            self.properties
+                .insert("length".to_string(), Value::Number(len));
             result
         } else {
             Value::Undefined
@@ -86,7 +96,8 @@ impl RuntimeObject {
         if self.is_array && !self.array_elements.is_empty() {
             let result = self.array_elements.remove(0);
             let len = self.array_elements.len() as f64;
-            self.properties.insert("length".to_string(), Value::Number(len));
+            self.properties
+                .insert("length".to_string(), Value::Number(len));
             result
         } else {
             Value::Undefined
@@ -98,7 +109,8 @@ impl RuntimeObject {
         if self.is_array {
             self.array_elements.insert(0, value);
             let len = self.array_elements.len() as f64;
-            self.properties.insert("length".to_string(), Value::Number(len));
+            self.properties
+                .insert("length".to_string(), Value::Number(len));
             len
         } else {
             0.0
@@ -129,8 +141,16 @@ impl RuntimeObject {
     pub fn array_slice(&self, start: i32, end: i32) -> Vec<Value> {
         if self.is_array {
             let len = self.array_elements.len() as i32;
-            let start = if start < 0 { (len + start).max(0) } else { start.min(len) } as usize;
-            let end = if end < 0 { (len + end).max(0) } else { end.min(len) } as usize;
+            let start = if start < 0 {
+                (len + start).max(0)
+            } else {
+                start.min(len)
+            } as usize;
+            let end = if end < 0 {
+                (len + end).max(0)
+            } else {
+                end.min(len)
+            } as usize;
             if start >= end {
                 vec![]
             } else {
@@ -167,16 +187,20 @@ impl RuntimeObject {
     /// Set a property
     pub fn set(&mut self, name: &str, value: Value) {
         if self.is_array
-            && let Ok(idx) = name.parse::<usize>() {
-                // Extend array if necessary
-                while self.array_elements.len() <= idx {
-                    self.array_elements.push(Value::Undefined);
-                }
-                self.array_elements[idx] = value;
-                // Update length
-                self.properties.insert("length".to_string(), Value::Number(self.array_elements.len() as f64));
-                return;
+            && let Ok(idx) = name.parse::<usize>()
+        {
+            // Extend array if necessary
+            while self.array_elements.len() <= idx {
+                self.array_elements.push(Value::Undefined);
             }
+            self.array_elements[idx] = value;
+            // Update length
+            self.properties.insert(
+                "length".to_string(),
+                Value::Number(self.array_elements.len() as f64),
+            );
+            return;
+        }
         self.properties.insert(name.to_string(), value);
     }
 
@@ -204,10 +228,11 @@ impl RuntimeObject {
     pub fn delete(&mut self, name: &str) -> bool {
         if self.is_array
             && let Ok(idx) = name.parse::<usize>()
-                && idx < self.array_elements.len() {
-                    self.array_elements[idx] = Value::Undefined;
-                    return true;
-                }
+            && idx < self.array_elements.len()
+        {
+            self.array_elements[idx] = Value::Undefined;
+            return true;
+        }
         self.properties.remove(name).is_some()
     }
 }
@@ -317,6 +342,3 @@ mod tests {
         assert!(!obj.delete("bar"));
     }
 }
-
-
-

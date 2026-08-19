@@ -12,8 +12,8 @@ members = [
 version = "0.1.0"
 edition = "2024"
 license = "MPL-2.0"
-authors = ["Pegasus Heavy Industries, LLC"]
-repository = "https://github.com/pegasusheavy/spacey"
+authors = ["Joseph R. Quinn"]
+repository = "https://github.com/quinnjr/spacey"
 
 [workspace.dependencies]
 # Shared dependencies across workspace

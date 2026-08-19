@@ -196,10 +196,9 @@ impl Config {
             _ => {
                 // Handle auth tokens
                 if key.starts_with("//") && key.ends_with(":_authToken") {
-                    let registry = key
-                        .trim_start_matches("//")
-                        .trim_end_matches(":_authToken");
-                    self.auth_tokens.insert(registry.to_string(), value.to_string());
+                    let registry = key.trim_start_matches("//").trim_end_matches(":_authToken");
+                    self.auth_tokens
+                        .insert(registry.to_string(), value.to_string());
                 } else {
                     self.extra.insert(
                         key.to_string(),
@@ -231,7 +230,10 @@ impl Config {
             "ignore-scripts" => Some((!self.scripts).to_string()),
             "progress" => Some(self.progress.to_string()),
             "loglevel" => Some(self.loglevel.clone()),
-            _ => self.extra.get(key).and_then(|v| v.as_str().map(String::from)),
+            _ => self
+                .extra
+                .get(key)
+                .and_then(|v| v.as_str().map(String::from)),
         }
     }
 
@@ -316,4 +318,3 @@ fn default_prefix_dir() -> PathBuf {
         .unwrap_or_else(|| PathBuf::from("."))
         .join("snpm")
 }
-

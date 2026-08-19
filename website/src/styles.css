@@ -1,7 +1,7 @@
 /* Spacey Documentation Website Styles */
 /* Mozilla Protocol-inspired theme using Tailswatch */
 @import "tailwindcss";
-@import "@pegasusheavy/tailswatch/themes/cyborg";
+@import "tailswatch/themes/cyborg";
 
 /* ============================================ */
 /* MOZILLA PROTOCOL THEME OVERRIDES */

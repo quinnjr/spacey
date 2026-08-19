@@ -342,8 +342,14 @@ fn register_number(globals: &mut HashMap<String, Value>) {
     number_obj.insert("MAX_VALUE".to_string(), Value::Number(number::MAX_VALUE));
     number_obj.insert("MIN_VALUE".to_string(), Value::Number(number::MIN_VALUE));
     number_obj.insert("NaN".to_string(), Value::Number(number::NAN));
-    number_obj.insert("NEGATIVE_INFINITY".to_string(), Value::Number(number::NEGATIVE_INFINITY));
-    number_obj.insert("POSITIVE_INFINITY".to_string(), Value::Number(number::POSITIVE_INFINITY));
+    number_obj.insert(
+        "NEGATIVE_INFINITY".to_string(),
+        Value::Number(number::NEGATIVE_INFINITY),
+    );
+    number_obj.insert(
+        "POSITIVE_INFINITY".to_string(),
+        Value::Number(number::POSITIVE_INFINITY),
+    );
 
     // Add constructor property so Number() is callable
     number_obj.insert(
@@ -395,17 +401,29 @@ fn register_math(globals: &mut HashMap<String, Value>) {
     math_obj.insert("acos".to_string(), make_native("Math.acos", 1, math::acos));
     math_obj.insert("asin".to_string(), make_native("Math.asin", 1, math::asin));
     math_obj.insert("atan".to_string(), make_native("Math.atan", 1, math::atan));
-    math_obj.insert("atan2".to_string(), make_native("Math.atan2", 2, math::atan2));
+    math_obj.insert(
+        "atan2".to_string(),
+        make_native("Math.atan2", 2, math::atan2),
+    );
     math_obj.insert("ceil".to_string(), make_native("Math.ceil", 1, math::ceil));
     math_obj.insert("cos".to_string(), make_native("Math.cos", 1, math::cos));
     math_obj.insert("exp".to_string(), make_native("Math.exp", 1, math::exp));
-    math_obj.insert("floor".to_string(), make_native("Math.floor", 1, math::floor));
+    math_obj.insert(
+        "floor".to_string(),
+        make_native("Math.floor", 1, math::floor),
+    );
     math_obj.insert("log".to_string(), make_native("Math.log", 1, math::log));
     math_obj.insert("max".to_string(), make_native("Math.max", -1, math::max));
     math_obj.insert("min".to_string(), make_native("Math.min", -1, math::min));
     math_obj.insert("pow".to_string(), make_native("Math.pow", 2, math::pow));
-    math_obj.insert("random".to_string(), make_native("Math.random", 0, math::random));
-    math_obj.insert("round".to_string(), make_native("Math.round", 1, math::round));
+    math_obj.insert(
+        "random".to_string(),
+        make_native("Math.random", 0, math::random),
+    );
+    math_obj.insert(
+        "round".to_string(),
+        make_native("Math.round", 1, math::round),
+    );
     math_obj.insert("sin".to_string(), make_native("Math.sin", 1, math::sin));
     math_obj.insert("sqrt".to_string(), make_native("Math.sqrt", 1, math::sqrt));
     math_obj.insert("tan".to_string(), make_native("Math.tan", 1, math::tan));
@@ -487,7 +505,10 @@ fn register_date(globals: &mut HashMap<String, Value>) {
     let mut date_obj = HashMap::new();
 
     // Date static methods
-    date_obj.insert("parse".to_string(), make_native("Date.parse", 1, date::parse));
+    date_obj.insert(
+        "parse".to_string(),
+        make_native("Date.parse", 1, date::parse),
+    );
     date_obj.insert("UTC".to_string(), make_native("Date.UTC", -1, date::utc));
     date_obj.insert("now".to_string(), make_native("Date.now", 0, date::now));
 

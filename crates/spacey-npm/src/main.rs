@@ -6,20 +6,20 @@ use clap::Parser;
 use owo_colors::OwoColorize;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+mod cache;
 mod cli;
 mod commands;
 mod config;
+mod downloader;
 mod error;
+mod installer;
+mod integrity;
 mod lockfile;
 mod package;
+mod peer_deps;
 mod registry;
 mod resolver;
-mod installer;
-mod downloader;
-mod integrity;
-mod cache;
 mod store;
-mod peer_deps;
 mod toml_lock;
 
 use cli::{Cli, Commands};
@@ -97,4 +97,3 @@ fn print_banner() {
         format!("v{}", env!("CARGO_PKG_VERSION")).dimmed()
     );
 }
-

@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Interactive REPL (Read-Eval-Print Loop) for Spacey JavaScript Engine.
 
@@ -377,11 +377,10 @@ fn is_balanced(input: &str) -> bool {
                 '(' => stack.push(')'),
                 '[' => stack.push(']'),
                 '{' => stack.push('}'),
-                ')' | ']' | '}' => {
-                    if stack.pop() != Some(c) {
-                        return true; // Unbalanced but we should let the parser handle the error
-                    }
+                ')' | ']' | '}' if stack.pop() != Some(c) => {
+                    return true; // Unbalanced but we should let the parser handle the error
                 }
+                ')' | ']' | '}' => {}
                 _ => {}
             },
         }

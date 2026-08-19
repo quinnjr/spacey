@@ -298,11 +298,12 @@ fn parse_regexp_string(s: &str) -> (String, String) {
     if s.starts_with('/') {
         // Find the last '/' to separate pattern from flags
         if let Some(last_slash) = s.rfind('/')
-            && last_slash > 0 {
-                let pattern = s[1..last_slash].to_string();
-                let flags = s[last_slash + 1..].to_string();
-                return (pattern, flags);
-            }
+            && last_slash > 0
+        {
+            let pattern = s[1..last_slash].to_string();
+            let flags = s[last_slash + 1..].to_string();
+            return (pattern, flags);
+        }
     }
     // Not in /pattern/flags format, treat entire string as pattern
     (s.to_string(), String::new())
@@ -535,7 +536,10 @@ mod tests {
         let result = regexp_constructor(&mut frame, &[]).unwrap();
         // RegExp now returns a NativeObject
         if let Value::NativeObject(props) = result {
-            assert_eq!(props.get("__regex__"), Some(&Value::String("//".to_string())));
+            assert_eq!(
+                props.get("__regex__"),
+                Some(&Value::String("//".to_string()))
+            );
         } else {
             panic!("Expected NativeObject, got {:?}", result);
         }
@@ -547,7 +551,10 @@ mod tests {
         let result = regexp_constructor(&mut frame, &[Value::String("test".to_string())]).unwrap();
         // RegExp now returns a NativeObject
         if let Value::NativeObject(props) = result {
-            assert_eq!(props.get("__regex__"), Some(&Value::String("/test/".to_string())));
+            assert_eq!(
+                props.get("__regex__"),
+                Some(&Value::String("/test/".to_string()))
+            );
         } else {
             panic!("Expected NativeObject, got {:?}", result);
         }
@@ -566,7 +573,10 @@ mod tests {
         .unwrap();
         // RegExp now returns a NativeObject
         if let Value::NativeObject(props) = result {
-            assert_eq!(props.get("__regex__"), Some(&Value::String("/test/gi".to_string())));
+            assert_eq!(
+                props.get("__regex__"),
+                Some(&Value::String("/test/gi".to_string()))
+            );
         } else {
             panic!("Expected NativeObject, got {:?}", result);
         }

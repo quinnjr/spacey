@@ -193,19 +193,23 @@ impl PackageStore {
         // Add to index
         self.index.insert(integrity_hash, stored.clone());
 
-        debug!("Imported {}@{} to store at {}", name, version, store_path.display());
+        debug!(
+            "Imported {}@{} to store at {}",
+            name,
+            version,
+            store_path.display()
+        );
 
         Ok(stored)
     }
 
     /// Link a package from the store to a target directory.
-    pub async fn link_package(
-        &self,
-        integrity: &str,
-        target_dir: &Path,
-    ) -> Result<()> {
+    pub async fn link_package(&self, integrity: &str, target_dir: &Path) -> Result<()> {
         let stored = self.get_package(integrity).ok_or_else(|| {
-            SnpmError::Other(format!("Package with integrity {} not found in store", integrity))
+            SnpmError::Other(format!(
+                "Package with integrity {} not found in store",
+                integrity
+            ))
         })?;
 
         // Create target parent directory
@@ -244,13 +248,12 @@ impl PackageStore {
     }
 
     /// Hard link files from store to target (for better compatibility).
-    pub async fn hard_link_package(
-        &self,
-        integrity: &str,
-        target_dir: &Path,
-    ) -> Result<()> {
+    pub async fn hard_link_package(&self, integrity: &str, target_dir: &Path) -> Result<()> {
         let stored = self.get_package(integrity).ok_or_else(|| {
-            SnpmError::Other(format!("Package with integrity {} not found in store", integrity))
+            SnpmError::Other(format!(
+                "Package with integrity {} not found in store",
+                integrity
+            ))
         })?;
 
         // Create target directory
@@ -271,17 +274,10 @@ impl PackageStore {
     /// Calculate the store path for an integrity hash.
     fn calculate_store_path(&self, integrity: &str, name: &str) -> PathBuf {
         // Extract hash from integrity string (sha512-XXXX -> XXXX)
-        let hash = integrity
-            .split('-')
-            .last()
-            .unwrap_or(integrity);
+        let hash = integrity.split('-').last().unwrap_or(integrity);
 
         // Use first 2 chars as bucket
-        let bucket = if hash.len() >= 2 {
-            &hash[..2]
-        } else {
-            "00"
-        };
+        let bucket = if hash.len() >= 2 { &hash[..2] } else { "00" };
 
         self.store_dir
             .join(STORE_VERSION)
@@ -331,10 +327,8 @@ impl PackageStore {
                     let pkg_json_path = pkg_path.join("package.json");
                     if let Ok(content) = std::fs::read_to_string(&pkg_json_path) {
                         if let Ok(pkg_json) = serde_json::from_str::<serde_json::Value>(&content) {
-                            let version = pkg_json["version"]
-                                .as_str()
-                                .unwrap_or("0.0.0")
-                                .to_string();
+                            let version =
+                                pkg_json["version"].as_str().unwrap_or("0.0.0").to_string();
 
                             let integrity = format!("sha512-{}", hash);
                             let size = calculate_dir_size(&pkg_path).unwrap_or(0);
@@ -488,11 +482,9 @@ async fn hard_link_dir(src: &Path, dst: &Path) -> Result<()> {
     let src = src.to_path_buf();
     let dst = dst.to_path_buf();
 
-    tokio::task::spawn_blocking(move || {
-        hard_link_dir_sync(&src, &dst)
-    })
-    .await
-    .map_err(|e| SnpmError::Other(e.to_string()))?
+    tokio::task::spawn_blocking(move || hard_link_dir_sync(&src, &dst))
+        .await
+        .map_err(|e| SnpmError::Other(e.to_string()))?
 }
 
 fn hard_link_dir_sync(src: &Path, dst: &Path) -> Result<()> {
@@ -576,7 +568,8 @@ impl VirtualStore {
     ) -> Result<PathBuf> {
         // Create package directory in virtual store
         let pkg_id = format!("{}@{}", name.replace('/', "+"), version);
-        let pkg_virtual_dir = self.virtual_store
+        let pkg_virtual_dir = self
+            .virtual_store
             .join(&pkg_id)
             .join("node_modules")
             .join(name.replace('/', "+"));
@@ -585,21 +578,20 @@ impl VirtualStore {
         self.store.link_package(integrity, &pkg_virtual_dir).await?;
 
         // Create symlinks for dependencies in the package's node_modules
-        let pkg_node_modules = self.virtual_store
-            .join(&pkg_id)
-            .join("node_modules");
+        let pkg_node_modules = self.virtual_store.join(&pkg_id).join("node_modules");
 
         for (dep_name, dep_version) in dependencies {
             let dep_link = pkg_node_modules.join(dep_name.replace('/', "+"));
-            let dep_target = self.virtual_store
+            let dep_target = self
+                .virtual_store
                 .join(format!("{}@{}", dep_name.replace('/', "+"), dep_version))
                 .join("node_modules")
                 .join(dep_name.replace('/', "+"));
 
             if !dep_link.exists() && dep_target.exists() {
                 // Create relative symlink
-                let relative_target = pathdiff::diff_paths(&dep_target, &pkg_node_modules)
-                    .unwrap_or(dep_target);
+                let relative_target =
+                    pathdiff::diff_paths(&dep_target, &pkg_node_modules).unwrap_or(dep_target);
 
                 #[cfg(unix)]
                 tokio::fs::symlink(&relative_target, &dep_link).await.ok();
@@ -615,7 +607,8 @@ impl VirtualStore {
     /// Create a top-level symlink in node_modules.
     pub async fn create_top_level_link(&self, name: &str, version: &str) -> Result<()> {
         let pkg_id = format!("{}@{}", name.replace('/', "+"), version);
-        let target = self.virtual_store
+        let target = self
+            .virtual_store
             .join(&pkg_id)
             .join("node_modules")
             .join(name.replace('/', "+"));
@@ -640,8 +633,8 @@ impl VirtualStore {
         }
 
         // Create relative symlink
-        let relative_target = pathdiff::diff_paths(&target, link.parent().unwrap())
-            .unwrap_or(target);
+        let relative_target =
+            pathdiff::diff_paths(&target, link.parent().unwrap()).unwrap_or(target);
 
         #[cfg(unix)]
         tokio::fs::symlink(&relative_target, &link).await?;
@@ -649,7 +642,11 @@ impl VirtualStore {
         #[cfg(windows)]
         std::os::windows::fs::symlink_dir(&relative_target, &link)?;
 
-        debug!("Created top-level link: {} -> {}", link.display(), relative_target.display());
+        debug!(
+            "Created top-level link: {} -> {}",
+            link.display(),
+            relative_target.display()
+        );
 
         Ok(())
     }
@@ -676,4 +673,3 @@ mod tests {
         assert!(path.to_string_lossy().contains("lodash"));
     }
 }
-

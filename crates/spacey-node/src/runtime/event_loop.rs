@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Event loop implementation (libuv equivalent)
 //!
@@ -13,8 +13,8 @@ use parking_lot::{Mutex, RwLock};
 use spacey_spidermonkey::Value;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, VecDeque};
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering as AtomicOrdering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering as AtomicOrdering};
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 
@@ -200,7 +200,9 @@ impl EventLoop {
 
     /// Queue a promise microtask (Promise resolution - higher priority)
     pub fn queue_promise_microtask(&self, callback: Value) {
-        let _ = self.event_tx.send(EventMessage::QueuePromiseMicrotask(callback));
+        let _ = self
+            .event_tx
+            .send(EventMessage::QueuePromiseMicrotask(callback));
         self.has_pending_work.store(true, AtomicOrdering::SeqCst);
     }
 
@@ -370,7 +372,8 @@ impl EventLoop {
             || !self.immediates.lock().is_empty()
             || !self.microtasks.lock().is_empty()
             || !self.promise_microtasks.lock().is_empty();
-        self.has_pending_work.store(has_work, AtomicOrdering::SeqCst);
+        self.has_pending_work
+            .store(has_work, AtomicOrdering::SeqCst);
 
         // Check for unhandled rejections at end of tick
         self.check_unhandled_rejections();
@@ -413,4 +416,3 @@ impl Default for EventLoop {
         Self::new()
     }
 }
-

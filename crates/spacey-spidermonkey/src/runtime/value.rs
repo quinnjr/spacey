@@ -8,8 +8,7 @@ use std::sync::Arc;
 ///
 /// Values are designed to be thread-safe and can be safely shared
 /// between async tasks.
-#[derive(Debug, Clone)]
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub enum Value {
     /// undefined
     #[default]
@@ -320,7 +319,6 @@ impl Value {
         matches!(self, Value::Number(n) if n.is_finite())
     }
 }
-
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -200,7 +200,9 @@ mod tests {
 
     #[test]
     fn test_string_with_escape() {
-        assert!(matches!(scan_single("'hello\\nworld'"), TokenKind::String(s) if s == "hello\nworld"));
+        assert!(
+            matches!(scan_single("'hello\\nworld'"), TokenKind::String(s) if s == "hello\nworld")
+        );
     }
 
     // Template literal tests
@@ -278,7 +280,9 @@ mod tests {
     // Private identifier tests
     #[test]
     fn test_private_identifier() {
-        assert!(matches!(scan_single("#private"), TokenKind::PrivateIdentifier(s) if s == "private"));
+        assert!(
+            matches!(scan_single("#private"), TokenKind::PrivateIdentifier(s) if s == "private")
+        );
     }
 
     // TypeScript keyword tests
@@ -311,4 +315,3 @@ mod tests {
         assert!(src.ends_with('g'));
     }
 }
-

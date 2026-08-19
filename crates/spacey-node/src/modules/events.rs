@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `events` module - EventEmitter implementation
 
@@ -15,10 +15,7 @@ pub fn create_module() -> Value {
 
     // EventEmitter class would be registered here
     // For now, return module structure
-    exports.insert(
-        "defaultMaxListeners".to_string(),
-        Value::Number(10.0),
-    );
+    exports.insert("defaultMaxListeners".to_string(), Value::Number(10.0));
 
     Value::NativeObject(exports)
 }
@@ -79,14 +76,26 @@ impl EventEmitter {
     /// Add a listener to the beginning of the listeners array
     pub fn prepend_listener(&mut self, event: &str, callback: Value) -> &mut Self {
         let listeners = self.listeners.entry(event.to_string()).or_default();
-        listeners.insert(0, Listener { callback, once: false });
+        listeners.insert(
+            0,
+            Listener {
+                callback,
+                once: false,
+            },
+        );
         self
     }
 
     /// Add a one-time listener to the beginning
     pub fn prepend_once_listener(&mut self, event: &str, callback: Value) -> &mut Self {
         let listeners = self.listeners.entry(event.to_string()).or_default();
-        listeners.insert(0, Listener { callback, once: true });
+        listeners.insert(
+            0,
+            Listener {
+                callback,
+                once: true,
+            },
+        );
         self
     }
 
@@ -245,6 +254,3 @@ mod tests {
         assert!(names.contains(&"event2".to_string()));
     }
 }
-
-
-

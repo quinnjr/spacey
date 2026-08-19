@@ -392,9 +392,14 @@ fn parse_iso_date(s: &str) -> Option<f64> {
 /// Parse time part of ISO date: HH:MM:SS.sssZ
 fn parse_time_part(s: &str) -> (i32, i32, i32, i32) {
     // Remove timezone indicator
-    let s = s.trim_end_matches('Z').trim_end_matches(|c: char| c == '+' || c == '-' || c.is_ascii_digit());
+    let s = s
+        .trim_end_matches('Z')
+        .trim_end_matches(|c: char| c == '+' || c == '-' || c.is_ascii_digit());
     let s = s.trim_end_matches(|c: char| c == ':' || c.is_ascii_digit());
-    let s_clean: &str = &s.chars().take_while(|c| *c != '+' && *c != '-' && *c != 'Z').collect::<String>();
+    let s_clean: &str = &s
+        .chars()
+        .take_while(|c| *c != '+' && *c != '-' && *c != 'Z')
+        .collect::<String>();
 
     let time_parts: Vec<&str> = s_clean.split(':').collect();
 
@@ -405,10 +410,13 @@ fn parse_time_part(s: &str) -> (i32, i32, i32, i32) {
     let (seconds, ms) = if let Some(sec_str) = time_parts.get(2) {
         let sec_parts: Vec<&str> = sec_str.split('.').collect();
         let secs: i32 = sec_parts.first().and_then(|s| s.parse().ok()).unwrap_or(0);
-        let millis: i32 = sec_parts.get(1).and_then(|s| {
-            let ms_str = format!("{:0<3}", s.chars().take(3).collect::<String>());
-            ms_str.parse().ok()
-        }).unwrap_or(0);
+        let millis: i32 = sec_parts
+            .get(1)
+            .and_then(|s| {
+                let ms_str = format!("{:0<3}", s.chars().take(3).collect::<String>());
+                ms_str.parse().ok()
+            })
+            .unwrap_or(0);
         (secs, millis)
     } else {
         (0, 0)
@@ -449,20 +457,18 @@ fn parse_rfc_date(s: &str) -> Option<f64> {
         }
 
         // Check if it's a 1-2 digit day
-        if day.is_none() && part.len() <= 2 && part.chars().all(|c| c.is_ascii_digit())
+        if day.is_none()
+            && part.len() <= 2
+            && part.chars().all(|c| c.is_ascii_digit())
             && let Ok(d) = part.parse::<i32>()
-                && (1..=31).contains(&d) {
-                    day = Some(d);
-                }
+            && (1..=31).contains(&d)
+        {
+            day = Some(d);
+        }
     }
 
     if let (Some(y), Some(m), Some(d)) = (year, month, day) {
-        return Some(make_date(
-            y as f64,
-            m as f64,
-            d as f64,
-            0.0, 0.0, 0.0, 0.0,
-        ));
+        return Some(make_date(y as f64, m as f64, d as f64, 0.0, 0.0, 0.0, 0.0));
     }
 
     None
@@ -492,7 +498,15 @@ fn parse_simple_date(s: &str) -> Option<f64> {
         (nums[2], nums[0] - 1, nums[1])
     };
 
-    Some(make_date(year as f64, month as f64, day as f64, 0.0, 0.0, 0.0, 0.0))
+    Some(make_date(
+        year as f64,
+        month as f64,
+        day as f64,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+    ))
 }
 
 /// Make a date from components.
@@ -525,7 +539,6 @@ fn make_date(
 
     // Very rough approximation
     let days_since_epoch = (y - 1970) * 365 + ((month as i32) * 30) + (day as i32) - 1;
-
 
     (days_since_epoch as f64) * 86400000.0
         + hours * 3600000.0

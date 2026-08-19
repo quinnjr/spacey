@@ -1,7 +1,7 @@
 //! Remove command implementation.
 
-use std::path::PathBuf;
 use owo_colors::OwoColorize;
+use std::path::PathBuf;
 
 use crate::cli::{Cli, RemoveArgs};
 use crate::error::Result;
@@ -40,4 +40,3 @@ pub async fn run(args: &RemoveArgs, cli: &Cli) -> Result<()> {
 
     Ok(())
 }
-

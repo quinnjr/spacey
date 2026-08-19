@@ -458,4 +458,3 @@ mod tests {
         assert_eq!(Color::from_str("invalid"), None);
     }
 }
-

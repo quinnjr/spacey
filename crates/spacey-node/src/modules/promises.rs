@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Promise implementation for Node.js compatibility
 //!
@@ -17,8 +17,8 @@
 use parking_lot::{Mutex, RwLock};
 use spacey_spidermonkey::Value;
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 /// Unique ID generator for promises
 static PROMISE_ID_COUNTER: AtomicU64 = AtomicU64::new(1);
@@ -255,7 +255,10 @@ impl PromiseWithResolvers {
     /// Convert to JavaScript Value
     pub fn to_value(&self) -> Value {
         let mut obj = HashMap::new();
-        obj.insert("promise".to_string(), Value::String(format!("Promise<{}>", self.promise.read().id)));
+        obj.insert(
+            "promise".to_string(),
+            Value::String(format!("Promise<{}>", self.promise.read().id)),
+        );
         obj.insert("resolve".to_string(), self.resolve.clone());
         obj.insert("reject".to_string(), self.reject.clone());
         Value::NativeObject(obj)
@@ -289,16 +292,23 @@ impl AggregateError {
     /// Convert to JavaScript Value
     pub fn to_value(&self) -> Value {
         let mut obj = HashMap::new();
-        obj.insert("name".to_string(), Value::String("AggregateError".to_string()));
+        obj.insert(
+            "name".to_string(),
+            Value::String("AggregateError".to_string()),
+        );
         obj.insert("message".to_string(), Value::String(self.message.clone()));
 
         // errors as array-like object
-        let mut errors_obj: HashMap<String, Value> = self.errors
+        let mut errors_obj: HashMap<String, Value> = self
+            .errors
             .iter()
             .enumerate()
             .map(|(i, e)| (i.to_string(), e.clone()))
             .collect();
-        errors_obj.insert("length".to_string(), Value::Number(self.errors.len() as f64));
+        errors_obj.insert(
+            "length".to_string(),
+            Value::Number(self.errors.len() as f64),
+        );
         obj.insert("errors".to_string(), Value::NativeObject(errors_obj));
 
         Value::NativeObject(obj)
@@ -343,7 +353,10 @@ impl PromiseAll {
         if remaining == 0 {
             // All fulfilled
             let results = self.results.lock();
-            let values: Vec<Value> = results.iter().map(|v| v.clone().unwrap_or(Value::Undefined)).collect();
+            let values: Vec<Value> = results
+                .iter()
+                .map(|v| v.clone().unwrap_or(Value::Undefined))
+                .collect();
 
             // Convert to array-like object
             let mut arr: HashMap<String, Value> = values
@@ -565,10 +578,7 @@ impl PromiseAny {
                 .map(|e| e.clone().unwrap_or(Value::Undefined))
                 .collect();
 
-            let agg_error = AggregateError::new(
-                "All promises were rejected",
-                error_values,
-            );
+            let agg_error = AggregateError::new("All promises were rejected", error_values);
             self.result.write().reject(agg_error.to_value());
         }
     }
@@ -585,13 +595,34 @@ pub fn create_module() -> Value {
 
     // Promise constructor would be a native function
     // Static methods markers
-    exports.insert("resolve".to_string(), Value::String("__native__Promise.resolve".to_string()));
-    exports.insert("reject".to_string(), Value::String("__native__Promise.reject".to_string()));
-    exports.insert("all".to_string(), Value::String("__native__Promise.all".to_string()));
-    exports.insert("race".to_string(), Value::String("__native__Promise.race".to_string()));
-    exports.insert("allSettled".to_string(), Value::String("__native__Promise.allSettled".to_string()));
-    exports.insert("any".to_string(), Value::String("__native__Promise.any".to_string()));
-    exports.insert("withResolvers".to_string(), Value::String("__native__Promise.withResolvers".to_string()));
+    exports.insert(
+        "resolve".to_string(),
+        Value::String("__native__Promise.resolve".to_string()),
+    );
+    exports.insert(
+        "reject".to_string(),
+        Value::String("__native__Promise.reject".to_string()),
+    );
+    exports.insert(
+        "all".to_string(),
+        Value::String("__native__Promise.all".to_string()),
+    );
+    exports.insert(
+        "race".to_string(),
+        Value::String("__native__Promise.race".to_string()),
+    );
+    exports.insert(
+        "allSettled".to_string(),
+        Value::String("__native__Promise.allSettled".to_string()),
+    );
+    exports.insert(
+        "any".to_string(),
+        Value::String("__native__Promise.any".to_string()),
+    );
+    exports.insert(
+        "withResolvers".to_string(),
+        Value::String("__native__Promise.withResolvers".to_string()),
+    );
 
     Value::NativeObject(exports)
 }
@@ -646,7 +677,9 @@ pub mod async_iter {
         /// Return early (optional)
         fn return_value(&mut self, _value: Value) -> Arc<RwLock<Promise>> {
             let promise = Arc::new(RwLock::new(Promise::new()));
-            promise.write().fulfill(AsyncIteratorResult::done().to_value());
+            promise
+                .write()
+                .fulfill(AsyncIteratorResult::done().to_value());
             promise
         }
 
@@ -693,7 +726,9 @@ pub mod async_iter {
                 let result = AsyncIteratorResult::new(value, false);
                 promise.write().fulfill(result.to_value());
             } else {
-                promise.write().fulfill(AsyncIteratorResult::done().to_value());
+                promise
+                    .write()
+                    .fulfill(AsyncIteratorResult::done().to_value());
             }
 
             promise
@@ -703,8 +738,8 @@ pub mod async_iter {
 
 /// for-await-of support
 pub mod for_await {
-    use super::*;
     use super::async_iter::*;
+    use super::*;
 
     /// Execute a for-await-of loop
     pub async fn for_await_of<F>(
@@ -734,7 +769,8 @@ pub mod for_await {
             if let Some(result) = next_result {
                 // Parse the iterator result
                 if let Value::NativeObject(obj) = &result {
-                    let done = obj.get("done")
+                    let done = obj
+                        .get("done")
                         .map(|v| matches!(v, Value::Boolean(true)))
                         .unwrap_or(false);
 
@@ -888,6 +924,3 @@ mod tests {
         assert!(pwr.promise.read().is_pending());
     }
 }
-
-
-

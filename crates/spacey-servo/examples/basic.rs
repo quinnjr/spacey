@@ -3,7 +3,7 @@
 //! This example demonstrates how to use the Spacey JavaScript engine
 //! with Servo-compatible DOM bindings.
 
-use spacey_servo::{SpaceyServo, DomBindings};
+use spacey_servo::{DomBindings, SpaceyServo};
 
 fn main() {
     println!("=== Spacey-Servo Integration Example ===\n");
@@ -17,7 +17,9 @@ fn main() {
     {
         let engine_arc = servo.engine();
         let mut engine = engine_arc.write();
-        bindings.install(&mut engine).expect("Failed to install DOM bindings");
+        bindings
+            .install(&mut engine)
+            .expect("Failed to install DOM bindings");
     }
     println!("✓ Installed DOM bindings");
 
@@ -29,17 +31,20 @@ fn main() {
     // Test DOM operations
     println!("\n--- DOM Operations ---");
 
-    let result = servo.eval(r#"
+    let result = servo.eval(
+        r#"
         var doc = new Document();
         var element = doc.createElement('div');
         element.setAttribute('id', 'test');
         element.getAttribute('id');
-    "#);
+    "#,
+    );
     println!("Created element with id: {:?}", result);
 
     // Test event target
     println!("\n--- Event Target ---");
-    let result = servo.eval(r#"
+    let result = servo.eval(
+        r#"
         var target = new EventTarget();
         var called = false;
         target.addEventListener('test', function() {
@@ -47,20 +52,24 @@ fn main() {
         });
         target.dispatchEvent({ type: 'test' });
         called;
-    "#);
+    "#,
+    );
     println!("Event listener called: {:?}", result);
 
     // Test Window object
     println!("\n--- Window Object ---");
-    let result = servo.eval(r#"
+    let result = servo.eval(
+        r#"
         var win = new Window();
         win.location.href;
-    "#);
+    "#,
+    );
     println!("Window location: {:?}", result);
 
     // Test multiple operations
     println!("\n--- Complex Operations ---");
-    let result = servo.eval(r#"
+    let result = servo.eval(
+        r#"
         var doc = new Document();
         var parent = doc.createElement('div');
         var child1 = doc.createElement('span');
@@ -70,7 +79,8 @@ fn main() {
         parent.appendChild(child2);
 
         parent.children.length;
-    "#);
+    "#,
+    );
     println!("Parent has {} children: {:?}", 2, result);
 
     println!("\n✓ All tests completed successfully!");

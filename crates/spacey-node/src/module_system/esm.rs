@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! ECMAScript Modules (ESM) implementation
 //!
@@ -224,7 +224,11 @@ impl EsmLoader {
 
     /// Check if a path is the main module
     pub fn is_main_module(&self, path: &Path) -> bool {
-        self.main_module.read().as_ref().map(|p| p == path).unwrap_or(false)
+        self.main_module
+            .read()
+            .as_ref()
+            .map(|p| p == path)
+            .unwrap_or(false)
     }
 
     /// Resolve a module specifier
@@ -232,28 +236,22 @@ impl EsmLoader {
         let resolved = self.resolver.resolve(specifier, parent)?;
 
         match resolved {
-            ResolveResult::BuiltIn(name) => {
-                Err(NodeError::ModuleResolution {
-                    module: specifier.to_string(),
-                    reason: format!("Built-in module '{}' cannot be imported as ESM yet", name),
-                })
-            }
-            ResolveResult::BuiltInSubpath { module, subpath } => {
-                Err(NodeError::ModuleResolution {
-                    module: specifier.to_string(),
-                    reason: format!(
-                        "Built-in module '{}' (subpath '{}') cannot be imported as ESM yet",
-                        module, subpath
-                    ),
-                })
-            }
+            ResolveResult::BuiltIn(name) => Err(NodeError::ModuleResolution {
+                module: specifier.to_string(),
+                reason: format!("Built-in module '{}' cannot be imported as ESM yet", name),
+            }),
+            ResolveResult::BuiltInSubpath { module, subpath } => Err(NodeError::ModuleResolution {
+                module: specifier.to_string(),
+                reason: format!(
+                    "Built-in module '{}' (subpath '{}') cannot be imported as ESM yet",
+                    module, subpath
+                ),
+            }),
             ResolveResult::File(path) | ResolveResult::Json(path) => Ok(path),
-            ResolveResult::Native(path) => {
-                Err(NodeError::ModuleResolution {
-                    module: path.display().to_string(),
-                    reason: "Native modules (.node) cannot be imported as ESM".to_string(),
-                })
-            }
+            ResolveResult::Native(path) => Err(NodeError::ModuleResolution {
+                module: path.display().to_string(),
+                reason: "Native modules (.node) cannot be imported as ESM".to_string(),
+            }),
         }
     }
 
@@ -293,7 +291,9 @@ impl EsmLoader {
             if pkg_path.exists() {
                 let content = std::fs::read_to_string(&pkg_path)?;
                 if let Ok(pkg) = serde_json::from_str::<PackageJson>(&content) {
-                    return Ok(Some(ModuleType::from_package_type(pkg.type_field.as_deref())));
+                    return Ok(Some(ModuleType::from_package_type(
+                        pkg.type_field.as_deref(),
+                    )));
                 }
             }
             current = dir.parent();
@@ -307,7 +307,9 @@ impl EsmLoader {
         &'a self,
         specifier: &'a str,
         parent: &'a Path,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<Arc<RwLock<EsmModule>>>> + Send + 'a>> {
+    ) -> std::pin::Pin<
+        Box<dyn std::future::Future<Output = Result<Arc<RwLock<EsmModule>>>> + Send + 'a>,
+    > {
         Box::pin(async move {
             let path = self.resolve(specifier, parent)?;
             self.load_module(&path).await
@@ -318,7 +320,9 @@ impl EsmLoader {
     pub fn load_module<'a>(
         &'a self,
         path: &'a Path,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<Arc<RwLock<EsmModule>>>> + Send + 'a>> {
+    ) -> std::pin::Pin<
+        Box<dyn std::future::Future<Output = Result<Arc<RwLock<EsmModule>>>> + Send + 'a>,
+    > {
         Box::pin(async move {
             let abs_path = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
 
@@ -333,7 +337,9 @@ impl EsmLoader {
                 if let Some(module) = self.cache.get(&abs_path) {
                     return Ok(Arc::clone(module.value()));
                 }
-                return Err(NodeError::CircularDependency(abs_path.display().to_string()));
+                return Err(NodeError::CircularDependency(
+                    abs_path.display().to_string(),
+                ));
             }
 
             // Mark as loading
@@ -369,7 +375,10 @@ impl EsmLoader {
 
     /// Parse module syntax to extract imports and exports
     /// This is a simplified implementation - real version would use the AST
-    fn parse_module_syntax(&self, source: &str) -> Result<(Vec<ImportDeclaration>, Vec<ExportDeclaration>)> {
+    fn parse_module_syntax(
+        &self,
+        source: &str,
+    ) -> Result<(Vec<ImportDeclaration>, Vec<ExportDeclaration>)> {
         let mut imports = Vec::new();
         let mut exports = Vec::new();
 
@@ -378,33 +387,26 @@ impl EsmLoader {
             r#"import\s+(?:(?:(\w+)\s*,?\s*)?(?:\{\s*([^}]*)\s*\})?(?:\*\s+as\s+(\w+))?)\s+from\s+['"]([^'"]+)['"]"#
         ).unwrap();
 
-        let import_side_effect_re = regex::Regex::new(
-            r#"import\s+['"]([^'"]+)['"]"#
-        ).unwrap();
+        let import_side_effect_re = regex::Regex::new(r#"import\s+['"]([^'"]+)['"]"#).unwrap();
 
-        let export_default_re = regex::Regex::new(
-            r#"export\s+default\s+"#
-        ).unwrap();
+        let export_default_re = regex::Regex::new(r#"export\s+default\s+"#).unwrap();
 
-        let export_named_re = regex::Regex::new(
-            r#"export\s+\{\s*([^}]*)\s*\}"#
-        ).unwrap();
+        let export_named_re = regex::Regex::new(r#"export\s+\{\s*([^}]*)\s*\}"#).unwrap();
 
-        let export_re_export_re = regex::Regex::new(
-            r#"export\s+\{\s*([^}]*)\s*\}\s+from\s+['"]([^'"]+)['"]"#
-        ).unwrap();
+        let export_re_export_re =
+            regex::Regex::new(r#"export\s+\{\s*([^}]*)\s*\}\s+from\s+['"]([^'"]+)['"]"#).unwrap();
 
-        let export_all_re = regex::Regex::new(
-            r#"export\s+\*\s+from\s+['"]([^'"]+)['"]"#
-        ).unwrap();
+        let export_all_re = regex::Regex::new(r#"export\s+\*\s+from\s+['"]([^'"]+)['"]"#).unwrap();
 
-        let export_all_as_re = regex::Regex::new(
-            r#"export\s+\*\s+as\s+(\w+)\s+from\s+['"]([^'"]+)['"]"#
-        ).unwrap();
+        let export_all_as_re =
+            regex::Regex::new(r#"export\s+\*\s+as\s+(\w+)\s+from\s+['"]([^'"]+)['"]"#).unwrap();
 
         // Parse imports
         for cap in import_re.captures_iter(source) {
-            let specifier = cap.get(4).map(|m| m.as_str().to_string()).unwrap_or_default();
+            let specifier = cap
+                .get(4)
+                .map(|m| m.as_str().to_string())
+                .unwrap_or_default();
             let mut import_specs = Vec::new();
 
             // Default import
@@ -447,7 +449,10 @@ impl EsmLoader {
 
         // Parse side-effect only imports
         for cap in import_side_effect_re.captures_iter(source) {
-            let specifier = cap.get(1).map(|m| m.as_str().to_string()).unwrap_or_default();
+            let specifier = cap
+                .get(1)
+                .map(|m| m.as_str().to_string())
+                .unwrap_or_default();
             // Skip if already matched as regular import
             if !imports.iter().any(|i| i.specifier == specifier) {
                 imports.push(ImportDeclaration {
@@ -468,8 +473,14 @@ impl EsmLoader {
 
         // Export * as name from 'module'
         for cap in export_all_as_re.captures_iter(source) {
-            let name = cap.get(1).map(|m| m.as_str().to_string()).unwrap_or_default();
-            let from = cap.get(2).map(|m| m.as_str().to_string()).unwrap_or_default();
+            let name = cap
+                .get(1)
+                .map(|m| m.as_str().to_string())
+                .unwrap_or_default();
+            let from = cap
+                .get(2)
+                .map(|m| m.as_str().to_string())
+                .unwrap_or_default();
             exports.push(ExportDeclaration {
                 exports: vec![ExportSpecifier::AllAs(name, from.clone())],
                 from_module: Some(from),
@@ -478,7 +489,10 @@ impl EsmLoader {
 
         // Export * from 'module'
         for cap in export_all_re.captures_iter(source) {
-            let from = cap.get(1).map(|m| m.as_str().to_string()).unwrap_or_default();
+            let from = cap
+                .get(1)
+                .map(|m| m.as_str().to_string())
+                .unwrap_or_default();
             exports.push(ExportDeclaration {
                 exports: vec![ExportSpecifier::All(from.clone())],
                 from_module: Some(from),
@@ -488,7 +502,10 @@ impl EsmLoader {
         // Re-exports: export { ... } from 'module'
         for cap in export_re_export_re.captures_iter(source) {
             let named = cap.get(1).map(|m| m.as_str()).unwrap_or_default();
-            let from = cap.get(2).map(|m| m.as_str().to_string()).unwrap_or_default();
+            let from = cap
+                .get(2)
+                .map(|m| m.as_str().to_string())
+                .unwrap_or_default();
 
             let mut export_specs = Vec::new();
             for part in named.split(',') {
@@ -592,21 +609,14 @@ struct PackageJson {
 }
 
 /// Dynamic import function
-pub async fn dynamic_import(
-    loader: &EsmLoader,
-    specifier: &str,
-    parent: &Path,
-) -> Result<Value> {
+pub async fn dynamic_import(loader: &EsmLoader, specifier: &str, parent: &Path) -> Result<Value> {
     let module = loader.load(specifier, parent).await?;
     let module_read = module.read();
     Ok(module_read.get_namespace())
 }
 
 /// Evaluate an ESM module
-pub fn evaluate_module(
-    _module: &mut EsmModule,
-    _source: &str,
-) -> Result<()> {
+pub fn evaluate_module(_module: &mut EsmModule, _source: &str) -> Result<()> {
     // This would compile and execute the module using the engine
     // For now, just mark as evaluated
     Ok(())
@@ -619,15 +629,30 @@ mod tests {
     #[test]
     fn test_module_type_from_path() {
         assert_eq!(ModuleType::from_path(Path::new("foo.mjs")), ModuleType::ESM);
-        assert_eq!(ModuleType::from_path(Path::new("foo.cjs")), ModuleType::CommonJS);
-        assert_eq!(ModuleType::from_path(Path::new("foo.json")), ModuleType::Json);
-        assert_eq!(ModuleType::from_path(Path::new("foo.js")), ModuleType::Unknown);
+        assert_eq!(
+            ModuleType::from_path(Path::new("foo.cjs")),
+            ModuleType::CommonJS
+        );
+        assert_eq!(
+            ModuleType::from_path(Path::new("foo.json")),
+            ModuleType::Json
+        );
+        assert_eq!(
+            ModuleType::from_path(Path::new("foo.js")),
+            ModuleType::Unknown
+        );
     }
 
     #[test]
     fn test_module_type_from_package() {
-        assert_eq!(ModuleType::from_package_type(Some("module")), ModuleType::ESM);
-        assert_eq!(ModuleType::from_package_type(Some("commonjs")), ModuleType::CommonJS);
+        assert_eq!(
+            ModuleType::from_package_type(Some("module")),
+            ModuleType::ESM
+        );
+        assert_eq!(
+            ModuleType::from_package_type(Some("commonjs")),
+            ModuleType::CommonJS
+        );
         assert_eq!(ModuleType::from_package_type(None), ModuleType::CommonJS);
     }
 
@@ -676,4 +701,3 @@ mod tests {
         assert!(!exports.is_empty());
     }
 }
-

@@ -2,7 +2,7 @@
 
 use owo_colors::OwoColorize;
 
-use crate::cli::{Cli, StoreArgs, StoreAction};
+use crate::cli::{Cli, StoreAction, StoreArgs};
 use crate::error::Result;
 use crate::store::PackageStore;
 
@@ -22,8 +22,16 @@ pub async fn run(args: &StoreArgs, cli: &Cli) -> Result<()> {
             println!();
             println!("  {}: {}", "Location".dimmed(), store.store_dir().display());
             println!("  {}: {}", "Packages".dimmed(), stats.package_count);
-            println!("  {}: {}", "Unique packages".dimmed(), stats.unique_packages);
-            println!("  {}: {}", "Total size".dimmed(), format_bytes(stats.total_size));
+            println!(
+                "  {}: {}",
+                "Unique packages".dimmed(),
+                stats.unique_packages
+            );
+            println!(
+                "  {}: {}",
+                "Total size".dimmed(),
+                format_bytes(stats.total_size)
+            );
             println!(
                 "  {}: {}",
                 "Space saved (est.)".dimmed(),
@@ -73,10 +81,7 @@ pub async fn run(args: &StoreArgs, cli: &Cli) -> Result<()> {
             let packages = store.list_packages();
 
             let filtered: Vec<_> = if let Some(f) = filter {
-                packages
-                    .iter()
-                    .filter(|p| p.name.contains(f))
-                    .collect()
+                packages.iter().filter(|p| p.name.contains(f)).collect()
             } else {
                 packages.iter().collect()
             };
@@ -118,6 +123,3 @@ fn format_bytes(bytes: u64) -> String {
         format!("{} B", bytes)
     }
 }
-
-
-

@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Module loader - reads and compiles modules
 
@@ -34,11 +34,7 @@ impl ModuleLoader {
     }
 
     /// Load a module
-    pub fn load(
-        &mut self,
-        specifier: &str,
-        parent_path: &Path,
-    ) -> Result<Value> {
+    pub fn load(&mut self, specifier: &str, parent_path: &Path) -> Result<Value> {
         // Resolve the module
         let resolved = self.resolver.resolve(specifier, parent_path)?;
 
@@ -202,9 +198,7 @@ fn json_to_value(json: &serde_json::Value) -> Value {
     match json {
         serde_json::Value::Null => Value::Null,
         serde_json::Value::Bool(b) => Value::Boolean(*b),
-        serde_json::Value::Number(n) => {
-            Value::Number(n.as_f64().unwrap_or(0.0))
-        }
+        serde_json::Value::Number(n) => Value::Number(n.as_f64().unwrap_or(0.0)),
         serde_json::Value::String(s) => Value::String(s.clone()),
         serde_json::Value::Array(arr) => {
             let mut obj: std::collections::HashMap<String, Value> = arr
@@ -224,4 +218,3 @@ fn json_to_value(json: &serde_json::Value) -> Value {
         }
     }
 }
-

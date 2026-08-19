@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! # spacey-node
 //!
@@ -77,11 +77,10 @@ pub mod typescript;
 // Re-exports
 pub use error::{NodeError, Result};
 pub use runtime::NodeRuntime;
-pub use typescript::{is_typescript_file, is_jsx_file, TS_EXTENSIONS, ALL_EXTENSIONS};
+pub use typescript::{ALL_EXTENSIONS, TS_EXTENSIONS, is_jsx_file, is_typescript_file};
 
 /// Version of the spacey-node runtime
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Node.js API version compatibility target
 pub const NODE_API_VERSION: &str = "20.0.0";
-

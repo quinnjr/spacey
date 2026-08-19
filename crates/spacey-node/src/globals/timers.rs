@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Timer functions: setTimeout, setInterval, setImmediate, etc.
 
@@ -53,9 +53,7 @@ pub struct Timeout {
 
 impl std::fmt::Debug for Timeout {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Timeout")
-            .field("id", &self.id)
-            .finish()
+        f.debug_struct("Timeout").field("id", &self.id).finish()
     }
 }
 
@@ -102,9 +100,7 @@ pub struct Interval {
 
 impl std::fmt::Debug for Interval {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Interval")
-            .field("id", &self.id)
-            .finish()
+        f.debug_struct("Interval").field("id", &self.id).finish()
     }
 }
 
@@ -158,4 +154,3 @@ impl Immediate {
         // Mark as keeping process alive
     }
 }
-

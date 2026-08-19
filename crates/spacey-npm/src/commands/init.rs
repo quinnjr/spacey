@@ -1,7 +1,7 @@
 //! Init command implementation.
 
-use std::path::PathBuf;
 use owo_colors::OwoColorize;
+use std::path::PathBuf;
 
 use crate::cli::{Cli, InitArgs};
 use crate::error::Result;
@@ -12,7 +12,10 @@ pub async fn run(args: &InitArgs, cli: &Cli) -> Result<()> {
     let pkg_json_path = PathBuf::from("package.json");
 
     if pkg_json_path.exists() && !args.force {
-        println!("{}", "package.json already exists. Use --force to overwrite.".yellow());
+        println!(
+            "{}",
+            "package.json already exists. Use --force to overwrite.".yellow()
+        );
         return Ok(());
     }
 
@@ -33,9 +36,12 @@ pub async fn run(args: &InitArgs, cli: &Cli) -> Result<()> {
         version: Some("1.0.0".to_string()),
         description: Some(String::new()),
         main: Some("index.js".to_string()),
-        scripts: [("test".to_string(), "echo \"Error: no test specified\" && exit 1".to_string())]
-            .into_iter()
-            .collect(),
+        scripts: [(
+            "test".to_string(),
+            "echo \"Error: no test specified\" && exit 1".to_string(),
+        )]
+        .into_iter()
+        .collect(),
         keywords: vec![],
         author: None,
         license: Some("ISC".to_string()),
@@ -52,4 +58,3 @@ pub async fn run(args: &InitArgs, cli: &Cli) -> Result<()> {
 
     Ok(())
 }
-

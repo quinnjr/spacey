@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `http` module implementation
 
@@ -16,11 +16,40 @@ pub fn create_module() -> Value {
 
     // HTTP methods
     let methods = vec![
-        "ACL", "BIND", "CHECKOUT", "CONNECT", "COPY", "DELETE", "GET", "HEAD",
-        "LINK", "LOCK", "M-SEARCH", "MERGE", "MKACTIVITY", "MKCALENDAR", "MKCOL",
-        "MOVE", "NOTIFY", "OPTIONS", "PATCH", "POST", "PROPFIND", "PROPPATCH",
-        "PURGE", "PUT", "REBIND", "REPORT", "SEARCH", "SOURCE", "SUBSCRIBE",
-        "TRACE", "UNBIND", "UNLINK", "UNLOCK", "UNSUBSCRIBE",
+        "ACL",
+        "BIND",
+        "CHECKOUT",
+        "CONNECT",
+        "COPY",
+        "DELETE",
+        "GET",
+        "HEAD",
+        "LINK",
+        "LOCK",
+        "M-SEARCH",
+        "MERGE",
+        "MKACTIVITY",
+        "MKCALENDAR",
+        "MKCOL",
+        "MOVE",
+        "NOTIFY",
+        "OPTIONS",
+        "PATCH",
+        "POST",
+        "PROPFIND",
+        "PROPPATCH",
+        "PURGE",
+        "PUT",
+        "REBIND",
+        "REPORT",
+        "SEARCH",
+        "SOURCE",
+        "SUBSCRIBE",
+        "TRACE",
+        "UNBIND",
+        "UNLINK",
+        "UNLOCK",
+        "UNSUBSCRIBE",
     ];
     // METHODS as array-like object
     let mut methods_obj: HashMap<String, Value> = methods
@@ -34,23 +63,44 @@ pub fn create_module() -> Value {
     // HTTP status codes
     let mut status_codes = HashMap::new();
     status_codes.insert("100".to_string(), Value::String("Continue".to_string()));
-    status_codes.insert("101".to_string(), Value::String("Switching Protocols".to_string()));
+    status_codes.insert(
+        "101".to_string(),
+        Value::String("Switching Protocols".to_string()),
+    );
     status_codes.insert("200".to_string(), Value::String("OK".to_string()));
     status_codes.insert("201".to_string(), Value::String("Created".to_string()));
     status_codes.insert("204".to_string(), Value::String("No Content".to_string()));
-    status_codes.insert("301".to_string(), Value::String("Moved Permanently".to_string()));
+    status_codes.insert(
+        "301".to_string(),
+        Value::String("Moved Permanently".to_string()),
+    );
     status_codes.insert("302".to_string(), Value::String("Found".to_string()));
     status_codes.insert("304".to_string(), Value::String("Not Modified".to_string()));
     status_codes.insert("400".to_string(), Value::String("Bad Request".to_string()));
     status_codes.insert("401".to_string(), Value::String("Unauthorized".to_string()));
     status_codes.insert("403".to_string(), Value::String("Forbidden".to_string()));
     status_codes.insert("404".to_string(), Value::String("Not Found".to_string()));
-    status_codes.insert("405".to_string(), Value::String("Method Not Allowed".to_string()));
-    status_codes.insert("500".to_string(), Value::String("Internal Server Error".to_string()));
-    status_codes.insert("501".to_string(), Value::String("Not Implemented".to_string()));
+    status_codes.insert(
+        "405".to_string(),
+        Value::String("Method Not Allowed".to_string()),
+    );
+    status_codes.insert(
+        "500".to_string(),
+        Value::String("Internal Server Error".to_string()),
+    );
+    status_codes.insert(
+        "501".to_string(),
+        Value::String("Not Implemented".to_string()),
+    );
     status_codes.insert("502".to_string(), Value::String("Bad Gateway".to_string()));
-    status_codes.insert("503".to_string(), Value::String("Service Unavailable".to_string()));
-    exports.insert("STATUS_CODES".to_string(), Value::NativeObject(status_codes));
+    status_codes.insert(
+        "503".to_string(),
+        Value::String("Service Unavailable".to_string()),
+    );
+    exports.insert(
+        "STATUS_CODES".to_string(),
+        Value::NativeObject(status_codes),
+    );
 
     // Global agent
     exports.insert("globalAgent".to_string(), Value::Undefined);
@@ -299,7 +349,9 @@ mod tests {
         res.set_header("Content-Type", "application/json");
 
         assert!(res.has_header("content-type"));
-        assert_eq!(res.get_header("content-type"), Some(&"application/json".to_string()));
+        assert_eq!(
+            res.get_header("content-type"),
+            Some(&"application/json".to_string())
+        );
     }
 }
-

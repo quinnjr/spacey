@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! CommonJS require() implementation
 
@@ -54,10 +54,7 @@ pub fn require_cache(loader: &ModuleLoader) -> Value {
 
     for path in cache.keys() {
         if let Some(module) = cache.get(&path) {
-            obj.insert(
-                path.display().to_string(),
-                module.exports.clone(),
-            );
+            obj.insert(path.display().to_string(), module.exports.clone());
         }
     }
 
@@ -69,4 +66,3 @@ pub fn require_main() -> Value {
     // Would be set when the main module is loaded
     Value::Undefined
 }
-

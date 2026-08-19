@@ -3,9 +3,9 @@
 //! This module provides the event loop that manages async operations,
 //! microtasks, and timers for the JavaScript runtime.
 
+use parking_lot::Mutex;
 use std::collections::VecDeque;
 use std::sync::Arc;
-use parking_lot::Mutex;
 
 /// A task that can be executed in the event loop.
 pub type Task = Box<dyn FnOnce() + Send + 'static>;

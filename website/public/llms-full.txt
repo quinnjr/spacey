@@ -245,7 +245,7 @@ Servo uses SpiderMonkey through:
 ## How to Get Involved
 
 ### For Servo Team Members
-1. Review architecture at: https://github.com/pegasusheavy/spacey
+1. Review architecture at: https://github.com/quinnjr/spacey
 2. Try the REPL: `cargo run`
 3. Run tests: `cargo test`
 4. Open issues for integration requirements
@@ -258,16 +258,16 @@ Servo uses SpiderMonkey through:
 
 ## Links and Resources
 
-- **GitHub Repository**: https://github.com/pegasusheavy/spacey
-- **Documentation Site**: https://pegasusheavy.github.io/spacey/
+- **GitHub Repository**: https://github.com/quinnjr/spacey
+- **Documentation Site**: https://quinnjr.github.io/spacey/
 - **Servo Project**: https://servo.org/
 - **License**: Mozilla Public License 2.0
 
 ## Contact
 
-- **Email**: pegasusheavyindustries@gmail.com
-- **Organization**: Pegasus Heavy Industries, LLC
-- **GitHub Issues**: https://github.com/pegasusheavy/spacey/issues
+- **Email**: quinn.josephr@protonmail.com
+- **Organization**: Joseph R. Quinn
+- **GitHub Issues**: https://github.com/quinnjr/spacey/issues
 
 ---
 

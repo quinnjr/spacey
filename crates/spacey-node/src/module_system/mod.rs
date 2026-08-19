@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js module system implementation
 //!
@@ -29,9 +29,10 @@ mod resolver;
 pub use cache::ModuleCache;
 pub use esm::{EsmLoader, EsmModule, ImportMeta, ModuleType};
 pub use loader::ModuleLoader;
-pub use require::{builtin_modules, is_builtin, require, require_cache, require_main, require_resolve};
-pub use resolver::{
-    BuiltinResolveResult, ModuleResolver, ResolveResult, BUILTIN_MODULES, BUILTIN_SUBPATHS,
-    PROMISE_MODULES,
+pub use require::{
+    builtin_modules, is_builtin, require, require_cache, require_main, require_resolve,
 };
-
+pub use resolver::{
+    BUILTIN_MODULES, BUILTIN_SUBPATHS, BuiltinResolveResult, ModuleResolver, PROMISE_MODULES,
+    ResolveResult,
+};

@@ -2,7 +2,7 @@
 //!
 //! Provides NPM-compatible command line interface.
 
-use clap::{Parser, Subcommand, Args};
+use clap::{Args, Parser, Subcommand};
 
 /// spacey-npm (snpm) - A fast, async, multithreaded NPM-compatible package manager
 #[derive(Parser, Debug)]
@@ -586,4 +586,3 @@ pub enum StoreAction {
         filter: Option<String>,
     },
 }
-

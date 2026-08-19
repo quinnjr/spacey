@@ -2,13 +2,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2025 Pegasus Heavy Industries, LLC
+// Copyright (c) 2025 Joseph R. Quinn
 
 //! Node.js `zlib` module implementation
 
 use crate::error::{NodeError, Result};
-use flate2::read::{DeflateDecoder, DeflateEncoder, GzDecoder, GzEncoder, ZlibDecoder, ZlibEncoder};
 use flate2::Compression;
+use flate2::read::{
+    DeflateDecoder, DeflateEncoder, GzDecoder, GzEncoder, ZlibDecoder, ZlibEncoder,
+};
 use spacey_spidermonkey::Value;
 use std::collections::HashMap;
 use std::io::Read;
@@ -38,7 +40,8 @@ pub fn gzip_sync(data: &[u8], options: Option<ZlibOptions>) -> Result<Vec<u8>> {
     let level = options.map(|o| o.level).unwrap_or(6);
     let mut encoder = GzEncoder::new(data, Compression::new(level));
     let mut result = Vec::new();
-    encoder.read_to_end(&mut result)
+    encoder
+        .read_to_end(&mut result)
         .map_err(|e| NodeError::Generic(format!("Gzip error: {}", e)))?;
     Ok(result)
 }
@@ -47,7 +50,8 @@ pub fn gzip_sync(data: &[u8], options: Option<ZlibOptions>) -> Result<Vec<u8>> {
 pub fn gunzip_sync(data: &[u8]) -> Result<Vec<u8>> {
     let mut decoder = GzDecoder::new(data);
     let mut result = Vec::new();
-    decoder.read_to_end(&mut result)
+    decoder
+        .read_to_end(&mut result)
         .map_err(|e| NodeError::Generic(format!("Gunzip error: {}", e)))?;
     Ok(result)
 }
@@ -57,7 +61,8 @@ pub fn deflate_sync(data: &[u8], options: Option<ZlibOptions>) -> Result<Vec<u8>
     let level = options.map(|o| o.level).unwrap_or(6);
     let mut encoder = ZlibEncoder::new(data, Compression::new(level));
     let mut result = Vec::new();
-    encoder.read_to_end(&mut result)
+    encoder
+        .read_to_end(&mut result)
         .map_err(|e| NodeError::Generic(format!("Deflate error: {}", e)))?;
     Ok(result)
 }
@@ -66,7 +71,8 @@ pub fn deflate_sync(data: &[u8], options: Option<ZlibOptions>) -> Result<Vec<u8>
 pub fn inflate_sync(data: &[u8]) -> Result<Vec<u8>> {
     let mut decoder = ZlibDecoder::new(data);
     let mut result = Vec::new();
-    decoder.read_to_end(&mut result)
+    decoder
+        .read_to_end(&mut result)
         .map_err(|e| NodeError::Generic(format!("Inflate error: {}", e)))?;
     Ok(result)
 }
@@ -76,7 +82,8 @@ pub fn deflate_raw_sync(data: &[u8], options: Option<ZlibOptions>) -> Result<Vec
     let level = options.map(|o| o.level).unwrap_or(6);
     let mut encoder = DeflateEncoder::new(data, Compression::new(level));
     let mut result = Vec::new();
-    encoder.read_to_end(&mut result)
+    encoder
+        .read_to_end(&mut result)
         .map_err(|e| NodeError::Generic(format!("DeflateRaw error: {}", e)))?;
     Ok(result)
 }
@@ -85,7 +92,8 @@ pub fn deflate_raw_sync(data: &[u8], options: Option<ZlibOptions>) -> Result<Vec
 pub fn inflate_raw_sync(data: &[u8]) -> Result<Vec<u8>> {
     let mut decoder = DeflateDecoder::new(data);
     let mut result = Vec::new();
-    decoder.read_to_end(&mut result)
+    decoder
+        .read_to_end(&mut result)
         .map_err(|e| NodeError::Generic(format!("InflateRaw error: {}", e)))?;
     Ok(result)
 }
@@ -131,6 +139,3 @@ mod tests {
         assert_eq!(decompressed, data);
     }
 }
-
-
-

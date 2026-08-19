@@ -96,12 +96,14 @@ impl RegistryClient {
     pub async fn get_package_version(&self, name: &str, version: &str) -> Result<PackageVersion> {
         let package = self.get_package(name).await?;
 
-        package.versions.get(version).cloned().ok_or_else(|| {
-            SnpmError::VersionNotFound {
+        package
+            .versions
+            .get(version)
+            .cloned()
+            .ok_or_else(|| SnpmError::VersionNotFound {
                 package: name.to_string(),
                 version: version.to_string(),
-            }
-        })
+            })
     }
 
     /// Get the latest version of a package.
@@ -386,4 +388,3 @@ mod tests {
         assert_eq!(encode_package_name("@babel/core"), "@babel%2Fcore");
     }
 }
-

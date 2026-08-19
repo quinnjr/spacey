@@ -241,38 +241,41 @@ impl Compiler {
             Statement::For(for_stmt) => {
                 // Check init for var declarations
                 if let Some(ForInit::Declaration(decl)) = &for_stmt.init
-                    && decl.kind == VariableKind::Var {
-                        for declarator in &decl.declarations {
-                            let name = &declarator.id.name;
-                            if !var_names.contains(name) {
-                                var_names.push(name.clone());
-                            }
+                    && decl.kind == VariableKind::Var
+                {
+                    for declarator in &decl.declarations {
+                        let name = &declarator.id.name;
+                        if !var_names.contains(name) {
+                            var_names.push(name.clone());
                         }
                     }
+                }
                 self.collect_hoisted_from_statement(&for_stmt.body, var_names, func_decls);
             }
             Statement::ForIn(for_in) => {
                 if let ForInLeft::Declaration(decl) = &for_in.left
-                    && decl.kind == VariableKind::Var {
-                        for declarator in &decl.declarations {
-                            let name = &declarator.id.name;
-                            if !var_names.contains(name) {
-                                var_names.push(name.clone());
-                            }
+                    && decl.kind == VariableKind::Var
+                {
+                    for declarator in &decl.declarations {
+                        let name = &declarator.id.name;
+                        if !var_names.contains(name) {
+                            var_names.push(name.clone());
                         }
                     }
+                }
                 self.collect_hoisted_from_statement(&for_in.body, var_names, func_decls);
             }
             Statement::ForOf(for_of) => {
                 if let ForInLeft::Declaration(decl) = &for_of.left
-                    && decl.kind == VariableKind::Var {
-                        for declarator in &decl.declarations {
-                            let name = &declarator.id.name;
-                            if !var_names.contains(name) {
-                                var_names.push(name.clone());
-                            }
+                    && decl.kind == VariableKind::Var
+                {
+                    for declarator in &decl.declarations {
+                        let name = &declarator.id.name;
+                        if !var_names.contains(name) {
+                            var_names.push(name.clone());
                         }
                     }
+                }
                 self.collect_hoisted_from_statement(&for_of.body, var_names, func_decls);
             }
             Statement::Switch(switch_stmt) => {
@@ -555,7 +558,9 @@ impl Compiler {
             // At global scope (depth 0), use globals for var declarations
             // This allows functions to access them via LoadGlobal
             if is_global_scope && is_var {
-                let name_idx = self.bytecode.add_constant(Value::String(declarator.id.name.clone()));
+                let name_idx = self
+                    .bytecode
+                    .add_constant(Value::String(declarator.id.name.clone()));
                 self.emit(Instruction::with_operand(
                     OpCode::StoreGlobal,
                     Operand::Property(name_idx),
@@ -1325,7 +1330,9 @@ impl Compiler {
                     _ => return Err(Error::SyntaxError("Invalid property key".into())),
                 },
                 PropertyKey::Computed(_) => {
-                    return Err(Error::SyntaxError("Computed properties not yet supported".into()))
+                    return Err(Error::SyntaxError(
+                        "Computed properties not yet supported".into(),
+                    ));
                 }
             };
 
@@ -1734,12 +1741,8 @@ impl Compiler {
     /// Compile function expressions
     fn compile_function_expr(&mut self, func: &FunctionExpression) -> Result<(), Error> {
         // Collect enclosing scope's local variable names for closure support
-        let enclosing_locals: Vec<String> = self
-            .scope
-            .locals
-            .iter()
-            .map(|l| l.name.clone())
-            .collect();
+        let enclosing_locals: Vec<String> =
+            self.scope.locals.iter().map(|l| l.name.clone()).collect();
 
         // Create a new compiler for the function body with enclosing scope info
         let mut func_compiler = Compiler::new_with_enclosing(enclosing_locals);
@@ -1919,4 +1922,3 @@ impl Default for Compiler {
         Self::new()
     }
 }
-

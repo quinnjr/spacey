@@ -1,7 +1,9 @@
 //! String object method implementations.
 
+use super::regexp_methods::{
+    parse_regexp_string, simple_regex_match, simple_regex_replace, simple_regex_replace_all,
+};
 use crate::runtime::value::Value;
-use super::regexp_methods::{parse_regexp_string, simple_regex_match, simple_regex_replace, simple_regex_replace_all};
 
 /// Call a string method
 pub fn call_string_method(s: &str, method: &str, args: &[Value]) -> Value {
@@ -38,19 +40,34 @@ pub fn call_string_method(s: &str, method: &str, args: &[Value]) -> Value {
         }
         "substring" => {
             let start = args.first().map(|v| v.to_number() as i32).unwrap_or(0);
-            let end = args.get(1).map(|v| v.to_number() as i32).unwrap_or(s.len() as i32);
+            let end = args
+                .get(1)
+                .map(|v| v.to_number() as i32)
+                .unwrap_or(s.len() as i32);
             let len = s.len() as i32;
             let start = start.max(0).min(len) as usize;
             let end = end.max(0).min(len) as usize;
-            let (start, end) = if start > end { (end, start) } else { (start, end) };
+            let (start, end) = if start > end {
+                (end, start)
+            } else {
+                (start, end)
+            };
             Value::String(s.chars().skip(start).take(end - start).collect())
         }
         "slice" => {
             let len = s.len() as i32;
             let start = args.first().map(|v| v.to_number() as i32).unwrap_or(0);
             let end = args.get(1).map(|v| v.to_number() as i32).unwrap_or(len);
-            let start = if start < 0 { (len + start).max(0) } else { start.min(len) } as usize;
-            let end = if end < 0 { (len + end).max(0) } else { end.min(len) } as usize;
+            let start = if start < 0 {
+                (len + start).max(0)
+            } else {
+                start.min(len)
+            } as usize;
+            let end = if end < 0 {
+                (len + end).max(0)
+            } else {
+                end.min(len)
+            } as usize;
             if start >= end {
                 Value::String(String::new())
             } else {
@@ -61,35 +78,44 @@ pub fn call_string_method(s: &str, method: &str, args: &[Value]) -> Value {
             let start = args.first().map(|v| v.to_number() as i32).unwrap_or(0);
             let len_arg = args.get(1).map(|v| v.to_number() as i32);
             let s_len = s.len() as i32;
-            let start = if start < 0 { (s_len + start).max(0) } else { start } as usize;
+            let start = if start < 0 {
+                (s_len + start).max(0)
+            } else {
+                start
+            } as usize;
             let length = len_arg.unwrap_or(s_len - start as i32).max(0) as usize;
             Value::String(s.chars().skip(start).take(length).collect())
         }
-        "toLowerCase" => {
-            Value::String(s.to_lowercase())
-        }
-        "toUpperCase" => {
-            Value::String(s.to_uppercase())
-        }
+        "toLowerCase" => Value::String(s.to_lowercase()),
+        "toUpperCase" => Value::String(s.to_uppercase()),
         "split" => {
             let separator = args.first().map(|v| v.to_js_string()).unwrap_or_default();
             let parts: Vec<Value> = if separator.is_empty() {
                 s.chars().map(|c| Value::String(c.to_string())).collect()
             } else {
-                s.split(&separator).map(|p| Value::String(p.to_string())).collect()
+                s.split(&separator)
+                    .map(|p| Value::String(p.to_string()))
+                    .collect()
             };
             // Return as a simple object representing array (VM will handle creation)
             // For now, return a marker that the VM can process
-            Value::String(format!("__split_result__{}:{}", parts.len(), parts.iter().map(|v| v.to_js_string()).collect::<Vec<_>>().join("\x00")))
+            Value::String(format!(
+                "__split_result__{}:{}",
+                parts.len(),
+                parts
+                    .iter()
+                    .map(|v| v.to_js_string())
+                    .collect::<Vec<_>>()
+                    .join("\x00")
+            ))
         }
-        "trim" => {
-            Value::String(s.trim().to_string())
-        }
+        "trim" => Value::String(s.trim().to_string()),
         "replace" => {
             let (search, is_regexp) = match args.first() {
                 Some(Value::NativeObject(props)) => {
                     // RegExp object - extract __regex__ property
-                    let regex_str = props.get("__regex__")
+                    let regex_str = props
+                        .get("__regex__")
                         .map(|v| v.to_js_string())
                         .unwrap_or_default();
                     (regex_str, true)
@@ -120,7 +146,8 @@ pub fn call_string_method(s: &str, method: &str, args: &[Value]) -> Value {
             let regexp_str = match args.first() {
                 Some(Value::NativeObject(props)) => {
                     // RegExp object - extract __regex__ property
-                    props.get("__regex__")
+                    props
+                        .get("__regex__")
                         .map(|v| v.to_js_string())
                         .unwrap_or_default()
                 }
@@ -142,7 +169,8 @@ pub fn call_string_method(s: &str, method: &str, args: &[Value]) -> Value {
             let regexp_str = match args.first() {
                 Some(Value::NativeObject(props)) => {
                     // RegExp object - extract __regex__ property
-                    props.get("__regex__")
+                    props
+                        .get("__regex__")
                         .map(|v| v.to_js_string())
                         .unwrap_or_default()
                 }
@@ -163,9 +191,7 @@ pub fn call_string_method(s: &str, method: &str, args: &[Value]) -> Value {
             }
             Value::String(result)
         }
-        "toString" | "valueOf" => {
-            Value::String(s.to_string())
-        }
+        "toString" | "valueOf" => Value::String(s.to_string()),
         _ => Value::Undefined,
     }
 }
@@ -203,13 +229,18 @@ mod tests {
 
     #[test]
     fn test_substring() {
-        let result = call_string_method("hello", "substring", &[Value::Number(1.0), Value::Number(3.0)]);
+        let result = call_string_method(
+            "hello",
+            "substring",
+            &[Value::Number(1.0), Value::Number(3.0)],
+        );
         assert!(matches!(result, Value::String(s) if s == "el"));
     }
 
     #[test]
     fn test_slice() {
-        let result = call_string_method("hello", "slice", &[Value::Number(1.0), Value::Number(3.0)]);
+        let result =
+            call_string_method("hello", "slice", &[Value::Number(1.0), Value::Number(3.0)]);
         assert!(matches!(result, Value::String(s) if s == "el"));
 
         // Negative indices
@@ -225,22 +256,21 @@ mod tests {
 
     #[test]
     fn test_replace() {
-        let result = call_string_method("hello world", "replace", &[
-            Value::String("world".into()),
-            Value::String("rust".into())
-        ]);
+        let result = call_string_method(
+            "hello world",
+            "replace",
+            &[Value::String("world".into()), Value::String("rust".into())],
+        );
         assert!(matches!(result, Value::String(s) if s == "hello rust"));
     }
 
     #[test]
     fn test_concat() {
-        let result = call_string_method("hello", "concat", &[
-            Value::String(" ".into()),
-            Value::String("world".into())
-        ]);
+        let result = call_string_method(
+            "hello",
+            "concat",
+            &[Value::String(" ".into()), Value::String("world".into())],
+        );
         assert!(matches!(result, Value::String(s) if s == "hello world"));
     }
 }
-
-
-
